@@ -1,8 +1,7 @@
-import sys
-sys.path.append("C:/Users/Chris/projects/210215_mt5/mt5Server")
-sys.path.append("/")
+# import sys
+# sys.path.append("C:/Users/Chris/projects/210215_mt5/mt5Server")
+# sys.path.append("/")
 
-from myDataFeed.myMt5.MT5Controller import MT5Controller
 from models.Strategies.SwingScalping.Base_SwingScalping import Base_SwingScalping
 
 import os
@@ -52,7 +51,7 @@ class Train_SwingScalping(Base_SwingScalping):
         # define the writer
         r = 0
         # fetch data from database
-        fetchData_cust = self.dataFeeder.downloadData(self.symbol, self.startTime, self.endTime, timeframe='5min')
+        fetchData_cust = self.nodeJsServerController.downloadData(self.symbol, self.startTime, self.endTime, timeframe='5min')
 
         for ratio_sl_sp in np.arange(1.2, 2.2, 0.2):
             for diff_ema_middle_lower in np.arange(20, 80, 10):
@@ -89,8 +88,8 @@ class Train_SwingScalping(Base_SwingScalping):
                                 print(f"Overall Process Time: {processTime}")
 
 
-sybmols = ['GBPUSD', 'CADJPY', 'AUDJPY', 'AUDUSD', 'USDCAD', 'USDJPY', 'EURCAD', 'EURUSD']
-mt5Controller = MT5Controller()
-backTest_SwingScalping = Train_SwingScalping(mt5Controller, 'EURUSD', (2022, 8, 31, 0, 0), (2022, 10, 27, 0, 0))
-# backTest_SwingScalping.test()
-backTest_SwingScalping.loopRun()
+# sybmols = ['GBPUSD', 'CADJPY', 'AUDJPY', 'AUDUSD', 'USDCAD', 'USDJPY', 'EURCAD', 'EURUSD']
+# mt5Controller = MT5Controller()
+# backTest_SwingScalping = Train_SwingScalping(mt5Controller, 'EURUSD', (2022, 8, 31, 0, 0), (2022, 10, 27, 0, 0))
+# # backTest_SwingScalping.test()
+# backTest_SwingScalping.loopRun()
