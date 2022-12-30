@@ -9,13 +9,14 @@ class Base_SwingScalping:
     def __init__(self, mt5Controller, nodeJsServerController, symbol):
         # define the path that store the result doc
         self.backTestDocPath = "./docs/backtest/swingScapling"
-        self.baclTestDocName = "result_{}_{}.csv".format(symbol, timeModel.get_current_time_string())
+        self.backTestDocName = "result_{}_{}.csv".format(symbol, timeModel.get_current_time_string())
         # define the controller
         self.mt5Controller = mt5Controller
         self.symbol = symbol
         self.nodeJsServerController = nodeJsServerController
         self.digits = self.mt5Controller.all_symbol_info[symbol].digits
         self.pt_value = self.mt5Controller.all_symbol_info[symbol].pt_value
+        self.RUNNING = False # means the strategy if running
 
     # prepare for 1-minute data for further analysis (from mySQL database)
     def prepare1MinData(self, startTime, endTime):

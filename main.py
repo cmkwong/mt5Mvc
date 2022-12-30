@@ -6,5 +6,8 @@ from controllers.CommandController import CommandController
 mainController = MainController()
 commandController = CommandController(mainController)
 while(True):
-    command = inputModel.enter()
-    commandController.run(command)
+    # try:
+        command = inputModel.enter()
+        commandController.run(command)
+    # except:
+    #     print('error occurred')

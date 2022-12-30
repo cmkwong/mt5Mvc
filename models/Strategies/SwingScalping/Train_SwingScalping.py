@@ -73,7 +73,7 @@ class Train_SwingScalping(Base_SwingScalping):
                                 riseSummary = self.getSummary(masterSignal, 'rise', ratio_sl_sp, diff_ema_middle_lower, diff_ema_upper_middle, upperEma, middleEma, lowerEma)
                                 downSummary = self.getSummary(masterSignal, 'down', ratio_sl_sp, diff_ema_middle_lower, diff_ema_upper_middle, upperEma, middleEma, lowerEma)
 
-                                with open(os.path.join(self.backTestDocPath, self.baclTestDocName), 'a', newline='', encoding='utf-8') as f:
+                                with open(os.path.join(self.backTestDocPath, self.backTestDocName), 'a', newline='', encoding='utf-8') as f:
                                     writer = csv.writer(f)
                                     # write header
                                     if r == 0:

@@ -8,24 +8,8 @@ import time
 
 
 class Live_SwingScalping(Base_SwingScalping):
-    def __init__(self, mt5Controller, nodeJsServerController, symbol, *,
-                 diff_ema_upper_middle=45, diff_ema_middle_lower=30, ratio_sl_sp=1.5,
-                 lowerEma=25, middleEma=50, upperEma=100,
-                 trendType='rise',
-                 lot=1,
-                 auto=False, tg=None):
+    def __init__(self, mt5Controller, nodeJsServerController, tg=None, *, symbol, auto=False):
         super(Live_SwingScalping, self).__init__(mt5Controller, nodeJsServerController, symbol)
-        self.diff_ema_upper_middle = diff_ema_upper_middle
-        self.diff_ema_middle_lower = diff_ema_middle_lower
-        self.ratio_sl_sp = ratio_sl_sp
-        self.lowerEma = lowerEma
-        self.middleEma = middleEma
-        self.upperEma = upperEma
-
-        self.trendType = trendType  # 'rise' / 'down'
-
-        # lot
-        self.LOT = lot
         # init the variables
         self.breakThroughTime = None
         self.breakThroughCondition, self.trendRangeCondition = False, False
@@ -38,14 +22,14 @@ class Live_SwingScalping(Base_SwingScalping):
 
     @property
     def getName(self):
-        return f"{self.__class__.__name__}_{self.symbol}: {self.trendType} {self.diff_ema_upper_middle} {self.diff_ema_middle_lower} {self.lowerEma} {self.middleEma} {self.upperEma} {self.ratio_sl_sp} {self.LOT}"
+        return f"{self.__class__.__name__}_{self.symbol}: {self.trendType} {self.diff_ema_upper_middle} {self.diff_ema_middle_lower} {self.lowerEma} {self.middleEma} {self.upperEma} {self.ratio_sl_sp} {self.lot}"
 
     def checkValidAction(self, masterSignal, trendType='rise'):
         lastRow = masterSignal.iloc[-1, :]
         currentIndex = masterSignal.index[-1]
         # meet the conditions and have not trade that before and not in-position
         if (lastRow[trendType + 'Break'] and lastRow[trendType + 'Range'] and currentIndex != self.breakThroughTime and not self.inPosition):
-            print(f'{self.symbol} {self.trendType} action going ... ')
+            print(f'{self.symbol} {self.trendType} action going ...\n')
             self.status = {'type': trendType, 'time': self.breakThroughTime, 'sl': lastRow['stopLoss'], 'tp': lastRow['takeProfit']}
             print(self.status)
             # make notice and take action if auto set to True
@@ -53,7 +37,7 @@ class Live_SwingScalping(Base_SwingScalping):
             for k, v in self.status.items():
                 statusTxt += f"{k} {v}\n"
             if not self.auto and self.tg:
-                print_at(statusTxt, tg=self.tg, print_allowed=True, reply_markup=self.tg.actionKeyboard(self.symbol, self.status['sl'], self.status['tp'], deviation=5, lot=self.LOT))
+                print_at(statusTxt, tg=self.tg, print_allowed=True, reply_markup=self.tg.actionKeyboard(self.symbol, self.status['sl'], self.status['tp'], deviation=5, lot=self.lot))
             elif self.auto:
                 # define the action type
                 if self.status['type'] == 'rise':
@@ -67,7 +51,7 @@ class Live_SwingScalping(Base_SwingScalping):
                     sl=float(self.status['sl']),
                     tp=float(self.status['tp']),
                     deviation=5,
-                    lot=self.LOT
+                    lot=self.lot
                 )
                 # execute request
                 self.mt5Controller.executor.request_execute(request)
@@ -76,11 +60,20 @@ class Live_SwingScalping(Base_SwingScalping):
         # reset the notice if in next time slot
         if self.inPosition:
             lastPrice = masterSignal.iloc[-1]['close']
-            if (self.breakThroughTime != masterSignal.index[-1]): # not at the same time
+            if (self.breakThroughTime != masterSignal.index[-1]):  # not at the same time
                 if (self.trendType == 'rise' and (lastPrice >= self.status['tp'] or lastPrice <= self.status['sl'])) or (self.trendType == 'down' and (lastPrice <= self.status['tp'] or lastPrice >= self.status['sl'])):
                     self.inPosition = False
 
-    def run(self):
+    def run(self, diff_ema_upper_middle, diff_ema_middle_lower, ratio_sl_sp, lowerEma, middleEma, upperEma, trendType, lot):
+        self.diff_ema_upper_middle = diff_ema_upper_middle
+        self.diff_ema_middle_lower = diff_ema_middle_lower
+        self.ratio_sl_sp = ratio_sl_sp
+        self.lowerEma = lowerEma
+        self.middleEma = middleEma
+        self.upperEma = upperEma
+        self.trendType = trendType  # 'rise' / 'down'
+        self.lot = lot
+
         while True:
             time.sleep(5)
             # getting latest Prices
