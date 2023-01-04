@@ -11,8 +11,8 @@ class CommandController:
     def run(self, command):
         # take the strategy into live and run
         if command == '-live':
-            txt = self.mainController.strategyController.getListStrategiesText(strategyOperation='live')
-            strategyId = inputModel.askNum(f"{txt}\nPlease input the index: ")
+            strategyListTxt = self.mainController.strategyController.getListStrategiesText(strategyOperation='live')
+            strategyId = inputModel.askNum(f"{strategyListTxt}\nPlease input the index: ")
             strategyName = self.mainController.strategyController.strategiesList['live'][strategyId]['name']
             # loop for each parameter
             for params in myParamModel.STRATEGY_PARAMS['live'][strategyName]:
@@ -26,13 +26,18 @@ class CommandController:
             pass
 
         elif command == '-backtest':
-            txt = self.mainController.strategyController.getListStrategiesText(strategyOperation='backtest')
-            usr_input = inputModel.askNum(f"{txt}\nPlease input the index: ")
+            strategyTxt = self.mainController.strategyController.getListStrategiesText(strategyOperation='backtest')
+            strategyId = inputModel.askNum(f"{strategyTxt}\nPlease input the index: ")
+            strategyName = self.mainController.strategyController.strategiesList['backtest'][strategyId]['name']
             startTime = inputModel.askDate('2022-12-01 00:00', dateFormt='YYYY-MM-DD HH:mm')
             print_at(f"Start date set: {startTime}")
             endTime = inputModel.askDate('2022-12-22 23:59', dateFormt='YYYY-MM-DD HH:mm')
             print_at(f"End date set: {endTime}")
             lot = inputModel.askNum("Please input the lot")
+
+        elif command == '-inventory':
+            inventoryTxt = self.mainController.strategyController.getListStrategiesInventoryText()
+            print_at(inventoryTxt, self.mainController.tg)
 
         # upload the data into mySql server
         elif command == '-upload':

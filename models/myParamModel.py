@@ -1,4 +1,5 @@
 from models.Strategies.SwingScalping.Live_SwingScalping import Live_SwingScalping
+from models.Strategies.SwingScalping.Backtest_SwingScalping import Backtest_SwingScalping
 
 # STRATEGY_PARAMS { Strategy name: [ { 'base', 'run' }, { 'base', 'run' }, ... ] }
 STRATEGY_PARAMS = {
@@ -101,7 +102,9 @@ STRATEGY_PARAMS = {
 
     },
     'backtest': {
-
+        Backtest_SwingScalping.__name__: [
+            {'base': {'symbol': ''}}
+        ]
     },
     # Train_SwingScalping ...
 }
@@ -112,7 +115,7 @@ def getParamtxt(strategyName, strategyType, setType):
     :param strategyName: class object name
     :param strategyType: 'live' / 'train' / 'backtest'
     :param setType: 'base' / 'run'
-    :return:
+    :return: txt
     """
     paramTxt = ''
     for i, mainObj in enumerate(STRATEGY_PARAMS[strategyType][strategyName]):
@@ -123,3 +126,13 @@ def getParamtxt(strategyName, strategyType, setType):
         rowTxt += ';\n'
         paramTxt += rowTxt
     return paramTxt
+
+def getParamDic(strategyName, strategyType, paramId):
+    """
+    :param strategyName: class object name
+    :param strategyType: 'live' / 'train' / 'backtest'
+    :param setType: 'base' / 'run'
+    :return: parameter dict
+    """
+    param = STRATEGY_PARAMS[strategyType][strategyName][int(paramId)]
+    return param['base'], param['run']

@@ -56,7 +56,8 @@ class StrategyController:
         """
         txt = ''
         for id, strategyInventory in self.strategiesInventory.items():
-            txt += f"{id}. {strategyInventory['name']}({strategyInventory['type']}) Running: {strategyInventory['instance'].RUNNING}\n"
+            name = strategyInventory['instance'].getName
+            txt += f"{id}. {name}({strategyInventory['type']}) Running: {strategyInventory['instance'].RUNNING}\n"
         return txt
 
     # define the strategies
