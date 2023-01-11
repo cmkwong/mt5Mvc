@@ -1,3 +1,6 @@
+import sys
+sys.path.append('C:/Users/Chris/projects/221227_mt5Mvc')
+sys.path.append('C:/Users/Chris/projects/AtomLib')
 
 from myUtils import inputModel
 from controllers.MainController import MainController

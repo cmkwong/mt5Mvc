@@ -1,0 +1,13 @@
+~Backtest_SwingScalping
+symbol: USDJPY
+
+~Backtest_SwingScalping.run
+startTime: (2022, 11, 1, 00, 00)
+endTime: (2022, 11, 30, 23, 59)
+lot: 2
+diff_ema_upper_middle: 45
+diff_ema_middle_lower: 30
+ratio_sl_sp: 1.5
+lowerEma: 25
+middleEma: 50
+upperEma: 100

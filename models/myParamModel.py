@@ -110,19 +110,17 @@ STRATEGY_PARAMS = {
 }
 
 
-def getParamtxt(strategyName, strategyType, setType):
+def getParamTxt(strategyName, strategyType):
     """
-    :param strategyName: class object name
+    :param strategyName: str, class object name
     :param strategyType: 'live' / 'train' / 'backtest'
-    :param setType: 'base' / 'run'
     :return: txt
     """
     paramTxt = ''
     for i, mainObj in enumerate(STRATEGY_PARAMS[strategyType][strategyName]):
-        paramObj = mainObj[setType]
-        rowTxt = ''
-        for key, value in paramObj.items():
-            rowTxt += f"{key}: {value}, "
+        rowTxt = f'{i}: '
+        for setType, param in mainObj.items(): # setType: 'base' / 'run'
+            rowTxt += f"({setType}) - {param}; "
         rowTxt += ';\n'
         paramTxt += rowTxt
     return paramTxt
@@ -131,8 +129,9 @@ def getParamDic(strategyName, strategyType, paramId):
     """
     :param strategyName: class object name
     :param strategyType: 'live' / 'train' / 'backtest'
-    :param setType: 'base' / 'run'
+    :param paramId: parameter id
     :return: parameter dict
     """
     param = STRATEGY_PARAMS[strategyType][strategyName][int(paramId)]
     return param['base'], param['run']
+

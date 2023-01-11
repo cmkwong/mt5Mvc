@@ -2,14 +2,15 @@ import pandas as pd
 import numpy as np
 import swifter
 
-from myBacktest import techModel, timeModel
+from myBacktest import techModel
+from myUtils import timeModel
 
 
 class Base_SwingScalping:
     def __init__(self, mt5Controller, nodeJsServerController, symbol):
         # define the path that store the result doc
         self.backTestDocPath = "./docs/backtest/swingScapling"
-        self.backTestDocName = "result_{}_{}.csv".format(symbol, timeModel.get_current_time_string())
+        self.backTestDocName = "result_{}_{}.csv".format(symbol, timeModel.getTimeS(False, outputFormat="%Y%m%d%H%M%S"))
         # define the controller
         self.mt5Controller = mt5Controller
         self.symbol = symbol
@@ -26,6 +27,20 @@ class Base_SwingScalping:
         :return: pd.DataFrame(open, high, low, close)
         """
         self.fetchData_min = self.nodeJsServerController.downloadData(self.symbol, startTime, endTime, timeframe='1min')
+
+    # calculate the win rate
+    def getWinRate(self, masterSignal, trendType='rise'):
+        count = (masterSignal['earning_' + trendType] != 0).sum()
+        positiveProfit = (masterSignal['earning_' + trendType] > 0).sum()
+        if count == 0:
+            winRate = 0.0
+        else:
+            winRate = "{:.2f},".format((positiveProfit / count) * 100)
+        return count, winRate
+
+    # calculate the profit
+    def getProfit(self, masterSignal, trendType='rise'):
+        return "{:.2f}".format(masterSignal['earning_' + trendType].sum())
 
     # calculate the ema difference
     def getRangePointDiff(self, upper, middle, lower):

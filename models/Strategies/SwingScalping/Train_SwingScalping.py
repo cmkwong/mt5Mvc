@@ -17,33 +17,19 @@ class Train_SwingScalping(Base_SwingScalping):
         self.LOT = lot
         self.prepare1MinData(startTime, endTime)
 
-    # calculate the win rate
-    def getWinRate(self, masterSignal, trendType='rise'):
-        count = (masterSignal['earning_' + trendType] != 0).sum()
-        positiveProfit = (masterSignal['earning_' + trendType] > 0).sum()
-        if count == 0:
-            winRate = 0.0
-        else:
-            winRate = "{:.2f},".format((positiveProfit / count) * 100)
-        return count, winRate
-
-    # calculate the profit
-    def getProfit(self, masterSignal, trendType='rise'):
-        return "{:.2f}".format(masterSignal['earning_' + trendType].sum())
-
-    def getSummary(self, masterSignal, trendType='rise', *params):
+    def getSummary(self, masterSignal, ratio_sl_sp, diff_ema_middle_lower, diff_ema_upper_middle, upperEma, middleEma, lowerEma, trendType='rise'):
         count, winRate = self.getWinRate(masterSignal, trendType)
         profit = self.getProfit(masterSignal, trendType)
         summary = {'type': trendType,
                    'count': count,
                    'winRate': winRate,
                    'profit': profit,
-                   'ratio_sl_sp': params[0],
-                   'diff_ema_middle_lower': params[1],
-                   'diff_ema_upper_middle': params[2],
-                   'upperEma': params[3],
-                   'middleEma': params[4],
-                   'lowerEma': params[5]
+                   'ratio_sl_sp': ratio_sl_sp,
+                   'diff_ema_middle_lower': diff_ema_middle_lower,
+                   'diff_ema_upper_middle': diff_ema_upper_middle,
+                   'upperEma': upperEma,
+                   'middleEma': middleEma,
+                   'lowerEma': lowerEma
                    }
         return summary
 
@@ -70,8 +56,8 @@ class Train_SwingScalping(Base_SwingScalping):
                                                                     ratio_sl_sp)
 
                                 # build the dictionary to write into csv
-                                riseSummary = self.getSummary(masterSignal, 'rise', ratio_sl_sp, diff_ema_middle_lower, diff_ema_upper_middle, upperEma, middleEma, lowerEma)
-                                downSummary = self.getSummary(masterSignal, 'down', ratio_sl_sp, diff_ema_middle_lower, diff_ema_upper_middle, upperEma, middleEma, lowerEma)
+                                riseSummary = self.getSummary(masterSignal, ratio_sl_sp, diff_ema_middle_lower, diff_ema_upper_middle, upperEma, middleEma, lowerEma, 'rise')
+                                downSummary = self.getSummary(masterSignal, ratio_sl_sp, diff_ema_middle_lower, diff_ema_upper_middle, upperEma, middleEma, lowerEma, 'down')
 
                                 with open(os.path.join(self.backTestDocPath, self.backTestDocName), 'a', newline='', encoding='utf-8') as f:
                                     writer = csv.writer(f)

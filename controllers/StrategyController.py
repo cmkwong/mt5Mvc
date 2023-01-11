@@ -1,4 +1,7 @@
 from myUtils.printModel import print_at
+from myUtils import paramModel
+
+import config
 from models.Strategies.SwingScalping.Live_SwingScalping import Live_SwingScalping
 from models.Strategies.SwingScalping.Train_SwingScalping import Train_SwingScalping
 from models.Strategies.SwingScalping.Backtest_SwingScalping import Backtest_SwingScalping
@@ -61,9 +64,12 @@ class StrategyController:
         return txt
 
     # define the strategies
-    def appendStrategiesInventory(self, strategyId, strategyOperation, **kwargs):
+    def appendStrategiesInventory(self, strategyId, strategyOperation, ask=False, **kwargs):
         inventoryId = len(self.strategiesInventory.keys())
         strategy = self.strategiesList[strategyOperation][strategyId]
+        # if True then ask user to input the parameter
+        if ask:
+            kwargs = paramModel.ask_params(strategy['class'], config.PARAM_PATH, config.PARAM_FILE)
         instance = strategy['class'](self.mt5Controller, self.nodeJsServerController, **kwargs)
         self.strategiesInventory[inventoryId] = {
             'name': strategy['name'],
@@ -74,16 +80,21 @@ class StrategyController:
         return inventoryId
 
     # run strategy from inventory with threading
-    def runThreadStrategy(self, inventoryId, **kwargs):
+    def runThreadStrategy(self, inventoryId, ask=False, **kwargs):
         """
         :param inventoryId: selected id from defined strategies
         :param kwargs: run() parameters
         """
         strategyInventory = self.strategiesInventory[inventoryId]
         if strategyInventory['instance'].RUNNING:
-            print_at(f"{strategyInventory['name']} with {kwargs} cannot run again. ")
+            print_at(f"{strategyInventory['name']} with cannot run again. ")
             return
-        thread = threading.Thread(target=strategyInventory['instance'].run, args=(*kwargs.values(), ))
+        # if True then ask user to input the parameter
+        if ask:
+            kwargs = paramModel.ask_params(strategyInventory['instance'].run, config.PARAM_PATH, config.PARAM_FILE)
+        # run the threading
+        # thread = threading.Thread(target=strategyInventory['instance'].run, args=(*kwargs.values(), ))
+        thread = threading.Thread(target=strategyInventory['instance'].run, kwargs=kwargs)
         thread.start()
         strategyInventory['instance'].RUNNING = True
         print_at(f"{strategyInventory['name']} running ... with params: \n{kwargs}")

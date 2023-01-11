@@ -1,6 +1,2 @@
-
-
-# STRATEGIES_PARAMS = {
-#
-#
-# }
+PARAM_PATH = './'
+PARAM_FILE = 'param.txt'
