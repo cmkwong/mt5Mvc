@@ -1,10 +1,10 @@
-from models.Strategies.SwingScalping.Live_SwingScalping import Live_SwingScalping
-from models.Strategies.SwingScalping.Backtest_SwingScalping import Backtest_SwingScalping
+from models.Strategies.SwingScalping.Live import Live
+from models.Strategies.SwingScalping.Backtest import Backtest
 
 # STRATEGY_PARAMS { Strategy name: [ { 'base', 'run' }, { 'base', 'run' }, ... ] }
 STRATEGY_PARAMS = {
     'live': {
-        Live_SwingScalping.__name__: [
+        Live.__name__: [
 
             {'base': {'symbol': 'GBPUSD', 'auto': True},
              'run': {
@@ -102,7 +102,7 @@ STRATEGY_PARAMS = {
 
     },
     'backtest': {
-        Backtest_SwingScalping.__name__: [
+        Backtest.__name__: [
             {'base': {'symbol': ''}}
         ]
     },

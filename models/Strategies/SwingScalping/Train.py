@@ -2,16 +2,16 @@
 # sys.path.append("C:/Users/Chris/projects/210215_mt5/mt5Server")
 # sys.path.append("/")
 
-from models.Strategies.SwingScalping.Base_SwingScalping import Base_SwingScalping
+from models.Strategies.SwingScalping.Base import Base
 
 import os
 import csv
 import numpy as np
 import time
 
-class Train_SwingScalping(Base_SwingScalping):
+class Train(Base):
     def __init__(self, mt5Controller, nodeJsServerController, symbol, startTime, endTime, lot=1):
-        super(Train_SwingScalping, self).__init__(mt5Controller, nodeJsServerController, symbol)
+        super(Train, self).__init__(mt5Controller, nodeJsServerController, symbol)
         self.startTime = startTime
         self.endTime = endTime
         self.LOT = lot

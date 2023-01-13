@@ -2,9 +2,7 @@ from myUtils.printModel import print_at
 from myUtils import paramModel
 
 import config
-from models.Strategies.SwingScalping.Live_SwingScalping import Live_SwingScalping
-from models.Strategies.SwingScalping.Train_SwingScalping import Train_SwingScalping
-from models.Strategies.SwingScalping.Backtest_SwingScalping import Backtest_SwingScalping
+import models.Strategies.SwingScalping as SwingScalping
 from models import myParamModel
 import threading
 
@@ -17,33 +15,19 @@ class StrategyController:
         self.strategiesList = {
             'live':
                 {0:
-                     {'name': Live_SwingScalping.__name__, 'class': Live_SwingScalping}
+                     {'name': SwingScalping.Live.__name__, 'class': SwingScalping.Live}
                  },
             'backtest':
                 {0:
-                     {'id': 0, 'name': Backtest_SwingScalping.__name__, 'class': Backtest_SwingScalping}
+                     {'id': 0, 'name': SwingScalping.Backtest.__name__, 'class': SwingScalping.Backtest}
                  },
             'train':
                 {0:
-                     {'id': 0, 'name': Train_SwingScalping.__name__, 'class': Train_SwingScalping}
+                     {'id': 0, 'name': SwingScalping.Train.__name__, 'class': SwingScalping.Train}
                  }
-
         }
         self.Sybmols = defaultSymbols
         self.tg = tg
-
-    # check what is the type of strategies
-    # def _getListStrategies_DISCARD(self, strategyOperation):
-    #     if strategyOperation == 'live':
-    #         listStrategies = self.listLiveStrategies
-    #     elif strategyOperation == 'train':
-    #         listStrategies = self.listTrainStrategies
-    #     elif strategyOperation == 'backtest':
-    #         listStrategies = self.listBacktestStrategies
-    #     else:
-    #         print_at("Wrong strategy type. ", self.tg)
-    #         raise Exception("Wrong strategy type")
-    #     return listStrategies
 
     # get list of strategies text
     def getListStrategiesText(self, strategyOperation):

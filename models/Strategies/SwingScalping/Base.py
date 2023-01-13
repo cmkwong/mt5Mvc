@@ -6,7 +6,7 @@ from myBacktest import techModel
 from myUtils import timeModel
 
 
-class Base_SwingScalping:
+class Base:
     def __init__(self, mt5Controller, nodeJsServerController, symbol):
         # define the path that store the result doc
         self.backTestDocPath = "./docs/backtest/swingScapling"

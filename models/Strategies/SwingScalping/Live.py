@@ -1,15 +1,15 @@
 # import sys
 # sys.path.append('C:/Users/Chris/projects/210215_mt5')
 # sys.path.append('/')
-from models.Strategies.SwingScalping.Base_SwingScalping import Base_SwingScalping
+from models.Strategies.SwingScalping.Base import Base
 from myUtils.printModel import print_at
 
 import time
 
 
-class Live_SwingScalping(Base_SwingScalping):
+class Live(Base):
     def __init__(self, mt5Controller, nodeJsServerController, tg=None, *, symbol, auto=False):
-        super(Live_SwingScalping, self).__init__(mt5Controller, nodeJsServerController, symbol)
+        super(Live, self).__init__(mt5Controller, nodeJsServerController, symbol)
         # init the variables
         self.breakThroughTime = None
         self.breakThroughCondition, self.trendRangeCondition = False, False
