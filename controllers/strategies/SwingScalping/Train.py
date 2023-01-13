@@ -1,8 +1,4 @@
-# import sys
-# sys.path.append("C:/Users/Chris/projects/210215_mt5/mt5Server")
-# sys.path.append("/")
-
-from models.Strategies.SwingScalping.Base import Base
+from controllers.strategies.SwingScalping.Base import Base
 
 import os
 import csv
@@ -10,12 +6,8 @@ import numpy as np
 import time
 
 class Train(Base):
-    def __init__(self, mt5Controller, nodeJsServerController, symbol, startTime, endTime, lot=1):
+    def __init__(self, mt5Controller, nodeJsServerController, *, symbol: str):
         super(Train, self).__init__(mt5Controller, nodeJsServerController, symbol)
-        self.startTime = startTime
-        self.endTime = endTime
-        self.LOT = lot
-        self.prepare1MinData(startTime, endTime)
 
     def getSummary(self, masterSignal, ratio_sl_sp, diff_ema_middle_lower, diff_ema_upper_middle, upperEma, middleEma, lowerEma, trendType='rise'):
         count, winRate = self.getWinRate(masterSignal, trendType)
@@ -33,11 +25,12 @@ class Train(Base):
                    }
         return summary
 
-    def loopRun(self):
+    def run(self, *, startTime: tuple, endTime: tuple):
         # define the writer
         r = 0
         # fetch data from database
-        fetchData_cust = self.nodeJsServerController.downloadData(self.symbol, self.startTime, self.endTime, timeframe='5min')
+        self.prepare1MinData(startTime, endTime)
+        fetchData_cust = self.nodeJsServerController.downloadData(self.symbol, startTime, endTime, timeframe='5min')
 
         for ratio_sl_sp in np.arange(1.2, 2.2, 0.2):
             for diff_ema_middle_lower in np.arange(20, 80, 10):

@@ -96,7 +96,7 @@ class Telegram_Bot:
         # -------------------- Strategy --------------------
         @self.bot.message_handler(commands=['strategy'])
         def strategy_command_handler(message):
-            self.bot.send_message(message.chat.id, "Strategies: ", reply_markup=self.listStrategyKeyboard())
+            self.bot.send_message(message.chat.id, "strategies: ", reply_markup=self.listStrategyKeyboard())
 
         @self.bot.callback_query_handler(func=None, config=self.strategy_factory.filter())
         def choose_strategy_callback(call):

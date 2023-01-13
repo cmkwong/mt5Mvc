@@ -5,7 +5,6 @@ import swifter
 from myBacktest import techModel
 from myUtils import timeModel
 
-
 class Base:
     def __init__(self, mt5Controller, nodeJsServerController, symbol):
         # define the path that store the result doc
@@ -22,8 +21,8 @@ class Base:
     # prepare for 1-minute data for further analysis (from mySQL database)
     def prepare1MinData(self, startTime, endTime):
         """
-        :param startTime:
-        :param endTime:
+        :param startTime: (2022, 12, 2, 0, 0)
+        :param endTime: (2022, 12, 31, 23, 59)
         :return: pd.DataFrame(open, high, low, close)
         """
         self.fetchData_min = self.nodeJsServerController.downloadData(self.symbol, startTime, endTime, timeframe='1min')

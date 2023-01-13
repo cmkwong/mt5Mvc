@@ -1,5 +1,5 @@
-from models.Strategies.SwingScalping.Live import Live
-from models.Strategies.SwingScalping.Backtest import Backtest
+from controllers.strategies.SwingScalping.Live import Live
+from controllers.strategies.SwingScalping.Backtest import Backtest
 
 # STRATEGY_PARAMS { Strategy name: [ { 'base', 'run' }, { 'base', 'run' }, ... ] }
 STRATEGY_PARAMS = {

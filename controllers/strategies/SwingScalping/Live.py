@@ -1,11 +1,7 @@
-# import sys
-# sys.path.append('C:/Users/Chris/projects/210215_mt5')
-# sys.path.append('/')
-from models.Strategies.SwingScalping.Base import Base
+from controllers.strategies.SwingScalping.Base import Base
 from myUtils.printModel import print_at
 
 import time
-
 
 class Live(Base):
     def __init__(self, mt5Controller, nodeJsServerController, tg=None, *, symbol, auto=False):
@@ -64,7 +60,7 @@ class Live(Base):
                 if (self.trendType == 'rise' and (lastPrice >= self.status['tp'] or lastPrice <= self.status['sl'])) or (self.trendType == 'down' and (lastPrice <= self.status['tp'] or lastPrice >= self.status['sl'])):
                     self.inPosition = False
 
-    def run(self, diff_ema_upper_middle, diff_ema_middle_lower, ratio_sl_sp, lowerEma, middleEma, upperEma, trendType, lot):
+    def run(self, *, diff_ema_upper_middle: int, diff_ema_middle_lower: int, ratio_sl_sp: float, lowerEma: int, middleEma: int, upperEma: int, trendType: str, lot: int):
         self.diff_ema_upper_middle = diff_ema_upper_middle
         self.diff_ema_middle_lower = diff_ema_middle_lower
         self.ratio_sl_sp = ratio_sl_sp

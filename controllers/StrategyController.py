@@ -1,11 +1,11 @@
 from myUtils.printModel import print_at
 from myUtils import paramModel
+from controllers.strategies.SwingScalping.Live import Live as SwingScalping_Live
+from controllers.strategies.SwingScalping.Backtest import Backtest as SwingScalping_Backtest
+from controllers.strategies.SwingScalping.Train import Train as SwingScalping_Train
 
 import config
-import models.Strategies.SwingScalping as SwingScalping
-from models import myParamModel
 import threading
-
 
 class StrategyController:
     def __init__(self, mt5Controller, nodeJsServerController, defaultSymbols, tg=None):
@@ -15,15 +15,15 @@ class StrategyController:
         self.strategiesList = {
             'live':
                 {0:
-                     {'name': SwingScalping.Live.__name__, 'class': SwingScalping.Live}
+                     {'name': SwingScalping_Live.__name__, 'class': SwingScalping_Live}
                  },
             'backtest':
                 {0:
-                     {'id': 0, 'name': SwingScalping.Backtest.__name__, 'class': SwingScalping.Backtest}
+                     {'id': 0, 'name': SwingScalping_Backtest.__name__, 'class': SwingScalping_Backtest}
                  },
             'train':
                 {0:
-                     {'id': 0, 'name': SwingScalping.Train.__name__, 'class': SwingScalping.Train}
+                     {'id': 0, 'name': SwingScalping_Train.__name__, 'class': SwingScalping_Train}
                  }
         }
         self.Sybmols = defaultSymbols

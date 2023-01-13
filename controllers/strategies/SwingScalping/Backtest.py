@@ -1,11 +1,4 @@
-# import sys
-#
-# sys.path.append("C:/Users/Chris/projects/210215_mt5/mt5Server")
-# sys.path.append("/")
-
-from myDataFeed.myMt5.MT5Controller import MT5Controller
-from models.Strategies.SwingScalping.Base import Base
-
+from controllers.strategies.SwingScalping.Base import Base
 
 class Backtest(Base):
     def __init__(self, mt5Controller, nodeJsServerController, *, symbol: str):
@@ -29,8 +22,3 @@ class Backtest(Base):
             count, winRate = self.getWinRate(masterSignal, trendType)
             profit = self.getProfit(masterSignal, trendType)
             print(f"Type: {trendType}, Count: {count}, Win Rate: {winRate}, Profit: {profit}")
-
-# mt5Controller = MT5Controller()
-# backtest_SwingScalping = Backtest_SwingScalping(mt5Controller, 'USDJPY', (2022, 8, 31, 0, 0), (2022, 10, 27, 0, 0))
-# masterSignal = backtest_SwingScalping.run(diff_ema_upper_middle=45, diff_ema_middle_lower=30, ratio_sl_sp=1.5,
-#                            lowerEma=25, middleEma=50, upperEma=100)
