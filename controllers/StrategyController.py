@@ -7,6 +7,7 @@ from controllers.strategies.SwingScalping.Train import Train as SwingScalping_Tr
 import config
 import threading
 
+
 class StrategyController:
     def __init__(self, mt5Controller, nodeJsServerController, defaultSymbols, tg=None):
         self.mt5Controller = mt5Controller
