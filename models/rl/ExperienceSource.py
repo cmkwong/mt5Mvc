@@ -146,7 +146,7 @@ class ExperienceSourceCMK:
         self.env = env
         self.agent = agent
         self.steps_count = steps_count
-        self.total_rewards, self.total_steps = None, None
+        self.doneRewards, self.doneSteps = None, None
 
     def init_source(self):
         history = []
@@ -170,15 +170,15 @@ class ExperienceSourceCMK:
                 yield history
                 history = []
             if is_done:
-                self.total_rewards = cur_reward
-                self.total_steps = cur_step
+                self.doneRewards = cur_reward
+                self.doneSteps = cur_step
                 state, history, cur_reward, cur_step = self.init_source()
 
     def pop_rewards_steps(self):
-        if self.total_rewards != None and self.total_steps != None:
-            res = [self.total_rewards, self.total_steps]
-            self.total_rewards, self.total_steps = None, None
-            return res
+        if self.doneRewards != None and self.doneSteps != None:
+            doneRewards_doneSteps = [self.doneRewards, self.doneSteps]
+            self.doneRewards, self.doneSteps = None, None
+            return doneRewards_doneSteps
         return False
 
 # those entries are emitted from ExperienceSourceFirstLast. Reward is discounted over the trajectory piece

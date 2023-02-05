@@ -52,36 +52,33 @@ class BaseAgent:
         np_states = np.array(states, dtype=np.float32)
         return torch.from_numpy(np_states)
 
-class TgtNetSwitcher:
-    def __init__(self, net, **kw):
-        self.net = net
-        self.tgt_net = copy.deepcopy(net)
-    
-    def train_mode(self, batch_size):
-        self.net.train()
-        self.net.zero_grad()
-        # self.net.init_hidden(batch_size)
-
-        self.tgt_net.eval()
-        # self.tgt_net.init_hidden(batch_size)
-
-    def eval_mode(self, batch_size):
-        self.net.eval()
-        # self.net.init_hidden(batch_size)
-
-    def populate_mode(self, batch_size):
-        self.net.eval()
-        # self.net.init_hidden(batch_size)
-
-class DQNAgent(BaseAgent, TgtNetSwitcher):
+class DQNAgent(BaseAgent):
     """
     DQNAgent is a memoryless DQN agent which calculates Q values
     from the observations and  converts them into the actions using action_selector
     """
     def __init__(self, net, action_selector, preprocessor, train_on_gpu=True):
-        super(DQNAgent, self).__init__(train_on_gpu=train_on_gpu, net=net)
+        super(DQNAgent, self).__init__(train_on_gpu=train_on_gpu)
+        self.net = net
+        self.tgt_net = copy.deepcopy(net)
         self.action_selector = action_selector
         self.preprocessor = preprocessor if preprocessor else self.default_states_preprocessor
+
+    def switchNetMode(self, mode='train'):
+        if mode == 'train':
+            self.net.train()
+            self.net.zero_grad()
+            # self.net.init_hidden(batch_size)
+            self.tgt_net.eval()
+            # self.tgt_net.init_hidden(batch_size)
+
+        elif mode == 'eval':
+            self.net.eval()
+            # self.net.init_hidden(batch_size)
+
+        elif mode == 'populate':
+            self.net.eval()
+            # self.net.init_hidden(batch_size)
 
     def unpack_batch(self, batch):
         states, actions, rewards, dones, last_states = [], [], [], [], []
