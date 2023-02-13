@@ -80,7 +80,7 @@ class DQNAgent(BaseAgent):
             self.net.eval()
             # self.net.init_hidden(batch_size)
 
-    def unpack_batch(self, batch):
+    def unpackBatch(self, batch):
         states, actions, rewards, dones, last_states = [], [], [], [], []
         for exp in batch:
             states.append(exp.state)
@@ -99,7 +99,7 @@ class DQNAgent(BaseAgent):
         :param gamma: float
         :return:
         """
-        states, actions, rewards, dones, next_states = self.unpack_batch(batch)
+        states, actions, rewards, dones, next_states = self.unpackBatch(batch)
 
         states_v = states
         next_states_v = next_states

@@ -31,6 +31,9 @@ class CommandController:
                 self.mainController.strategyController.runThreadStrategy(inventoryId, **runParam)
 
         elif command == '-train':
+            strategyListTxt = self.mainController.strategyController.getListStrategiesText(strategyOperation='train')
+            strategyId = inputModel.askNum(f"{strategyListTxt}\nPlease input the index: ")
+            strategyName = self.mainController.strategyController.strategiesList['train'][strategyId]['name']
             pass
 
         elif command == '-backtest':

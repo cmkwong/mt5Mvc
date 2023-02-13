@@ -1,6 +1,6 @@
 from controllers.strategies.SwingScalping.Base import Base
 from myUtils.printModel import print_at
-
+import os
 import time
 
 class Live(Base):
@@ -17,8 +17,12 @@ class Live(Base):
         self.tg = tg
 
     @property
-    def getName(self):
+    def getIdentity(self):
         return f"{self.__class__.__name__}_{self.symbol}: {self.trendType} {self.diff_ema_upper_middle} {self.diff_ema_middle_lower} {self.lowerEma} {self.middleEma} {self.upperEma} {self.ratio_sl_sp} {self.lot}"
+
+    def __set_name__(self, owner, name):
+        parentFolder = os.path.basename(os.getcwd())
+        return f'{parentFolder}({self.__class__.__name__})'
 
     def checkValidAction(self, masterSignal, trendType='rise'):
         lastRow = masterSignal.iloc[-1, :]

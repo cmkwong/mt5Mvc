@@ -1,8 +1,11 @@
 from myUtils.printModel import print_at
-from myUtils import paramModel
+from myUtils import paramModel, fileModel
 from controllers.strategies.SwingScalping.Live import Live as SwingScalping_Live
+
 from controllers.strategies.SwingScalping.Backtest import Backtest as SwingScalping_Backtest
+
 from controllers.strategies.SwingScalping.Train import Train as SwingScalping_Train
+from controllers.strategies.RL.Train import Train as RL_Train
 
 import config
 import threading
@@ -16,16 +19,17 @@ class StrategyController:
         self.strategiesList = {
             'live':
                 {0:
-                     {'name': SwingScalping_Live.__name__, 'class': SwingScalping_Live}
+                     {'name': fileModel.getParentFolderName(SwingScalping_Live), 'class': SwingScalping_Live}
                  },
             'backtest':
                 {0:
-                     {'id': 0, 'name': SwingScalping_Backtest.__name__, 'class': SwingScalping_Backtest}
+                     {'id': 0, 'name': fileModel.getParentFolderName(SwingScalping_Backtest), 'class': SwingScalping_Backtest}
                  },
             'train':
-                {0:
-                     {'id': 0, 'name': SwingScalping_Train.__name__, 'class': SwingScalping_Train}
-                 }
+                {
+                    0: {'id': 0, 'name': fileModel.getParentFolderName(SwingScalping_Train), 'class': SwingScalping_Train},
+                    1: {'id': 1, 'name': fileModel.getParentFolderName(RL_Train), 'class': RL_Train}
+                }
         }
         self.Sybmols = defaultSymbols
         self.tg = tg
@@ -44,8 +48,8 @@ class StrategyController:
         """
         txt = ''
         for id, strategyInventory in self.strategiesInventory.items():
-            name = strategyInventory['instance'].getName
-            txt += f"{id}. {name}({strategyInventory['type']}) Running: {strategyInventory['instance'].RUNNING}\n"
+            identity = strategyInventory['instance'].getIdentity
+            txt += f"{id}. {identity}({strategyInventory['type']}) Running: {strategyInventory['instance'].RUNNING}\n"
         return txt
 
     # define the strategies

@@ -3,7 +3,7 @@ import torch
 from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 
-from controllers.strategies.rl.Options import Options
+from controllers.strategies.RL.Options import Options
 from myDataFeed.myMt5.MT5Controller import MT5Controller
 from models.rl.State import State
 from models.rl.Env import Env
@@ -30,6 +30,11 @@ class Train(Options):
         self.initSummaryWriter()
         self.initTracker()
         self.step_idx = 0
+
+    @property
+    def getName(self):
+        parentFolder = os.path.basename(os.getcwd())
+        return f'{parentFolder}({self.__class__.__name__})'
 
     def initTrainTestSet(self):
         self.mt5Controller = MT5Controller(timezone=self.data_options['timezone'], deposit_currency=self.data_options['deposit_currency'])

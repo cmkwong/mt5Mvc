@@ -95,8 +95,8 @@ class Base:
         # getting earning
         if needEarning:
             signal['quote_exchg'] = ohlcvs.quote_exchg
-            signal['earning_rise'] = signal.apply(lambda r: self.getEarning(r.name, r['riseBreak'], r['riseRange'], r['open'], r['quote_exchg'], r['stopLoss'], r['takeProfit'], 'rise'), axis=1)
-            signal['earning_down'] = signal.apply(lambda r: self.getEarning(r.name, r['downBreak'], r['downRange'], r['open'], r['quote_exchg'], r['stopLoss'], r['takeProfit'], 'down'), axis=1)
+            signal['earning_rise'] = signal.apply(lambda r: self.getEarning(r.getName, r['riseBreak'], r['riseRange'], r['open'], r['quote_exchg'], r['stopLoss'], r['takeProfit'], 'rise'), axis=1)
+            signal['earning_down'] = signal.apply(lambda r: self.getEarning(r.getName, r['downBreak'], r['downRange'], r['open'], r['quote_exchg'], r['stopLoss'], r['takeProfit'], 'down'), axis=1)
 
         return signal
 

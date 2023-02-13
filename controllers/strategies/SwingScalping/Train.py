@@ -9,6 +9,11 @@ class Train(Base):
     def __init__(self, mt5Controller, nodeJsServerController, *, symbol: str):
         super(Train, self).__init__(mt5Controller, nodeJsServerController, symbol)
 
+    @property
+    def getName(self):
+        parentFolder = os.path.basename(os.getcwd())
+        return f'{parentFolder}({self.__class__.__name__})'
+
     def getSummary(self, masterSignal, ratio_sl_sp, diff_ema_middle_lower, diff_ema_upper_middle, upperEma, middleEma, lowerEma, trendType='rise'):
         count, winRate = self.getWinRate(masterSignal, trendType)
         profit = self.getProfit(masterSignal, trendType)

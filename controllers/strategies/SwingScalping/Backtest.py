@@ -1,8 +1,14 @@
+import os
 from controllers.strategies.SwingScalping.Base import Base
 
 class Backtest(Base):
     def __init__(self, mt5Controller, nodeJsServerController, *, symbol: str):
         super(Backtest, self).__init__(mt5Controller, nodeJsServerController, symbol)
+
+    @property
+    def getName(self):
+        parentFolder = os.path.basename(os.getcwd())
+        return f'{parentFolder}({self.__class__.__name__})'
 
     def run(self, *, startTime: tuple, endTime: tuple, lot: int, diff_ema_upper_middle: int, diff_ema_middle_lower: int, ratio_sl_sp: float,
             lowerEma: int, middleEma: int, upperEma: int):

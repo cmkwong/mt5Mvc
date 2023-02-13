@@ -1,10 +1,12 @@
-from controllers.strategies.SwingScalping.Live import Live
-from controllers.strategies.SwingScalping.Backtest import Backtest
+from controllers.strategies.SwingScalping.Live import Live as SwingScalping_Live
+from controllers.strategies.SwingScalping.Backtest import Backtest as SwingScalping_Backtest
+from myUtils import fileModel
+from controllers.strategies.RL.Train import Train as RL_Train
 
 # STRATEGY_PARAMS { Strategy name: [ { 'base', 'run' }, { 'base', 'run' }, ... ] }
 STRATEGY_PARAMS = {
     'live': {
-        Live.__name__: [
+        fileModel.getParentFolderName(SwingScalping_Live): [
 
             {'base': {'symbol': 'GBPUSD', 'auto': True},
              'run': {
@@ -99,10 +101,12 @@ STRATEGY_PARAMS = {
         ],
     },
     'train': {
-
+        fileModel.getParentFolderName(RL_Train): [
+            {'base': {}, 'run': {}}
+        ]
     },
     'backtest': {
-        Backtest.__name__: [
+        fileModel.getParentFolderName(SwingScalping_Backtest): [
             {'base': {'symbol': ''}}
         ]
     },
@@ -119,11 +123,12 @@ def getParamTxt(strategyName, strategyType):
     paramTxt = ''
     for i, mainObj in enumerate(STRATEGY_PARAMS[strategyType][strategyName]):
         rowTxt = f'{i}: '
-        for setType, param in mainObj.items(): # setType: 'base' / 'run'
+        for setType, param in mainObj.items():  # setType: 'base' / 'run'
             rowTxt += f"({setType}) - {param}; "
         rowTxt += ';\n'
         paramTxt += rowTxt
     return paramTxt
+
 
 def getParamDic(strategyName, strategyType, paramId):
     """
@@ -134,4 +139,3 @@ def getParamDic(strategyName, strategyType, paramId):
     """
     param = STRATEGY_PARAMS[strategyType][strategyName][int(paramId)]
     return param['base'], param['run']
-

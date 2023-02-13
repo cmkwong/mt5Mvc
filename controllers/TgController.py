@@ -107,11 +107,11 @@ class Telegram_Bot:
             self.bot.send_message(message.chat.id, 'Symbols:', reply_markup=self.listSymbolKeyboard())
 
         # -------------------- Running Strategy List --------------------
-        @self.bot.message_handler(commands=['rl'])  # running strategy list
+        @self.bot.message_handler(commands=['RL'])  # running strategy list
         def showRunStrategy_command_handler(message):
             txt = ''
             for i, strategy in enumerate(self.strategyController.runningStrategies):
-                txt += f"{i + 1}. {strategy.getName}\n"
+                txt += f"{i + 1}. {strategy.getIdentity}\n"
             self.bot.send_message(message.chat.id, f"Running Strategy: \n{txt}")
 
         # -------------------- Showing last deal result --------------------
