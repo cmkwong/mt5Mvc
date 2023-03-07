@@ -1,7 +1,9 @@
-from controllers.strategies.SwingScalping.Live import Live as SwingScalping_Live
-from controllers.strategies.SwingScalping.Backtest import Backtest as SwingScalping_Backtest
+from controllers.strategies.SwingScalping.Live import Live as           SwingScalping_Live
+from controllers.strategies.Covariance.Live import Live as              Covariance_Live
+from controllers.strategies.SwingScalping.Backtest import Backtest as   SwingScalping_Backtest
+from controllers.strategies.RL_Simple.Train import Train as             RL_Train
+
 from myUtils import fileModel
-from controllers.strategies.RL.Train import Train as RL_Train
 
 # STRATEGY_PARAMS { Strategy name: [ { 'base', 'run' }, { 'base', 'run' }, ... ] }
 STRATEGY_PARAMS = {
@@ -99,6 +101,9 @@ STRATEGY_PARAMS = {
                  'trendType': 'down', 'lot': 2,
              }},
         ],
+        fileModel.getParentFolderName(Covariance_Live): [
+            {'base': {}, 'run': {'symbol': 'CADJPY', 'start': (2022, 6, 1, 0, 0), 'end': (2023, 2, 28, 23, 59), 'timeframe': '1H'}}
+        ]
     },
     'train': {
         fileModel.getParentFolderName(RL_Train): [

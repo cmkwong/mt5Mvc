@@ -11,3 +11,4 @@ ratio_sl_sp: 1.5
 lowerEma: 25
 middleEma: 50
 upperEma: 100
+

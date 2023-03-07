@@ -1,7 +1,5 @@
-from myUtils.printModel import print_at
-from myUtils import inputModel
-
-from models import myParamModel
+from models.myUtils.printModel import print_at
+from models.myUtils import inputModel
 
 class CommandController:
     def __init__(self, mainController):
@@ -14,33 +12,24 @@ class CommandController:
             strategyId = inputModel.askNum(f"{strategyListTxt}\nPlease input the index: ")
             strategyName = self.mainController.strategyController.strategiesList['live'][strategyId]['name']
             if inputModel.askConfirm("Do you want to run all of parameter?"): # ask for default all parameter or select specific parameter
-                # loop for each parameter
-                for params in myParamModel.STRATEGY_PARAMS['live'][strategyName]:
-                    baseParam, runParam = params['base'], params['run']
-                    # define the strategies
-                    inventoryId = self.mainController.strategyController.appendStrategiesInventory(strategyId, 'live', **baseParam)
-                    # run strategy on thread
-                    self.mainController.strategyController.runThreadStrategy(inventoryId, **runParam)
+                self.mainController.strategyController.runAllParam(strategyId, strategyName, 'live')
             else:
-                # ask which of parameter going to be selected
-                paramTxt = myParamModel.getParamTxt(strategyName, 'live')
-                paramId = inputModel.askNum(f"{paramTxt}\nPlease input the index: ")
-                # get the selected param
-                baseParam, runParam = myParamModel.getParamDic(strategyName, 'live', paramId)
-                inventoryId = self.mainController.strategyController.appendStrategiesInventory(strategyId, 'live', **baseParam)
-                self.mainController.strategyController.runThreadStrategy(inventoryId, **runParam)
+                self.mainController.strategyController.selectOneParam(strategyId, strategyName, 'live')
 
         elif command == '-train':
             strategyListTxt = self.mainController.strategyController.getListStrategiesText(strategyOperation='train')
             strategyId = inputModel.askNum(f"{strategyListTxt}\nPlease input the index: ")
             strategyName = self.mainController.strategyController.strategiesList['train'][strategyId]['name']
-            pass
+            if inputModel.askConfirm("Do you want to run all of parameter?"):  # ask for default all parameter or select specific parameter
+                self.mainController.strategyController.runAllParam(strategyId, strategyName, 'train')
+            else:
+                self.mainController.strategyController.selectOneParam(strategyId, strategyName, 'train')
 
         elif command == '-backtest':
             strategyTxt = self.mainController.strategyController.getListStrategiesText(strategyOperation='backtest')
             strategyId = inputModel.askNum(f"{strategyTxt}\nPlease input the index: ")
             inventoryId = self.mainController.strategyController.appendStrategiesInventory(strategyId, 'backtest', ask=True)
-            self.mainController.strategyController.runThreadStrategy(inventoryId, ask=True)
+            self.mainController.strategyController.runThreadStrategy(inventoryId, ask=False)
 
 
         elif command == '-inventory':
@@ -49,9 +38,9 @@ class CommandController:
 
         # upload the data into mySql server
         elif command == '-upload':
-            startTime = inputModel.askDate('2022-12-01 00:00', dateFormat='YYYY-MM-DD HH:mm')
+            startTime = inputModel.askDate(defaultDate='2023-02-01 00:00', dateFormat='%Y-%m-%d %H:%M')
             print_at(f"Start date set: {startTime}")
-            endTime = inputModel.askDate('2022-12-31 23:59', dateFormat='YYYY-MM-DD HH:mm')
+            endTime = inputModel.askDate(defaultDate='2023-02-25 23:59', dateFormat='%Y-%m-%d %H:%M')
             print_at(f"End date set: {endTime}")
             self.mainController.nodeJsServerController.uploadDatas(self.mainController.defaultSymbols, startTime, endTime)
         else:

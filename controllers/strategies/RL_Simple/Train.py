@@ -1,11 +1,9 @@
 import os
 import torch
 from torch.utils.tensorboard import SummaryWriter
-import numpy as np
 
-from controllers.strategies.RL.Options import Options
-from myDataFeed.myMt5.MT5Controller import MT5Controller
-from models.rl.State import State
+from controllers.strategies.RL_Simple.Options import Options
+from models.rl.State import State, AttnState
 from models.rl.Env import Env
 from models.rl.Nets import AttentionTimeSeries, SimpleFFDQN, SimpleLSTM
 from models.rl.Actions import EpsilonGreedyActionSelector
@@ -17,11 +15,16 @@ from models.rl.Tracker import Tracker
 
 
 class Train(Options):
-    def __init__(self):
+    def __init__(self, mt5Controller, nodeJsServerController):
         super(Train, self).__init__()
+        self.mt5Controller = mt5Controller
+        self.nodeJsServerController = nodeJsServerController
+        self.RUNNING = False
         self.initTrainTestSet()
         self.initState()
         self.initEnv()
+        self.initNet()
+        self.initSelector()
         self.initAgent()
         self.initExpSource()
         self.initExpBuffer()
@@ -37,7 +40,6 @@ class Train(Options):
         return f'{parentFolder}({self.__class__.__name__})'
 
     def initTrainTestSet(self):
-        self.mt5Controller = MT5Controller(timezone=self.data_options['timezone'], deposit_currency=self.data_options['deposit_currency'])
         # get the loader
         Prices = self.mt5Controller.pricesLoader.getPrices(symbols=self.data_options['symbols'],
                                                            start=self.data_options['start'],
@@ -49,19 +51,28 @@ class Train(Options):
 
     def initState(self):
         # build the state
-        self.state = State(self.Train_Prices, self.data_options['symbol'], self.tech_params,
-                           self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
-                           self.mt5Controller.all_symbol_info, self.state_options['reset_on_close'])
-        self.state_val = State(self.Test_Prices, self.data_options['symbol'], self.tech_params,
+        if self.RL_options['netType'] == 'simple':
+            self.state = State(self.Train_Prices, self.data_options['symbols'][0], self.tech_params,
                                self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
-                               self.mt5Controller.all_symbol_info, False)
+                               self.mt5Controller.all_symbol_info, self.state_options['reset_on_close'])
+            self.state_val = State(self.Test_Prices, self.data_options['symbols'][0], self.tech_params,
+                                   self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
+                                   self.mt5Controller.all_symbol_info, False)
+        elif self.RL_options['netType'] == 'attention':
+            # Prices, symbol, tech_params, time_cost_pt, commission_pt, spread_pt, long_mode, all_symbols_info, reset_on_close
+            self.state = AttnState(self.RL_options['seqLen'], self.Train_Prices, self.data_options['symbols'][0], self.tech_params,
+                                   self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
+                                   self.mt5Controller.all_symbol_info, self.state_options['reset_on_close'])
+            self.state_val = AttnState(self.RL_options['seqLen'], self.Test_Prices, self.data_options['symbols'][0], self.tech_params,
+                                       self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
+                                       self.mt5Controller.all_symbol_info, False)
 
     def initEnv(self):
         # build the env
         self.env = Env(self.state, self.env_options['random_ofs_on_reset'])
         self.env_val = Env(self.state_val, self.env_options['random_ofs_on_reset'])
 
-    def _initSelector(self):
+    def initSelector(self):
         self.selector = EpsilonGreedyActionSelector(self.RL_options['epsilon_start'])
 
     # load net
@@ -72,7 +83,7 @@ class Train(Options):
         # net = AttentionTimeSeries(hiddenSize=128, inputSize=55, seqLen=30, batchSize=128, outputSize=3, statusSize=2, pdrop=0.1)
         self.net.load_state_dict(checkpoint['state_dict'])
 
-    def _initNet(self):
+    def initNet(self):
         # check using different net
         if self.RL_options['netType'] == 'simple':
             self.net = SimpleFFDQN(self.env.get_obs_len(), self.env.get_action_space_size())

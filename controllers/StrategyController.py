@@ -1,11 +1,12 @@
-from myUtils.printModel import print_at
-from myUtils import paramModel, fileModel
-from controllers.strategies.SwingScalping.Live import Live as SwingScalping_Live
+from models.myUtils.printModel import print_at
+from models.myUtils import paramModel, fileModel, inputModel
+from models import myParamModel
 
-from controllers.strategies.SwingScalping.Backtest import Backtest as SwingScalping_Backtest
-
-from controllers.strategies.SwingScalping.Train import Train as SwingScalping_Train
-from controllers.strategies.RL.Train import Train as RL_Train
+from controllers.strategies.SwingScalping.Live import Live as           SwingScalping_Live
+from controllers.strategies.Covariance.Live import Live as              Covariance_Live
+from controllers.strategies.SwingScalping.Backtest import Backtest as   SwingScalping_Backtest
+from controllers.strategies.SwingScalping.Train import Train as         SwingScalping_Train
+from controllers.strategies.RL_Simple.Train import Train as             RL_Train
 
 import config
 import threading
@@ -18,21 +19,41 @@ class StrategyController:
         self.strategiesInventory = {}  # [ id: { 'name': strategy name, 'instance': obj } ]
         self.strategiesList = {
             'live':
-                {0:
-                     {'name': fileModel.getParentFolderName(SwingScalping_Live), 'class': SwingScalping_Live}
-                 },
+                {
+                    0: {'name': fileModel.getParentFolderName(SwingScalping_Live),      'class': SwingScalping_Live},
+                    1: {'name': fileModel.getParentFolderName(Covariance_Live),         'class': Covariance_Live},
+                },
             'backtest':
-                {0:
-                     {'id': 0, 'name': fileModel.getParentFolderName(SwingScalping_Backtest), 'class': SwingScalping_Backtest}
-                 },
+                {
+                    0: {'id': 0, 'name': fileModel.getParentFolderName(SwingScalping_Backtest),     'class': SwingScalping_Backtest}
+                },
             'train':
                 {
-                    0: {'id': 0, 'name': fileModel.getParentFolderName(SwingScalping_Train), 'class': SwingScalping_Train},
-                    1: {'id': 1, 'name': fileModel.getParentFolderName(RL_Train), 'class': RL_Train}
+                    0: {'id': 0, 'name': fileModel.getParentFolderName(SwingScalping_Train),    'class': SwingScalping_Train},
+                    1: {'id': 1, 'name': fileModel.getParentFolderName(RL_Train),               'class': RL_Train}
                 }
         }
         self.Sybmols = defaultSymbols
         self.tg = tg
+
+    # run all the parameter
+    def runAllParam(self, strategyId, strategyName, strategyOperation):
+        # loop for each parameter
+        for params in myParamModel.STRATEGY_PARAMS[strategyOperation][strategyName]:
+            baseParam, runParam = params['base'], params['run']
+            # define the strategies
+            inventoryId = self.appendStrategiesInventory(strategyId, strategyOperation, **baseParam)
+            # run strategy on thread
+            self.runThreadStrategy(inventoryId, **runParam)
+
+    def selectOneParam(self, strategyId, strategyName, strategyOperation):
+        # ask which of parameter going to be selected
+        paramTxt = myParamModel.getParamTxt(strategyName, strategyOperation)
+        paramId = inputModel.askNum(f"{paramTxt}\nPlease input the index: ")
+        # get the selected param
+        baseParam, runParam = myParamModel.getParamDic(strategyName, strategyOperation, paramId)
+        inventoryId = self.appendStrategiesInventory(strategyId, strategyOperation, **baseParam)
+        self.runThreadStrategy(inventoryId, **runParam)
 
     # get list of strategies text
     def getListStrategiesText(self, strategyOperation):

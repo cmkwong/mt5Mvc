@@ -1,5 +1,5 @@
 import os
-from myUtils import sysModel
+from models.myUtils import sysModel
 
 PARAM_PATH = './'
 PARAM_FILE = 'param.txt'

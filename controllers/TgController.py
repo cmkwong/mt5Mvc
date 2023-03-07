@@ -3,10 +3,6 @@ from telebot.callback_data import CallbackData, CallbackDataFilter
 from telebot.custom_filters import AdvancedCustomFilter
 from telebot import types
 
-from myDataFeed.myMt5.MT5Controller import MT5Controller
-from controllers.StrategyController import StrategyController
-from myDataFeed.myNodeJs.ServerController import ServerController
-
 class StrategyCallbackFilter(AdvancedCustomFilter):
     key = 'config'
 
@@ -107,7 +103,7 @@ class Telegram_Bot:
             self.bot.send_message(message.chat.id, 'Symbols:', reply_markup=self.listSymbolKeyboard())
 
         # -------------------- Running Strategy List --------------------
-        @self.bot.message_handler(commands=['RL'])  # running strategy list
+        @self.bot.message_handler(commands=['RL_Simple'])  # running strategy list
         def showRunStrategy_command_handler(message):
             txt = ''
             for i, strategy in enumerate(self.strategyController.runningStrategies):

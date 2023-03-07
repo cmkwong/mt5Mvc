@@ -1,7 +1,6 @@
 import config
-from myUtils import timeModel
+from models.myUtils import timeModel
 
-from datetime import datetime
 import os
 
 class Options:
@@ -19,10 +18,8 @@ class Options:
         self.data_options = {
             'start': (2010, 1, 2, 0, 0),
             'end': (2020, 12, 30, 0, 0),
-            'symbols': "EURUSD",
+            'symbols': ["EURUSD"],
             'timeframe': '1H',
-            'timezone': "Hongkong",
-            'deposit_currency': 'USD',
             'trainTestSplit': 0.7,
             'hist_bins': 100,
             'local_min_path': os.path.join(self.options['docs_path'], "min_data"),

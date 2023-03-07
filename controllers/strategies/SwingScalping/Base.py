@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 import swifter
 
-from myBacktest import techModel
-from myUtils import timeModel
+from models.myBacktest import techModel
+from models.myUtils import timeModel
 
 class Base:
     def __init__(self, mt5Controller, nodeJsServerController, symbol):

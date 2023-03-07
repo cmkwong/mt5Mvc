@@ -1,5 +1,5 @@
 from controllers.strategies.SwingScalping.Base import Base
-from myUtils.printModel import print_at
+from models.myUtils.printModel import print_at
 import os
 import time
 
