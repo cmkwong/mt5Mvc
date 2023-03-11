@@ -7,7 +7,7 @@ class MainController:
     def __init__(self, timezone='Hongkong', deposit_currency='USD', type_filling='ioc'):
         self.tg = False
         self.defaultSymbols = ['AUDJPY', 'AUDCAD', 'AUDUSD', 'CADJPY', 'EURAUD', 'EURCAD', 'EURGBP', 'EURUSD', 'GBPUSD', 'USDCAD', 'USDJPY']
-        self.mt5Controller = MT5Controller(defaultSymbols=self.defaultSymbols, timezone=timezone, deposit_currency=deposit_currency, type_filling=type_filling)
+        self.mt5Controller = MT5Controller(timezone=timezone, deposit_currency=deposit_currency, type_filling=type_filling)
         self.nodeJsServerController = NodeJsServerController(self.mt5Controller)
-        self.strategyController = StrategyController(self.mt5Controller, self.nodeJsServerController, self.defaultSymbols, self.tg)
+        self.strategyController = StrategyController()
 

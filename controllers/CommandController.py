@@ -1,13 +1,33 @@
 from models.myUtils.printModel import print_at
-from models.myUtils import inputModel
+from models.myUtils import inputModel, dicModel
+from models import myParams
+
+from controllers.strategies.SwingScalping.Live import Live as           SwingScalping_Live
+from controllers.strategies.SwingScalping.Backtest import Backtest as   SwingScalping_Backtest
+from controllers.strategies.SwingScalping.Train import Train as         SwingScalping_Train
+from controllers.strategies.Covariance.Live import Live as              Covariance_Live
+from controllers.strategies.RL_Simple.Train import Train as             RL_Train
 
 class CommandController:
     def __init__(self, mainController):
         self.mainController = mainController
 
     def run(self, command):
+        # running SwingScalping_Live with all params
+        if command == '-livesw':
+            for param in myParams.METHOD_PARAMS['SwingScalping_Live']:
+                object = SwingScalping_Live(self.mainController, auto=True)
+                self.mainController.strategyController.runThreadFunction(object.run, **param)
+                self.mainController.strategyController.appendRunning(dicModel.dic2Txt_k(param), object)
+
+        # running Covariance_Live with all params
+        elif command == '-cov':
+            object = Covariance_Live(self.mainController)
+            param = myParams.METHOD_PARAMS['Covariance_Live'][0]
+            self.mainController.strategyController.runThreadFunction(object.run, **param)
+
         # take the strategy into live and run
-        if command == '-live':
+        elif command == '-_live':
             strategyListTxt = self.mainController.strategyController.getListStrategiesText(strategyOperation='live')
             strategyId = inputModel.askNum(f"{strategyListTxt}\nPlease input the index: ")
             strategyName = self.mainController.strategyController.strategiesList['live'][strategyId]['name']

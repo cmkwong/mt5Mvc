@@ -10,6 +10,7 @@ def checkType(els):
             return str
     return float
 
+# change the value into uppercase(u) or lowercase(l)
 def changeCase(els, case='l'):
     """
     :param els: []
@@ -36,3 +37,10 @@ def shift_list(lst, s):
     s *= -1
     shifted_lst = lst[s:] + lst[:s]
     return shifted_lst
+
+# change the list into option text
+def optionsTxt(els):
+    txt = ''
+    for i, el in enumerate(els):
+        txt += f"{i}: {el}\n"
+    return txt

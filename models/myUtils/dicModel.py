@@ -1,6 +1,6 @@
 import pandas as pd
 
-from myUtils import listModel
+from models.myUtils import listModel
 
 def changeCase(dic, case='l'):
     """
@@ -31,16 +31,16 @@ def keepDic(originDict, keepList):
     return newDict
 
 # duplicated function with append_dictValues_into_text()
-def dic2Txt(dicts):
+def dic2Txt_k(dicts):
     """
     concat the dict value (text) into one text format
     """
     txt = ''
     for key, value in dicts.items():
-        txt += value + '\n'
+        txt += f"{key}: {value}\n"
     return txt
 
-def append_dictValues_into_text(dic, txt=''):
+def dic2Txt(dic, txt=''):
     values = list(dic.values())
     txt += ','.join([str(value) for value in values]) + '\n'
     return txt

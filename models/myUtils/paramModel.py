@@ -1,10 +1,7 @@
 import inspect
 import re
 from datetime import date, datetime
-
-from myUtils import fileModel
-from dataclasses import dataclass
-
+from models.myUtils import fileModel
 
 def paramPreprocess(input_data, param):
     if param.annotation == list:
@@ -18,8 +15,8 @@ def paramPreprocess(input_data, param):
         required_input_data = input_data
     return required_input_data
 
-
-def read_default_param(strategy_name, main_path, paramFile):
+# read the param from text
+def read_default_param_from_txt(strategy_name, main_path, paramFile):
     text = fileModel.read_text(main_path, paramFile)
     strategy_param_text = [t for t in text.split('~') if len(t) > 0 and t.find(strategy_name) >= 0][0].strip()
     strategy_param_dict = {}
@@ -28,28 +25,35 @@ def read_default_param(strategy_name, main_path, paramFile):
         strategy_param_dict[param_name.strip()] = value.strip()
     return strategy_param_dict
 
-
+# user input the param
 def input_param(param, strategy_param_dict):
-    input_data = input("{}({})\nDefault: {}: ".format(param.getName, param.annotation.__name__, strategy_param_dict[param.getName]))
+    input_data = input(f"{param.getName}({param.annotation.__name__})\nDefault: {strategy_param_dict[param.getName]}: ")
+    # if no input, then assign default parameter
     if len(input_data) == 0:
         input_data = strategy_param_dict[param.getName]
     return input_data
 
-
-def ask_params(class_object, main_path: str, paramFile: str):
-    # read the default params text
-    strategy_param_dict = read_default_param(class_object.__name__, main_path, paramFile)
-
+def get_params(class_object, strategy_param_dict, preprocessNeed=False):
     # params details from object
     sig = inspect.signature(class_object)
     params = {}
+    # looping the signature
     for param in sig.parameters.values():
+        # argument after(*) && has no default argument
         if (param.kind == param.KEYWORD_ONLY) and (param.default == param.empty):
-            input_data = input_param(param, strategy_param_dict)  # asking params
-            input_data = paramPreprocess(input_data, param)
+            # asking params
+            input_data = input_param(param, strategy_param_dict)
+            # preprocess the param
+            if preprocessNeed: input_data = paramPreprocess(input_data, param)
             params[param.name] = input_data
     return params
 
+# ask user to input parameter or read from other source (txt / dict)
+def ask_txtParams(class_object, main_path='', paramFile=''):
+    # read the default params text
+    strategy_param_dict = read_default_param_from_txt(class_object.__name__, main_path, paramFile)
+    params = get_params(class_object, strategy_param_dict, True)
+    return params
 
 def insert_params(class_object, input_datas: list):
     """
@@ -66,7 +70,6 @@ def insert_params(class_object, input_datas: list):
             input_data = paramPreprocess(input_datas[i], param)
             params[param.name] = input_data
     return params
-
 
 class SymbolList(list):
     @staticmethod

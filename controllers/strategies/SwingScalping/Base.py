@@ -3,29 +3,22 @@ import numpy as np
 import swifter
 
 from models.myBacktest import techModel
-from models.myUtils import timeModel
 
 class Base:
-    def __init__(self, mt5Controller, nodeJsServerController, symbol):
-        # define the path that store the result doc
-        self.backTestDocPath = "./docs/backtest/swingScapling"
-        self.backTestDocName = "result_{}_{}.csv".format(symbol, timeModel.getTimeS(False, outputFormat="%Y%m%d%H%M%S"))
+    def __init__(self, mt5Controller, nodeJsServerController):
         # define the controller
         self.mt5Controller = mt5Controller
-        self.symbol = symbol
         self.nodeJsServerController = nodeJsServerController
-        self.digits = self.mt5Controller.all_symbol_info[symbol].digits
-        self.pt_value = self.mt5Controller.all_symbol_info[symbol].pt_value
         self.RUNNING = False # means the strategy if running
 
     # prepare for 1-minute data for further analysis (from mySQL database)
-    def prepare1MinData(self, startTime, endTime):
+    def prepare1MinData(self, symbol, startTime, endTime):
         """
         :param startTime: (2022, 12, 2, 0, 0)
         :param endTime: (2022, 12, 31, 23, 59)
         :return: pd.DataFrame(open, high, low, close)
         """
-        self.fetchData_min = self.nodeJsServerController.downloadData(self.symbol, startTime, endTime, timeframe='1min')
+        self.fetchData_min = self.nodeJsServerController.downloadData(symbol, startTime, endTime, timeframe='1min')
 
     # calculate the win rate
     def getWinRate(self, masterSignal, trendType='rise'):
@@ -42,8 +35,9 @@ class Base:
         return "{:.2f}".format(masterSignal['earning_' + trendType].sum())
 
     # calculate the ema difference
-    def getRangePointDiff(self, upper, middle, lower):
-        return (upper - middle) * (10 ** self.digits), (middle - lower) * (10 ** self.digits)
+    def getRangePointDiff(self, symbol, upper, middle, lower):
+        digits = self.mt5Controller.all_symbol_info[symbol].digits
+        return (upper - middle) * (10 ** digits), (middle - lower) * (10 ** digits)
 
     # get break through signal
     def getBreakThroughSignal(self, ohlc: pd.DataFrame, ema: pd.DataFrame):
@@ -54,7 +48,7 @@ class Base:
         ema['downBreak'] = (ema['latest2Close'] > ema['middle']) & (ema['latest3Close'] < ema['middle'])
         return ema.loc[:, 'riseBreak'], ema.loc[:, 'downBreak']
 
-    def getMasterSignal(self, ohlcvs, lowerEma, middleEma, upperEma, diff_ema_upper_middle, diff_ema_middle_lower, ratio_sl_sp, needEarning=True):
+    def getMasterSignal(self, symbol, ohlcvs, lowerEma, middleEma, upperEma, diff_ema_upper_middle, diff_ema_middle_lower, ratio_sl_sp, needEarning=True):
         """
         :param ohlc: pd.DataFrame
         :param lowerEma: int
@@ -77,7 +71,7 @@ class Base:
         signal['upper'] = techModel.get_EMA(ohlcvs.close, upperEma)
 
         # calculate the points difference
-        signal['ptDiff_upper_middle'], signal['ptDiff_middle_lower'] = self.getRangePointDiff(signal['upper'], signal['middle'], signal['lower'])
+        signal['ptDiff_upper_middle'], signal['ptDiff_middle_lower'] = self.getRangePointDiff(symbol, signal['upper'], signal['middle'], signal['lower'])
 
         # get break through signal
         signal['riseBreak'], signal['downBreak'] = self.getBreakThroughSignal(ohlcvs.loc[:, ('open', 'high', 'low', 'close')], signal.loc[:, ('lower', 'middle', 'upper')])
@@ -101,9 +95,11 @@ class Base:
         return signal
 
     # calculate the earning
-    def getEarning(self, currentTime, breakCondition, rangeCondition, actionPrice, quote_exchg: float, sl: float, tp: float, trendType='rise'):
-        # if str(currentTime) == '2022-09-22 17:35:00' and trendType == 'down':
-        #     print('debug')
+    def getEarning(self, symbol, currentTime, breakCondition, rangeCondition, actionPrice, quote_exchg: float, sl: float, tp: float, trendType='rise'):
+        # get digit
+        digits = self.mt5Controller.all_symbol_info[symbol].digits
+        # get the value for each point
+        pt_value = self.mt5Controller.all_symbol_info[symbol].pt_value
         if not breakCondition or not rangeCondition:
             return 0.0
         # rise trend
@@ -119,7 +115,7 @@ class Base:
         slTime = last_sl[currentTime:].eq(True).idxmax()
         # if take-profit time occurred earlier than stop-loss time, then assign take-profit
         if tpTime < slTime and tpTime != currentTime:
-            return np.abs(tp - actionPrice) * (10 ** self.digits) * quote_exchg * self.pt_value
+            return np.abs(tp - actionPrice) * (10 ** digits) * quote_exchg * pt_value
         # if stop-loss time occurred earlier or equal than stop-loss time, then assign stop-loss
         else:
-            return -np.abs(sl - actionPrice) * (10 ** self.digits) * quote_exchg * self.pt_value
+            return -np.abs(sl - actionPrice) * (10 ** digits) * quote_exchg * pt_value

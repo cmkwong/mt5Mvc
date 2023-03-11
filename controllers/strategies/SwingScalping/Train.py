@@ -1,4 +1,5 @@
 from controllers.strategies.SwingScalping.Base import Base
+from models.myUtils import timeModel
 
 import os
 import csv
@@ -6,8 +7,10 @@ import numpy as np
 import time
 
 class Train(Base):
-    def __init__(self, mt5Controller, nodeJsServerController, *, symbol: str):
-        super(Train, self).__init__(mt5Controller, nodeJsServerController, symbol)
+    def __init__(self, mt5Controller, nodeJsServerController):
+        super(Train, self).__init__(mt5Controller, nodeJsServerController)
+        # define the path that store the result doc
+        self.trainDocPath = "./docs/backtest/swingScapling"
 
     @property
     def getName(self):
@@ -30,12 +33,15 @@ class Train(Base):
                    }
         return summary
 
-    def run(self, *, startTime: tuple, endTime: tuple):
+    def run(self, *, symbol: str, startTime: tuple, endTime: tuple):
+        # set the training doc name
+        trainDocName = "result_{}_{}.csv".format(symbol, timeModel.getTimeS(False, outputFormat="%Y%m%d%H%M%S"))
+
         # define the writer
         r = 0
         # fetch data from database
-        self.prepare1MinData(startTime, endTime)
-        fetchData_cust = self.nodeJsServerController.downloadData(self.symbol, startTime, endTime, timeframe='5min')
+        self.prepare1MinData(symbol, startTime, endTime)
+        fetchData_cust = self.nodeJsServerController.downloadData(symbol, startTime, endTime, timeframe='5min')
 
         for ratio_sl_sp in np.arange(1.2, 2.2, 0.2):
             for diff_ema_middle_lower in np.arange(20, 80, 10):
@@ -48,7 +54,7 @@ class Train(Base):
                             for lowerEma in reversed(np.arange(18, middleEma - 1, 4)):
                                 # getting master signal
                                 start = time.time()
-                                masterSignal = self.getMasterSignal(fetchData_cust,
+                                masterSignal = self.getMasterSignal(symbol, fetchData_cust,
                                                                     lowerEma, middleEma, upperEma,
                                                                     diff_ema_upper_middle, diff_ema_middle_lower,
                                                                     ratio_sl_sp)
@@ -57,7 +63,7 @@ class Train(Base):
                                 riseSummary = self.getSummary(masterSignal, ratio_sl_sp, diff_ema_middle_lower, diff_ema_upper_middle, upperEma, middleEma, lowerEma, 'rise')
                                 downSummary = self.getSummary(masterSignal, ratio_sl_sp, diff_ema_middle_lower, diff_ema_upper_middle, upperEma, middleEma, lowerEma, 'down')
 
-                                with open(os.path.join(self.backTestDocPath, self.backTestDocName), 'a', newline='', encoding='utf-8') as f:
+                                with open(os.path.join(self.trainDocPath, trainDocName), 'a', newline='', encoding='utf-8') as f:
                                     writer = csv.writer(f)
                                     # write header
                                     if r == 0:

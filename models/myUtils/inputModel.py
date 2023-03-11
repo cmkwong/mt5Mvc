@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from myUtils import timeModel
+from models.myUtils import timeModel, listModel
 
 
 def enter(placeholder='Input: '):
@@ -47,3 +47,9 @@ def askConfirm(question=''):
         return True
     else:
         return False
+
+# ask user for selection from a {txt: callback}
+def askSelection(questions: list):
+    placeholder = f"{listModel.optionsTxt(questions)}\nPlease Select: "
+    userInput = askNum(placeholder)
+    return userInput
