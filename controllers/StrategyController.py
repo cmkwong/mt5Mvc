@@ -1,14 +1,5 @@
 from models.myUtils.printModel import print_at
-from models.myUtils import paramModel, fileModel, inputModel
-from models import myParams
 
-from controllers.strategies.SwingScalping.Live import Live as           SwingScalping_Live
-from controllers.strategies.SwingScalping.Backtest import Backtest as   SwingScalping_Backtest
-from controllers.strategies.SwingScalping.Train import Train as         SwingScalping_Train
-from controllers.strategies.Covariance.Live import Live as              Covariance_Live
-from controllers.strategies.RL_Simple.Train import Train as             RL_Train
-
-import config
 import threading
 
 class StrategyController:

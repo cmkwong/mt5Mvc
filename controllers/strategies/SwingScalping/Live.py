@@ -13,6 +13,7 @@ class Live(Base):
         self.inPosition = False
         # auto
         self.auto = auto
+        self.tg = False
 
     @property
     def getIdentity(self):
@@ -34,8 +35,8 @@ class Live(Base):
             statusTxt = f'{symbol}\n'
             for k, v in self.status.items():
                 statusTxt += f"{k} {v}\n"
-            if not self.auto and self.tg:
-                print_at(statusTxt, tg=self.tg, print_allowed=True, reply_markup=self.tg.actionKeyboard(symbol, self.status['sl'], self.status['tp'], deviation=5, lot=self.lot))
+            if not self.auto:
+                print(statusTxt)
             elif self.auto:
                 # define the action type
                 if self.status['type'] == 'rise':

@@ -2,13 +2,13 @@ from controllers.myNodeJs.ApiController import ApiController
 
 import pandas as pd
 
-class ServerController(ApiController):
+class NodeJsServerController(ApiController):
     def __init__(self, mt5Controller):
-        super(ServerController, self).__init__()
+        super(NodeJsServerController, self).__init__()
         self.mt5Controller = mt5Controller
 
     # upload data
-    def uploadDatas(self, symbols, startTime=(2022, 8, 31, 0, 0), endTime=(2022, 10, 27, 0, 0)):
+    def postSymbolData(self, symbols, *, startTime: tuple, endTime: tuple):
         """
         :param symbols: list for the symbols
         :param startTime: tuple for time
@@ -24,7 +24,7 @@ class ServerController(ApiController):
             self.postForexData(df, tableName=symbol.lower() + '_1m')
 
     # get data
-    def downloadData(self, symbol, startTime=(2022, 8, 31, 0, 0), endTime=(2022, 10, 27, 0, 0), timeframe='5min'):
+    def getSymbolData(self, symbol: str, startTime: tuple, endTime: tuple, timeframe: str):
         """
         :param symbol: str
         :param startTime: tuple for time

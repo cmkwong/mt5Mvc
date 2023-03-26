@@ -16,7 +16,7 @@ class Backtest(Base):
         self.endTime = endTime
         self.lot = lot
         self.prepare1MinData(symbol, startTime, endTime)
-        fetchData_cust = self.nodeJsServerController.downloadData(symbol, startTime, endTime, timeframe='5min')
+        fetchData_cust = self.nodeJsServerController.getSymbolData(symbol, startTime, endTime, timeframe='5min')
 
         # getting master signal
         masterSignal = self.getMasterSignal(symbol, fetchData_cust,

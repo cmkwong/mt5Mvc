@@ -1,8 +1,8 @@
 from controllers.strategies.SwingScalping.Live import Live as           SwingScalping_Live
-from controllers.strategies.Covariance.Live import Live as              Covariance_Live
+from controllers.strategies.Covariance.Train import Train as              Covariance_Live
 from controllers.strategies.SwingScalping.Backtest import Backtest as   SwingScalping_Backtest
 from controllers.strategies.RL_Simple.Train import Train as             RL_Train
-from myUtils import fileModel
+from models.myUtils import fileModel
 
 METHOD_PARAMS = {
     "SwingScalping_Live":
@@ -82,10 +82,18 @@ METHOD_PARAMS = {
                 'lowerEma': 26, 'middleEma': 51, 'upperEma': 92,
                 'trendType': 'down', 'lot': 2,
             }
-        ],
+    ],
     "Covariance_Live":
         [
             {'start': (2022, 6, 1, 0, 0), 'end': (2023, 2, 28, 23, 59), 'timeframe': '1H'}
+        ],
+    "Cointegration_Train":
+        [
+            {'symbols': ["AUDCAD", "EURUSD", "AUDUSD"], 'start': (2022, 6, 1, 0, 0), 'end': (2023, 2, 28, 23, 59), 'timeframe': '1H', "outputPath": "C:/Users/Chris/projects/221227_mt5Mvc/docs/coin"}
+        ],
+    "uploadDatas":
+        [
+            {'startTime': (2023, 3, 1, 0, 0), 'endTime': (2023, 3, 23, 23, 59)}
         ]
 }
 

@@ -2,58 +2,88 @@ import inspect
 import re
 from datetime import date, datetime
 from models.myUtils import fileModel
+from prompt_toolkit import prompt
 
-def paramPreprocess(input_data, param):
-    if param.annotation == list:
+
+def paramPreprocess(input_data, paramSig):
+    if paramSig.annotation == list:
         required_input_data = input_data.split(' ')
         if len(input_data) == 0: required_input_data = []
-    elif param.annotation == tuple:
+    elif paramSig.annotation == tuple:
         required_input_data = eval(input_data)
-    elif type(input_data) != param.annotation:
-        required_input_data = param.annotation(input_data)  # __new__, refer: https://www.pythontutorial.net/python-oop/python-__new__/
+    elif type(input_data) != paramSig.annotation:
+        required_input_data = paramSig.annotation(input_data)  # __new__, refer: https://www.pythontutorial.net/python-oop/python-__new__/
     else:
         required_input_data = input_data
     return required_input_data
 
-# read the param from text
-def read_default_param_from_txt(strategy_name, main_path, paramFile):
-    text = fileModel.read_text(main_path, paramFile)
-    strategy_param_text = [t for t in text.split('~') if len(t) > 0 and t.find(strategy_name) >= 0][0].strip()
-    strategy_param_dict = {}
-    for param_text in strategy_param_text.split('\n')[1:]:
-        param_name, value = param_text.split(':', 1)
-        strategy_param_dict[param_name.strip()] = value.strip()
-    return strategy_param_dict
 
 # user input the param
-def input_param(param, strategy_param_dict):
-    input_data = input(f"{param.getName}({param.annotation.__name__})\nDefault: {strategy_param_dict[param.getName]}: ")
+def input_param(paramSig, raw_param_dict):
+    # input_data = input(f"{paramSig.name}({paramSig.annotation.__name__})\nDefault: {raw_param_dict[paramSig.name]}: ")
+    input_data = prompt(f"{paramSig.name}({paramSig.annotation.__name__}): ", default=raw_param_dict[paramSig.name])
     # if no input, then assign default parameter
     if len(input_data) == 0:
-        input_data = strategy_param_dict[param.getName]
+        input_data = raw_param_dict[paramSig.name]
     return input_data
 
-def get_params(class_object, strategy_param_dict, preprocessNeed=False):
+
+def get_params(class_object, raw_param_dict, preprocessNeed=False):
     # params details from object
     sig = inspect.signature(class_object)
     params = {}
     # looping the signature
-    for param in sig.parameters.values():
+    for paramSig in sig.parameters.values():
         # argument after(*) && has no default argument
-        if (param.kind == param.KEYWORD_ONLY) and (param.default == param.empty):
+        if (paramSig.kind == paramSig.KEYWORD_ONLY) and (paramSig.default == paramSig.empty):
             # asking params
-            input_data = input_param(param, strategy_param_dict)
+            input_data = input_param(paramSig, raw_param_dict)
             # preprocess the param
-            if preprocessNeed: input_data = paramPreprocess(input_data, param)
-            params[param.name] = input_data
+            if preprocessNeed: input_data = paramPreprocess(input_data, paramSig)
+            params[paramSig.name] = input_data
     return params
 
-# ask user to input parameter or read from other source (txt / dict)
+
+# read the param from text
+def get_raw_param_dict_from_txt_file(object_name, main_path, paramFile):
+    text = fileModel.read_text(main_path, paramFile)
+    param_text = [t for t in text.split('~') if len(t) > 0 and t.find(object_name) >= 0][0].strip()
+    param_dict = {}
+    for param_text in param_text.split('\n')[1:]:
+        param_name, value = param_text.split(':', 1)
+        param_dict[param_name.strip()] = value.strip()
+    return param_dict
+
+
+# ask user to input parameter or read from txt source
 def ask_txtParams(class_object, main_path='', paramFile=''):
     # read the default params text
-    strategy_param_dict = read_default_param_from_txt(class_object.__name__, main_path, paramFile)
-    params = get_params(class_object, strategy_param_dict, True)
+    raw_param_dict = get_raw_param_dict_from_txt_file(class_object.__name__, main_path, paramFile)
+    params = get_params(class_object, raw_param_dict, True)
     return params
+
+
+# convert dictionary parameter into raw string
+def get_raw_param_dict_from_dict(dictParam):
+    raw_param_dict = {}
+    for key, param in dictParam.items():
+        if isinstance(param, tuple):
+            raw_param = str(param)
+        elif isinstance(param, list):
+            raw_param = " ".join([str(p) for p in param])
+        else:
+            raw_param = str(param)
+        raw_param_dict[key] = raw_param
+    return raw_param_dict
+
+
+# ask user to input parameter from dictionary
+def ask_dictParams(class_object, dictParam):
+    # read the default params text
+    raw_param_dict = get_raw_param_dict_from_dict(dictParam)
+    params = get_params(class_object, raw_param_dict, True)
+    return params
+
 
 def insert_params(class_object, input_datas: list):
     """
@@ -65,11 +95,12 @@ def insert_params(class_object, input_datas: list):
     # params details from object
     sig = inspect.signature(class_object)
     params = {}
-    for i, param in enumerate(sig.parameters.values()):
-        if (param.kind == param.KEYWORD_ONLY):  # and (param.default == param.empty)
-            input_data = paramPreprocess(input_datas[i], param)
-            params[param.name] = input_data
+    for i, paramSig in enumerate(sig.parameters.values()):
+        if (paramSig.kind == paramSig.KEYWORD_ONLY):  # and (param.default == param.empty)
+            input_data = paramPreprocess(input_datas[i], paramSig)
+            params[paramSig.name] = input_data
     return params
+
 
 class SymbolList(list):
     @staticmethod
@@ -79,7 +110,7 @@ class SymbolList(list):
         """
 
     @staticmethod
-    def __new__(cls, text:str):
+    def __new__(cls, text: str):
         if len(text) == 0:
             text = cls.get_default_text()
         seq = text.strip().split(' ')
@@ -94,15 +125,21 @@ class DatetimeTuple(object):
         :param inputDate: tuple/date
         """
         if isinstance(inputDate, date):
-            return (inputDate.year, inputDate.month, inputDate.day, 0, 0) # (year, month, day, hour, minute)
+            return (inputDate.year, inputDate.month, inputDate.day, 0, 0)  # (year, month, day, hour, minute)
         if isinstance(inputDate, datetime):
-            return (inputDate.year, inputDate.month, inputDate.day, inputDate.hour, inputDate.minute) # (year, month, day, hour, minute)
+            return (inputDate.year, inputDate.month, inputDate.day, inputDate.hour, inputDate.minute)  # (year, month, day, hour, minute)
+        if isinstance(inputDate, str):
+            rawTuple = eval(inputDate)
+            dateTimeList = [0, 0, 0, 0, 0]
+            for i, el in enumerate(rawTuple):
+                dateTimeList[i] = int(el)
+            return tuple(dateTimeList)
         return inputDate
 
 
 class InputBoolean(object):
     @staticmethod
-    def __new__(cls, text:str):
+    def __new__(cls, text: str):
         boolean = bool(int(text))
         return boolean
 
@@ -120,7 +157,7 @@ class Tech_Dict(object):
         """
 
     @staticmethod
-    def get_splited_text(text:str):
+    def get_splited_text(text: str):
         splited_text = [t.strip() for t in text.split(';') if len(t.strip()) > 0]
 
         return splited_text
@@ -150,7 +187,7 @@ class Tech_Dict(object):
         return params
 
     @staticmethod
-    def __new__(cls, text:str):
+    def __new__(cls, text: str):
         """
         text: ma 5 10 25 50 100 150 200 250; bb (20,2,2,0) (20,3,3,0) (20,4,4,0) (40,2,2,0) (40,3,3,0) (40,4,4,0); std (5,1) (20,1) (50,1) (100,1) (150,1) (250,1); rsi 5 15 25 50 100 150 250; stocOsci (5,3,3,0,0) (14,3,3,0,0) (21,14,14,0,0); macd (12,26,9) (19,39,9)
         tech_params = {

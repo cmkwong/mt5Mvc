@@ -3,8 +3,8 @@ from datetime import datetime
 import MetaTrader5 as mt5
 import pandas as pd
 
-from myBacktest import timeModel
-from myDataFeed.myMt5.BasePricesLoader import BasePricesLoader
+from models.myBacktest import timeModel
+from controllers.myMT5.BasePricesLoader import BasePricesLoader
 
 class BaseMT5PricesLoader(BasePricesLoader):
     def __init__(self, broker_time_between_utc=2):

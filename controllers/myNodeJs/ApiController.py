@@ -7,7 +7,7 @@ from models.myUtils import timeModel
 class ApiController:
 
     def __init__(self):
-        self.mainUrl = "http://localhost:3002/"
+        self.mainUrl = "http://192.168.1.165:3002/"
         self.uploadForexDataUrl = self.mainUrl + "api/v1/query/forexTable/upload?tableName={}"
         self.downloadForexDataUrl = self.mainUrl + "api/v1/query/forexTable/download?tableName={}"
         self.createTableUrl = self.mainUrl + "api/v1/query/forexTable/create?tableName={}"

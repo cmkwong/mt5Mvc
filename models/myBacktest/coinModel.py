@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from myUtils import mathsModel
+from models.myUtils import mathsModel
 
 def get_modified_coefficient_vector(coefficient_vector, long_mode, lot_times=1):
     """

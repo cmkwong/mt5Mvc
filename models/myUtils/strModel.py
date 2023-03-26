@@ -25,12 +25,9 @@ def replaceAllTxt(txt, replacedTable):
         txt = re.sub(replacedObj, replacedValue, txt, count=0)
     return txt
 
-def textReplaceWithPattern__discard(txt, textReplacePattern, insertedText, count=1):
-    """
-    :param txt: text being process
-    :param textReplacePattern: pattern being replaced
-    :param insertedText: text to insert
-    :return: text
-    """
-    replacedText = re.sub(textReplacePattern, insertedText + '\n', txt, count)
-    return replacedText
+# if pattern exist, then return True
+def patternsExisted(txt: str, patterns: list):
+    existed = False
+    for pattern in patterns:
+        existed = existed | bool(re.search(pattern, txt))
+    return existed

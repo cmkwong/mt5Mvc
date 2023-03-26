@@ -4,7 +4,7 @@ from models.myUtils.paramModel import DatetimeTuple
 import pandas as pd
 import numpy as np
 
-class Live:
+class Train:
     def __init__(self, mainController):
         self.mt5Controller = mainController.mt5Controller
         self.nodeJsServerController = mainController.nodeJsServerController
@@ -27,6 +27,7 @@ class Live:
             corelaTxtDf[symbol] = pd.Series([f"{key}: {value * 100:.2f}%" for key, value in corelaDict.items()])
             # printModel.print_dict(corelaDict)
         pd.set_option('display.max_columns', None)
+        print("\n\n")
         print(corelaTxtDf)
         pd.reset_option("display.max_columns")
 
