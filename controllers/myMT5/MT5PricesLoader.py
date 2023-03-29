@@ -1,25 +1,25 @@
-from controllers.myMT5.BaseMT5PricesLoader import BaseMT5PricesLoader
-from controllers.myMT5.InitPrices import InitPrices
+from controllers.DataController import DataController
 
-from models.myBacktest import exchgModel, pointsModel
+from models.myBacktest import exchgModel
 from models.myUtils import dfModel
 from models.myUtils.paramModel import SymbolList, DatetimeTuple
 
 import collections
+from datetime import datetime
+
+import MetaTrader5 as mt5
+import pandas as pd
 
 # Mt5f loader price loader
-class MT5PricesLoader(BaseMT5PricesLoader):  # created note 86a
-    def __init__(self, all_symbol_info, timezone='Hongkong', deposit_currency='USD'):
-        super(MT5PricesLoader, self).__init__()
-        self.all_symbol_info = all_symbol_info
+class MT5PricesLoader(DataController):  # created note 86a
+    def __init__(self, mt5TimeController, mt5SymbolController, timezone='Hongkong', deposit_currency='USD'):
+        super(MT5PricesLoader, self).__init__(mt5SymbolController.get_all_symbols_info(), deposit_currency)
+        self.mt5TimeController = mt5TimeController
 
         # for Mt5f
-        self.timezone = timezone
-        self.deposit_currency = deposit_currency
+        self.timezone = timezone  # Check: set(pytz.all_timezones_set) - (Etc/UTC)
 
         # prepare
-        # self.Prices_Collection = collections.namedtuple("Prices_Collection", ['o', 'h', 'l', 'c', 'cc', 'ptDv', 'quote_exchg', 'base_exchg'])
-        # self.latest_Prices_Collection = collections.namedtuple("latest_Prices_Collection", ['c', 'cc', 'ptDv', 'quote_exchg'])  # for latest Prices
         self._symbols_available = False  # only for usage of _check_if_symbols_available()
 
     def check_if_symbols_available(self, required_symbols):
@@ -36,17 +36,76 @@ class MT5PricesLoader(BaseMT5PricesLoader):  # created note 86a
                     raise Exception("The {} is not provided in this broker.".format(symbol))
             self._symbols_available = True
 
-    def change_timeframe(self, df, timeframe='1H'):
+    def _get_mt5_historical_data(self, symbol, timeframe, start, end=None):
         """
-        note 84f
-        :param df: pd.DataFrame, having header: open high low close
-        :param rule: can '2H', https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#resampling
-        :return:
+        :param symbol: str
+        :param timeframe: str, '1H'
+        :param start (local time): tuple (year, month, day, hour, mins) eg: (2010, 10, 30, 0, 0)
+        :param end (local time): tuple (year, month, day, hour, mins), if None, then take loader until present
+        :return: dataframe
         """
-        ohlc_rule = self._get_ohlc_rule(df)
-        df = df.resample(timeframe).apply(ohlc_rule)
-        df.dropna(inplace=True)
-        return df
+        timeframe = self.mt5TimeController.get_txt2timeframe(timeframe)
+        utc_from = self.mt5TimeController.get_utc_time_from_broker(start, self.timezone)
+        if end == None:  # if end is None, get the loader at current time
+            now = datetime.today()
+            now_tuple = (now.year, now.month, now.day, now.hour, now.minute)
+            utc_to = self.mt5TimeController.get_utc_time_from_broker(now_tuple, self.timezone)
+        else:
+            utc_to = self.mt5TimeController.get_utc_time_from_broker(end, self.timezone)
+        rates = mt5.copy_rates_range(symbol, timeframe, utc_from, utc_to)
+        rates_frame = pd.DataFrame(rates, dtype=float)  # create DataFrame out of the obtained loader
+        rates_frame['time'] = pd.to_datetime(rates_frame['time'], unit='s')  # convert time in seconds into the datetime format
+        rates_frame = rates_frame.set_index('time')
+        return rates_frame
+
+    def _get_mt5_current_bars(self, symbol, timeframe, count):
+        """
+        :param symbols: str
+        :param timeframe: str, '1H'
+        :param count: int
+        :return: df
+        """
+        timeframe = self.mt5TimeController.get_txt2timeframe(timeframe)
+        rates = mt5.copy_rates_from_pos(symbol, timeframe, 0, count)  # 0 means the current bar
+        rates_frame = pd.DataFrame(rates, dtype=float)
+        rates_frame['time'] = pd.to_datetime(rates_frame['time'], unit='s')
+        rates_frame = rates_frame.set_index('time')
+        return rates_frame
+
+    def _get_mt5_prices(self, symbols, timeframe, start=None, end=None, ohlcvs='111100', count: int = 10):
+        """
+        :param symbols: [str]
+        :param timeframe: str, '1H'
+        :param start: (2010,1,1,0,0), if both start and end is None, use function get_current_bars()
+        :param end: (2020,1,1,0,0), if just end is None, get the historical loader from date to current
+        :param ohlcvs: str, eg: '111100' => open, high, low, close, volume, spread
+        :param count: int, for get_current_bar_function()
+        :return: pd.DataFrame
+        """
+        join = 'outer'
+        required_types = self._price_type_from_code(ohlcvs)
+        prices_df = None
+        for i, symbol in enumerate(symbols):
+            if count > 0:  # get the latest units of loader
+                price = self._get_mt5_current_bars(symbol, timeframe, count).loc[:, required_types]
+                join = 'inner'  # if getting count, need to join=inner to check if loader getting completed
+            elif count == 0:  # get loader from start to end
+                price = self._get_mt5_historical_data(symbol, timeframe, start, end).loc[:, required_types]
+            else:
+                raise Exception('start-date must be set when end-date is being set.')
+            if i == 0:
+                prices_df = price.copy()
+            else:
+                prices_df = pd.concat([prices_df, price], axis=1, join=join)
+
+        # replace NaN values with preceding values
+        prices_df.fillna(method='ffill', inplace=True)
+        prices_df.dropna(inplace=True, axis=0)
+
+        # get prices in dict
+        prices = self._prices_df2dict(prices_df, symbols, ohlcvs)
+
+        return prices
 
     def split_Prices(self, Prices, percentage):
         keys = list(Prices.__dict__.keys())
@@ -60,104 +119,6 @@ class MT5PricesLoader(BaseMT5PricesLoader):  # created note 86a
         Test_Prices = prices._make(test_list)
         return Train_Prices, Test_Prices
 
-    # def getOhlcvsFromPrices(self, symbols, Prices, ohlcvs):
-    #     """
-    #     resume into normal dataframe
-    #     :param symbols: [symbol str]
-    #     :param Prices: Prices collection
-    #     :return: {pd.DataFrame}
-    #     """
-    #     ohlcsvs = {}
-    #     vaildCol = Prices.getValidCols()
-    #     for i, symbol in enumerate(symbols):
-    #         if ohlcvs[0] == 1: o = Prices.o.iloc[:, i].rename('open')
-    #         h = Prices.h.iloc[:, i].rename('high')
-    #         l = Prices.l.iloc[:, i].rename('low')
-    #         c = Prices.c.iloc[:, i].rename('close')
-    #         v = Prices.volume.iloc[:, i].rename('volume')  # volume
-    #         s = Prices.spread.iloc[:, i].rename('spread')  # spread
-    #         ohlcsvs[symbol] = pd.concat([o, h, l, c, v, s], axis=1)
-    #     return ohlcsvs
-
-    def get_Prices_format(self, symbols, prices, q2d_exchg_symbols, b2d_exchg_symbols, ohlcvs):
-
-        # init to None
-        open_prices, high_prices, low_prices, close_prices, changes, volume, spread = None, None, None, None, None, None, None
-
-        # get the change of close price
-        close_prices = self._get_specific_from_prices(prices, symbols, ohlcvs='000100')
-        changes = ((close_prices - close_prices.shift(1)) / close_prices.shift(1)).fillna(0.0)
-
-        # get point diff values
-        # open_prices = _get_specific_from_prices(prices, symbols, ohlcvs='1000')
-        points_dff_values_df = pointsModel.get_points_dff_values_df(symbols, close_prices, close_prices.shift(periods=1), self.all_symbol_info)
-
-        # get the quote to deposit exchange rate
-        exchg_close_prices = self._get_specific_from_prices(prices, q2d_exchg_symbols, ohlcvs='000100')
-        q2d_exchange_rate_df = exchgModel.get_exchange_df(symbols, q2d_exchg_symbols, exchg_close_prices, self.deposit_currency, "q2d")
-
-        # get the base to deposit exchange rate
-        exchg_close_prices = self._get_specific_from_prices(prices, b2d_exchg_symbols, ohlcvs='000100')
-        b2d_exchange_rate_df = exchgModel.get_exchange_df(symbols, q2d_exchg_symbols, exchg_close_prices, self.deposit_currency, "b2d")
-
-        # assign the column into each collection tuple
-        Prices = InitPrices(
-            close=close_prices,
-            cc=changes,
-            ptDv=points_dff_values_df,
-            quote_exchg=q2d_exchange_rate_df,
-            base_exchg=b2d_exchange_rate_df
-        )
-        # get open prices
-        if ohlcvs[0] == '1':
-            Prices.open = self._get_specific_from_prices(prices, symbols, ohlcvs='100000')
-
-        # get the change of high price
-        if ohlcvs[1] == '1':
-            Prices.high = self._get_specific_from_prices(prices, symbols, ohlcvs='010000')
-
-        # get the change of low price
-        if ohlcvs[2] == '1':
-            Prices.low = self._get_specific_from_prices(prices, symbols, ohlcvs='001000')
-
-        # get the tick volume
-        if ohlcvs[4] == '1':
-            Prices.volume = self._get_specific_from_prices(prices, symbols, ohlcvs='000010')
-
-        if ohlcvs[5] == '1':
-            Prices.spread = self._get_specific_from_prices(prices, symbols, ohlcvs='000001')
-
-        return Prices
-
-    def get_latest_Prices_format(self, symbols, prices, q2d_exchg_symbols, count):
-
-        close_prices = self._get_specific_from_prices(prices, symbols, ohlcvs='000100')
-        if len(close_prices) != count:  # note 63a
-            print("prices_df length of Data is not equal to count")
-            return False
-
-        # calculate the change of close price (with latest close prices)
-        change_close_prices = ((close_prices - close_prices.shift(1)) / close_prices.shift(1)).fillna(0.0)
-
-        # get point diff values with latest value
-        points_dff_values_df = pointsModel.get_points_dff_values_df(symbols, close_prices, close_prices.shift(periods=1), self.all_symbol_info)
-
-        # get quote exchange with values
-        exchg_close_prices = self._get_specific_from_prices(prices, q2d_exchg_symbols, ohlcvs='000100')
-        q2d_exchange_rate_df = exchgModel.get_exchange_df(symbols, q2d_exchg_symbols, exchg_close_prices, self.deposit_currency, "q2d")
-        # if len(q2d_exchange_rate_df_o) or len(q2d_exchange_rate_df_c) == 39, return false and run again
-        if len(q2d_exchange_rate_df) != count:  # note 63a
-            print("q2d_exchange_rate_df_o or q2d_exchange_rate_df_c length of Data is not equal to count")
-            return False
-
-        Prices = InitPrices(close=close_prices,
-                            cc=change_close_prices,
-                            ptDv=points_dff_values_df,
-                            quote_exchg=q2d_exchange_rate_df
-                            )
-
-        return Prices
-
     def getPrices(self, *, symbols: SymbolList, start: DatetimeTuple, end: DatetimeTuple, timeframe: str, count: int = 0, ohlcvs: str = '111100'):
         """
         :param count: 0 if want to get the Data from start to end, otherwise will get the latest bar Data
@@ -169,10 +130,9 @@ class MT5PricesLoader(BaseMT5PricesLoader):  # created note 86a
         # read loader in dictionary format
         required_symbols = list(set(symbols + q2d_exchg_symbols + b2d_exchg_symbols))
         self.check_if_symbols_available(required_symbols)  # if not, raise Exception
-        prices = self._get_mt5_prices(required_symbols, timeframe, self.timezone, start, end, ohlcvs, count)
+        prices = self._get_mt5_prices(required_symbols, timeframe, start, end, ohlcvs, count)
         Prices = self.get_Prices_format(symbols, prices, q2d_exchg_symbols, b2d_exchg_symbols, ohlcvs)
         return Prices
-
 # @dataclass
 # class get_data_TKPARAM(TkWidgetLabel):
 #     symbols: dataclass = TkInitWidget(cat='get_data', id='1', type=TkWidgetLabel.DROPDOWN, value=['EURUSD', 'GBPUSD', 'USDJPY'])

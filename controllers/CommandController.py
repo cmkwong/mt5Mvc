@@ -1,10 +1,11 @@
 from models.myUtils.printModel import print_at
 from models.myUtils import inputModel, dicModel, paramModel
-import param
 
 from controllers.strategies.SwingScalping.Live import Live as           SwingScalping_Live
 from controllers.strategies.Covariance.Train import Train as              Covariance_Train
 from controllers.strategies.Conintegration.Train import Train as        Cointegration_Train
+
+import param
 
 class CommandController:
     def __init__(self, mainController):
@@ -34,15 +35,11 @@ class CommandController:
 
         # upload the data into mySql server
         elif command == '-upload':
-            # startTime = inputModel.askDate(defaultDate='2023-02-25 00:00', dateFormat='%Y-%m-%d %H:%M')
-            # print_at(f"Start date set: {startTime}")
-            # endTime = inputModel.askDate(defaultDate='2023-03-08 23:59', dateFormat='%Y-%m-%d %H:%M')
-            # print_at(f"End date set: {endTime}")
-            # self.mainController.nodeJsServerController.uploadDatas(self.mainController.defaultSymbols, startTime, endTime)
-            defaultParam = param.METHOD_PARAMS['uploadDatas'][0]
-            defaultParam = paramModel.ask_dictParams(self.mainController.nodeJsServerController.postSymbolData, defaultParam)
-            defaultParam['symbols'] = self.mainController.defaultSymbols
-            self.mainController.strategyController.runThreadFunction(self.mainController.nodeJsServerController.postSymbolData, **defaultParam)
+            # for post symbol forex data from mt5 to mysql
+            uploadDatasParam = param.METHOD_PARAMS['upload_mt5_getPrices'][0]
+            uploadDatasParam = paramModel.ask_dictParams(self.mainController.mt5Controller.pricesLoader.getPrices, uploadDatasParam)
+            Prices = self.mainController.mt5Controller.pricesLoader.getPrices(**uploadDatasParam)
+            self.mainController.nodeJsServerController.uploadSymbolData(Prices)
 
         # # take the strategy into live and run
         # elif command == '-_live':

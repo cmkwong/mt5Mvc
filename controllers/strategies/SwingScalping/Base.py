@@ -18,7 +18,7 @@ class Base:
         :param endTime: (2022, 12, 31, 23, 59)
         :return: pd.DataFrame(open, high, low, close)
         """
-        self.fetchData_min = self.nodeJsServerController.getSymbolData(symbol, startTime, endTime, timeframe='1min')
+        self.fetchData_min = self.nodeJsServerController.downloadSymbolData(symbol, startTime, endTime, timeframe='1min')
 
     # calculate the win rate
     def getWinRate(self, masterSignal, trendType='rise'):

@@ -41,7 +41,7 @@ class Train(Base):
         r = 0
         # fetch data from database
         self.prepare1MinData(symbol, startTime, endTime)
-        fetchData_cust = self.nodeJsServerController.getSymbolData(symbol, startTime, endTime, timeframe='5min')
+        fetchData_cust = self.nodeJsServerController.downloadSymbolData(symbol, startTime, endTime, timeframe='5min')
 
         for ratio_sl_sp in np.arange(1.2, 2.2, 0.2):
             for diff_ema_middle_lower in np.arange(20, 80, 10):

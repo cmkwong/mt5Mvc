@@ -4,6 +4,7 @@ import pandas as pd
 
 @dataclass
 class InitPrices:
+    symbols: list
     close: pd.DataFrame
     cc: pd.DataFrame
     ptDv: pd.DataFrame
@@ -23,22 +24,16 @@ class InitPrices:
                 validCol.append(value)
         return validCol
 
-    def getOhlcvsFromPrices(self, symbols=None):
+    def getOhlcvsFromPrices(self):
         """
         resume into normal dataframe
         :param symbols: [symbol str]
         :param Prices: Prices collection
         :return: {pd.DataFrame}
         """
-        # get the default symbol list
-        if not symbols:
-            symbols = []
-            for symbol in self.close:
-                symbols.append(symbol)
-
         ohlcsvs = {}
         nameDict = {'open': 'open', 'high': 'high', 'low': 'low', 'close': 'close', 'volume': 'volume', 'spread': 'spread', 'ptDv': 'ptDv', 'quote_exchg': 'quote_exchg', 'base_exchg': 'base_exchg'}
-        for si, symbol in enumerate(symbols):
+        for si, symbol in enumerate(self.symbols):
             requiredDf = pd.DataFrame() # create empty df
             for name, field in self.__dataclass_fields__.items():  # name = variable name; field = pd.dataframe/ value
                 if name not in nameDict.keys(): continue  # only need the cols in nameDict

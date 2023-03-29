@@ -1,5 +1,5 @@
-from models.myUtils import printModel
 from models.myUtils.paramModel import DatetimeTuple
+import config
 
 import pandas as pd
 import numpy as np
@@ -8,7 +8,7 @@ class Train:
     def __init__(self, mainController):
         self.mt5Controller = mainController.mt5Controller
         self.nodeJsServerController = mainController.nodeJsServerController
-        self.symbols = mainController.defaultSymbols
+        self.symbols = config.DefaultSymbols
 
     def get_corelaDf(self, Prices, rowvar=False, bias=False):
         changes_arr = Prices.cc.values
