@@ -18,7 +18,7 @@ class Train:
         """
         # get Prices
         if strModel.patternsExisted(timeframe, ['H', 'D']):
-            Prices = self.mt5Controller.pricesLoader.getPrices(symbols=symbols, start=start, end=end, timeframe=timeframe)
+            Prices = self.mt5Controller.mt5PricesLoader.getPrices(symbols=symbols, start=start, end=end, timeframe=timeframe)
         else:
             pass
 

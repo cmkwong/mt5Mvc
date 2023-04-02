@@ -10,11 +10,11 @@ from datetime import datetime, timedelta
 class MT5Controller:
     def __init__(self, timezone='Hongkong', deposit_currency='USD', type_filling='ioc'):
         self.connect_server()
-        self.symbolController = MT5SymbolController()
-        self.tickController = MT5TickController()
-        self.timeController = MT5TimeController()
-        self.executor = MT5Executor(type_filling)  # execute the request (buy/sell)
-        self.pricesLoader = MT5PricesLoader(self.timeController, self.symbolController, timezone, deposit_currency)  # loading the loader
+        self.mt5SymbolController = MT5SymbolController()
+        self.mt5TickController = MT5TickController()
+        self.mt5TimeController = MT5TimeController()
+        self.mt5Executor = MT5Executor(type_filling)  # execute the request (buy/sell)
+        self.mt5PricesLoader = MT5PricesLoader(self.mt5TimeController, self.mt5SymbolController, timezone, deposit_currency)  # loading the loader
 
     def print_terminal_info(self):
         # request connection status and parameters
@@ -48,7 +48,7 @@ class MT5Controller:
             print("initialize() failed")
             mt5.shutdown()
         else:
-            print("MetaTrader Connected")
+            print("Connecting MetaTrader 5 ... ")
 
     def disconnect_server(self):
         # disconnect to MetaTrader 5

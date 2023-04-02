@@ -33,14 +33,15 @@ class MT5SymbolController:
         symbols = mt5.symbols_get()
         for symbol in symbols:
             symbol_name = symbol.name
-            symbols_info[symbol_name] = collections.namedtuple("info", ['digits', 'base', 'quote', 'swap_long', 'swap_short', 'pt_value'])
-            symbols_info[symbol_name].digits = symbol.digits
-            symbols_info[symbol_name].base = symbol.currency_base
-            symbols_info[symbol_name].quote = symbol.currency_profit
-            symbols_info[symbol_name].swap_long = symbol.swap_long
-            symbols_info[symbol_name].swap_short = symbol.swap_short
+            # symbols_info[symbol_name] = collections.namedtuple("info", ['digits', 'base', 'quote', 'swap_long', 'swap_short', 'pt_value'])
+            symbols_info[symbol_name] = {}
+            symbols_info[symbol_name]['digits'] = symbol.digits
+            symbols_info[symbol_name]['base'] = symbol.currency_base
+            symbols_info[symbol_name]['quote'] = symbol.currency_profit
+            symbols_info[symbol_name]['swap_long'] = symbol.swap_long
+            symbols_info[symbol_name]['swap_short'] = symbol.swap_short
             if symbol_name[3:] == 'JPY':
-                symbols_info[symbol_name].pt_value = 100  # 100 dollar for quote per each point    (See note Stock Market - Knowledge - note 3)
+                symbols_info[symbol_name]['pt_value'] = 100  # 100 dollar for quote per each point    (See note Stock Market - Knowledge - note 3)
             else:
-                symbols_info[symbol_name].pt_value = 1  # 1 dollar for quote per each point  (See note Stock Market - Knowledge - note 3)
+                symbols_info[symbol_name]['pt_value'] = 1  # 1 dollar for quote per each point  (See note Stock Market - Knowledge - note 3)
         return symbols_info

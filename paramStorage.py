@@ -87,6 +87,10 @@ METHOD_PARAMS = {
         [
             {'symbols': ["AUDCAD", "EURUSD", "AUDUSD"], 'start': (2022, 6, 1, 0, 0), 'end': (2023, 2, 28, 23, 59), 'timeframe': '1H', "outputPath": "C:/Users/Chris/projects/221227_mt5Mvc/docs/coin"}
         ],
+    "upload_all_symbol_info":
+        [
+            {'broker': 'RoboForex'}
+        ],
     "upload_mt5_getPrices":
         [
             {'symbols': config.DefaultSymbols, 'start': (2023, 3, 1, 0, 0), 'end': (2023, 3, 23, 23, 59), 'timeframe': '1min', 'count': 0, 'ohlcvs': '111100'}

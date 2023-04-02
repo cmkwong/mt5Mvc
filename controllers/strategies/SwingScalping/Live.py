@@ -44,7 +44,7 @@ class Live(Base):
                 else:
                     actionType = 'short'
                 # build request format
-                request = self.mt5Controller.executor.request_format(
+                request = self.mt5Controller.mt5Executor.request_format(
                     symbol=symbol,
                     actionType=actionType,
                     sl=float(self.status['sl']),
@@ -53,7 +53,7 @@ class Live(Base):
                     lot=self.lot
                 )
                 # execute request
-                self.mt5Controller.executor.request_execute(request)
+                self.mt5Controller.mt5Executor.request_execute(request)
                 self.breakThroughTime = masterSignal.index[-1]  # save the last toke action time
                 self.inPosition = True
         # reset the notice if in next time slot
@@ -76,13 +76,13 @@ class Live(Base):
         while True:
             time.sleep(5)
             # getting latest Prices
-            Prices = self.mt5Controller.pricesLoader.getPrices(symbols=[symbol],
-                                                               start=None,
-                                                               end=None,
-                                                               timeframe='5min',
-                                                               count=1000,
-                                                               ohlcvs='111111'
-                                                               )
+            Prices = self.mt5Controller.mt5PricesLoader.getPrices(symbols=[symbol],
+                                                                  start=None,
+                                                                  end=None,
+                                                                  timeframe='5min',
+                                                                  count=1000,
+                                                                  ohlcvs='111111'
+                                                                  )
             # getting ohlcvs
             ohlcvs = Prices.getOhlcvsFromPrices()[symbol]
 

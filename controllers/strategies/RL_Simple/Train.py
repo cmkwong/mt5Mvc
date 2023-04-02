@@ -41,13 +41,13 @@ class Train(Options):
 
     def initTrainTestSet(self):
         # get the loader
-        Prices = self.mt5Controller.pricesLoader.getPrices(symbols=self.data_options['symbols'],
-                                                           start=self.data_options['start'],
-                                                           end=self.data_options['end'],
-                                                           timeframe=self.data_options['timeframe']
-                                                           )
+        Prices = self.mt5Controller.mt5PricesLoader.getPrices(symbols=self.data_options['symbols'],
+                                                              start=self.data_options['start'],
+                                                              end=self.data_options['end'],
+                                                              timeframe=self.data_options['timeframe']
+                                                              )
         # split into train set and test set
-        self.Train_Prices, self.Test_Prices = self.mt5Controller.pricesLoader.split_Prices(Prices, percentage=self.data_options['trainTestSplit'])
+        self.Train_Prices, self.Test_Prices = self.mt5Controller.mt5PricesLoader.split_Prices(Prices, percentage=self.data_options['trainTestSplit'])
 
     def initState(self):
         # build the state

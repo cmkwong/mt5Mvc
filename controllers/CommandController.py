@@ -5,7 +5,7 @@ from controllers.strategies.SwingScalping.Live import Live as           SwingSca
 from controllers.strategies.Covariance.Train import Train as              Covariance_Train
 from controllers.strategies.Conintegration.Train import Train as        Cointegration_Train
 
-import param
+import paramStorage
 
 class CommandController:
     def __init__(self, mainController):
@@ -14,7 +14,7 @@ class CommandController:
     def run(self, command):
         # running SwingScalping_Live with all params
         if command == '-swL':
-            defaultParams = param.METHOD_PARAMS['SwingScalping_Live']
+            defaultParams = paramStorage.METHOD_PARAMS['SwingScalping_Live']
             for defaultParam in defaultParams:
                 strategy = SwingScalping_Live(self.mainController, auto=True)
                 self.mainController.strategyController.runThreadFunction(strategy.run, **defaultParam)
@@ -23,23 +23,36 @@ class CommandController:
         # running Covariance_Live with all params
         elif command == '-cov':
             strategy = Covariance_Train(self.mainController)
-            defaultParam = param.METHOD_PARAMS['Covariance_Live'][0]
+            defaultParam = paramStorage.METHOD_PARAMS['Covariance_Live'][0]
             defaultParam = paramModel.ask_dictParams(strategy.run, defaultParam)
             self.mainController.strategyController.runThreadFunction(strategy.run, **defaultParam)
 
         elif command == '-coinT':
             strategy = Cointegration_Train(self.mainController)
-            defaultParam = param.METHOD_PARAMS['Cointegration_Train'][0]
+            defaultParam = paramStorage.METHOD_PARAMS['Cointegration_Train'][0]
             defaultParam = paramModel.ask_dictParams(strategy.simpleCheck, defaultParam)
             self.mainController.strategyController.runThreadFunction(strategy.simpleCheck, **defaultParam)
 
         # upload the data into mySql server
         elif command == '-upload':
-            # for post symbol forex data from mt5 to mysql
-            uploadDatasParam = param.METHOD_PARAMS['upload_mt5_getPrices'][0]
-            uploadDatasParam = paramModel.ask_dictParams(self.mainController.mt5Controller.pricesLoader.getPrices, uploadDatasParam)
-            Prices = self.mainController.mt5Controller.pricesLoader.getPrices(**uploadDatasParam)
-            self.mainController.nodeJsServerController.uploadSymbolData(Prices)
+            # upload Prices
+            param = paramStorage.METHOD_PARAMS['upload_mt5_getPrices'][0]
+            param = paramModel.ask_dictParams(self.mainController.mt5Controller.mt5PricesLoader.getPrices, param)
+            Prices = self.mainController.mt5Controller.mt5PricesLoader.getPrices(**param)
+            self.mainController.nodeJsServerController.uploadOneMinuteForexData(Prices)
+
+        # all symbol info upload
+        elif command == '-symbol':
+            # upload all_symbol_info
+            all_symbol_info = self.mainController.mt5Controller.mt5PricesLoader.all_symbol_info
+            param = paramStorage.METHOD_PARAMS['upload_all_symbol_info'][0]
+            param = paramModel.ask_dictParams(self.mainController.nodeJsServerController.uploadAllSymbolInfo, param)
+            param['all_symbol_info'] = all_symbol_info
+            self.mainController.nodeJsServerController.uploadAllSymbolInfo(**param)
+
+        # switch the nodeJS server env: dev / prod
+        elif command == '-env':
+            self.mainController.nodeJsServerController.switchEnv()
 
         # # take the strategy into live and run
         # elif command == '-_live':

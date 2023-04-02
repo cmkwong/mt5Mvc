@@ -3,37 +3,45 @@ from models.myUtils import timeModel
 
 import pandas as pd
 
-
 class NodeJsServerController(ApiController):
-    def __init__(self, mt5Controller):
-        super(NodeJsServerController, self).__init__()
-        self.mt5Controller = mt5Controller
+    def __init__(self):
+        self.mainUrl = None
+        self.switchEnv()
 
+    def switchEnv(self):
+        if self.mainUrl == "http://192.168.1.165:3002/":
+            self.mainUrl = "http://localhost:3002/"
+        else:
+            self.mainUrl = "http://192.168.1.165:3002/"
+        print(f"Connecting to {self.mainUrl} ... ")
         # define the url
-        self.mainUrl = "http://192.168.1.165:3002/"
         self.uploadForexDataUrl = self.mainUrl + "api/v1/query/forexTable/upload?tableName={}"
         self.downloadForexDataUrl = self.mainUrl + "api/v1/query/forexTable/download?tableName={}"
         self.createTableUrl = self.mainUrl + "api/v1/query/forexTable/create?tableName={}"
-        self.uploadSymbolInfoUrl = self.mainUrl + "api/v1/query/forexTable/symbolInfo"
+        self.uploadAllSymbolInfoUrl = self.mainUrl + "api/v1/query/forexTable/symbolInfo"
 
-    def createForexTable(self, tableName):
+    def createForex1MinTable(self, tableName):
         schemaObj = {
-            "datetime": "DATETIME NOT NULL PRIMARY KEY",
-            "open": "FLOAT",
-            "high": "FLOAT",
-            "low": "FLOAT",
-            "close": "FLOAT",
-            "volume": "FLOAT",
-            "spread": "FLOAT",
-            "base_exchg": "FLOAT",
-            "quote_exchg": "FLOAT"
+            "columns": {
+                "datetime": ["DATETIME", "NOT NULL"],
+                "open": ["FLOAT"],
+                "high": ["FLOAT"],
+                "low": ["FLOAT"],
+                "close": ["FLOAT"],
+                "volume": ["FLOAT"],
+                "spread": ["FLOAT"],
+                "base_exchg": ["FLOAT"],
+                "quote_exchg": ["FLOAT"]
+            },
+            "keys": ["datetime"]
+
         }
         created = self.createTable(self.createTableUrl.format(tableName), schemaObj)
         if created:
             print(f"The table is created.")
 
     # upload data
-    def uploadSymbolData(self, Prices):
+    def uploadOneMinuteForexData(self, Prices):
         """
         :param symbols: list for the symbols
         :param startTime: tuple for time
@@ -49,7 +57,7 @@ class NodeJsServerController(ApiController):
             self.postDataframe(self.uploadForexDataUrl.format(symbol.lower() + '_1m'), df)
 
     # get data
-    def downloadSymbolData(self, symbol: str, startTime: tuple, endTime: tuple, timeframe: str):
+    def downloadForexData(self, symbol: str, startTime: tuple, endTime: tuple, timeframe: str):
         """
         :param symbol: str
         :param startTime: tuple for time
@@ -94,10 +102,13 @@ class NodeJsServerController(ApiController):
         # drop the nan rows that is holiday
         return forexDataDf.dropna()
 
-    def uploadSymbolInfo(self, broker: str, all_symbol_info: dict):
-        pass
+    # upload all symbol info
+    def uploadAllSymbolInfo(self, *, all_symbol_info: dict, broker: str):
+        all_symbol_info_df = pd.DataFrame.from_dict(all_symbol_info).transpose()
+        all_symbol_info_df['symbol'] = all_symbol_info_df.index
+        all_symbol_info_df.reset_index(inplace=True, drop=True) # drop the index
+        all_symbol_info_df['broker'] = broker
+        self.postDataframe(self.uploadAllSymbolInfoUrl, all_symbol_info_df)
 
-# mt5Controller = MT5Controller()
-# dataFeeder = DataFeeder(mt5Controller)
-#
-# dataFeeder.downloadData('AUDJPY', (2022, 8, 31, 0, 0), (2022, 10, 27, 0, 0))
+
+

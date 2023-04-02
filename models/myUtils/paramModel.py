@@ -36,6 +36,8 @@ def get_params(class_object, raw_param_dict, preprocessNeed=False):
     for paramSig in sig.parameters.values():
         # argument after(*) && has no default argument
         if (paramSig.kind == paramSig.KEYWORD_ONLY) and (paramSig.default == paramSig.empty):
+            # if the dictionary not included then not need to
+            if paramSig.name not in raw_param_dict.keys(): continue
             # asking params
             input_data = input_param(paramSig, raw_param_dict)
             # preprocess the param
