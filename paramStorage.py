@@ -81,7 +81,7 @@ METHOD_PARAMS = {
         ],
     "Covariance_Live":
         [
-            {'start': (2022, 6, 1, 0, 0), 'end': (2023, 2, 28, 23, 59), 'timeframe': '1H'}
+            {'start': (2022, 10, 30, 0, 0), 'end': (2022, 12, 16, 21, 59), 'timeframe': '1H'}
         ],
     "Cointegration_Train":
         [
@@ -89,11 +89,11 @@ METHOD_PARAMS = {
         ],
     "upload_all_symbol_info":
         [
-            {'broker': 'RoboForex'}
+            {'broker': config.Broker}
         ],
     "upload_mt5_getPrices":
         [
-            {'symbols': config.DefaultSymbols, 'start': (2023, 3, 1, 0, 0), 'end': (2023, 3, 23, 23, 59), 'timeframe': '1min', 'count': 0, 'ohlcvs': '111100'}
+            {'symbols': config.DefaultSymbols, 'start': (2023, 3, 1, 0, 0), 'end': (2023, 3, 23, 23, 59), 'timeframe': '1min', 'count': 0, 'ohlcvs': '111111'}
         ]
 }
 

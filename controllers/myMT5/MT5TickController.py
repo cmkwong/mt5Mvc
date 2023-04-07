@@ -2,6 +2,7 @@ import pandas as pd
 import MetaTrader5 as mt5
 
 from controllers.myMT5.MT5TimeController import MT5TimeController
+import config
 
 class MT5TickController(MT5TimeController):
     def get_spread_from_ticks(self, ticks_frame, symbol):

@@ -35,24 +35,33 @@ class CommandController:
 
         # upload the data into mySql server
         elif command == '-upload':
+            # setup the source into mt5
+            originalSource = self.mainController.mt5Controller.mt5PricesLoader.source
+            self.mainController.mt5Controller.mt5PricesLoader.source = 'mt5'
             # upload Prices
             param = paramStorage.METHOD_PARAMS['upload_mt5_getPrices'][0]
             param = paramModel.ask_dictParams(self.mainController.mt5Controller.mt5PricesLoader.getPrices, param)
             Prices = self.mainController.mt5Controller.mt5PricesLoader.getPrices(**param)
-            self.mainController.nodeJsServerController.uploadOneMinuteForexData(Prices)
+            self.mainController.nodeJsApiController.uploadOneMinuteForexData(Prices)
+            # resume to original source
+            self.mainController.mt5Controller.mt5PricesLoader.source = originalSource
 
         # all symbol info upload
         elif command == '-symbol':
             # upload all_symbol_info
             all_symbol_info = self.mainController.mt5Controller.mt5PricesLoader.all_symbol_info
             param = paramStorage.METHOD_PARAMS['upload_all_symbol_info'][0]
-            param = paramModel.ask_dictParams(self.mainController.nodeJsServerController.uploadAllSymbolInfo, param)
+            param = paramModel.ask_dictParams(self.mainController.nodeJsController.apiController.uploadAllSymbolInfo, param)
             param['all_symbol_info'] = all_symbol_info
-            self.mainController.nodeJsServerController.uploadAllSymbolInfo(**param)
+            self.mainController.nodeJsController.apiController.uploadAllSymbolInfo(**param)
 
         # switch the nodeJS server env: dev / prod
         elif command == '-env':
-            self.mainController.nodeJsServerController.switchEnv()
+            self.mainController.nodeJsApiController.switchEnv()
+
+        # switch the price loader source from mt5 / local
+        elif command == '-source':
+            self.mainController.mt5Controller.mt5PricesLoader.switchSource()
 
         # # take the strategy into live and run
         # elif command == '-_live':

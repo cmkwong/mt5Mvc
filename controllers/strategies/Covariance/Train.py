@@ -7,7 +7,7 @@ import numpy as np
 class Train:
     def __init__(self, mainController):
         self.mt5Controller = mainController.mt5Controller
-        self.nodeJsServerController = mainController.nodeJsServerController
+        self.nodeJsServerController = mainController.nodeJsApiController
         self.symbols = config.DefaultSymbols
 
     def get_corelaDf(self, Prices, rowvar=False, bias=False):
@@ -18,7 +18,7 @@ class Train:
         return corelaDf
 
     def run(self, *, start: DatetimeTuple, end: DatetimeTuple, timeframe: str):
-        Prices = self.mt5Controller.mt5PricesLoader.getPrices(symbols=self.symbols, start=start, end=end, timeframe=timeframe)
+        Prices = self.mt5Controller.mt5PricesLoader.getPrices(symbols=self.symbols, start=start, end=end, timeframe=timeframe, count=0, ohlcvs='111100')
         corelaDf = self.get_corelaDf(Prices)
         corelaTxtDf = pd.DataFrame()
         for symbol in self.symbols:

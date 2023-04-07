@@ -1,24 +1,25 @@
-from controllers.myNodeJs.ApiController import ApiController
+from controllers.myNodeJs.HttpController import HttpController
 from models.myUtils import timeModel
+import config
 
 import pandas as pd
 
-class NodeJsServerController(ApiController):
+class NodeJsApiController(HttpController):
     def __init__(self):
         self.mainUrl = None
         self.switchEnv()
 
     def switchEnv(self):
-        if self.mainUrl == "http://192.168.1.165:3002/":
-            self.mainUrl = "http://localhost:3002/"
-        else:
+        if self.mainUrl == "http://localhost:3002/":
             self.mainUrl = "http://192.168.1.165:3002/"
+        else:
+            self.mainUrl = "http://localhost:3002/"
         print(f"Connecting to {self.mainUrl} ... ")
         # define the url
         self.uploadForexDataUrl = self.mainUrl + "api/v1/query/forexTable/upload?tableName={}"
         self.downloadForexDataUrl = self.mainUrl + "api/v1/query/forexTable/download?tableName={}"
         self.createTableUrl = self.mainUrl + "api/v1/query/forexTable/create?tableName={}"
-        self.uploadAllSymbolInfoUrl = self.mainUrl + "api/v1/query/forexTable/symbolInfo"
+        self.allSymbolInfoUrl = self.mainUrl + "api/v1/query/forexTable/symbolInfo"
 
     def createForex1MinTable(self, tableName):
         schemaObj = {
@@ -53,11 +54,13 @@ class NodeJsServerController(ApiController):
         # get to upload the data to database
         for symbol, df in dfs.items():
             df['datetime'] = df.index
-            df['datetime'] = df['datetime'].dt.strftime('%Y-%m-%d %H:%M:%S')
-            self.postDataframe(self.uploadForexDataUrl.format(symbol.lower() + '_1m'), df)
+            # change to UTC + 0
+            df['datetime'] = (df['datetime'] + pd.Timedelta(hours=-config.Broker_Time_Between_UTC)).dt.strftime('%Y-%m-%d %H:%M:%S')
+            if (self.postDataframe(self.uploadForexDataUrl.format(symbol.lower() + '_1m'), df)):
+                print(f"{symbol}: {len(dfs[symbol])} data being uploaded. ")
 
     # get data
-    def downloadForexData(self, symbol: str, startTime: tuple, endTime: tuple, timeframe: str):
+    def downloadForexData(self, symbol: str, timeframe: str, startTime: tuple, endTime: tuple):
         """
         :param symbol: str
         :param startTime: tuple for time
@@ -74,6 +77,9 @@ class NodeJsServerController(ApiController):
             'to': timeModel.getTimeS(endTime, outputFormat='%Y-%m-%d %H:%M:%S')
         }
         forexDataDf_raw = self.getDataframe(url, body)
+        if (len(forexDataDf_raw) == 0):
+            print('No data being fetched. ')
+            return False
         # change to dataframe
         forexDataDf_raw = forexDataDf_raw.set_index('datetime')
         # change index into datetimeIndex
@@ -108,7 +114,24 @@ class NodeJsServerController(ApiController):
         all_symbol_info_df['symbol'] = all_symbol_info_df.index
         all_symbol_info_df.reset_index(inplace=True, drop=True) # drop the index
         all_symbol_info_df['broker'] = broker
-        self.postDataframe(self.uploadAllSymbolInfoUrl, all_symbol_info_df)
+        self.postDataframe(self.allSymbolInfoUrl, all_symbol_info_df)
 
-
+    def get_all_symbols_info(self):
+        df = self.getDataframe(self.allSymbolInfoUrl, {})
+        rawDict = df.transpose().to_dict()
+        all_symbols_info = {}
+        for info in rawDict.values():
+            symbol_name = info['symbol']
+            all_symbols_info[symbol_name] = {}
+            all_symbols_info[symbol_name]['digits'] = info["digits"]
+            all_symbols_info[symbol_name]['base'] = info["base"]
+            all_symbols_info[symbol_name]['quote'] = info["quote"]
+            all_symbols_info[symbol_name]['swap_long'] = info["swap_long"]
+            all_symbols_info[symbol_name]['swap_short'] = info["swap_short"]
+            if symbol_name[3:] == 'JPY':
+                all_symbols_info[symbol_name]['pt_value'] = 100  # 100 dollar for quote per each point    (See note Stock Market - Knowledge - note 3)
+            else:
+                all_symbols_info[symbol_name]['pt_value'] = 1  # 1 dollar for quote per each point  (See note Stock Market - Knowledge - note 3)
+        print(f"Local Symbol Info is fetched from database. {len(all_symbols_info)}")
+        return all_symbols_info
 

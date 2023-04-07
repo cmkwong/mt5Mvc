@@ -18,7 +18,7 @@ class Base:
         :param endTime: (2022, 12, 31, 23, 59)
         :return: pd.DataFrame(open, high, low, close)
         """
-        self.fetchData_min = self.nodeJsServerController.downloadForexData(symbol, startTime, endTime, timeframe='1min')
+        self.fetchData_min = self.nodeJsServerController.downloadForexData(symbol, timeframe='1min', startTime=startTime, endTime=endTime)
 
     # calculate the win rate
     def getWinRate(self, masterSignal, trendType='rise'):

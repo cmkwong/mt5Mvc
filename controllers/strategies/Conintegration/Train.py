@@ -5,7 +5,7 @@ from models.myBacktest import coinModel
 class Train:
     def __init__(self, mainController):
         self.mt5Controller = mainController.mt5Controller
-        self.nodeJsServerController = mainController.nodeJsServerController
+        self.nodeJsServerController = mainController.nodeJsApiController
         self.plotController = mainController.plotController
 
     def simpleCheck(self, *, symbols: list, start: tuple, end: tuple, timeframe: str, outputPath: str):

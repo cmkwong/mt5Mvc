@@ -10,12 +10,12 @@ def get_point_to_deposit(symbol, pts, exchg_rate, all_symbols_info):
     :param all_symbols_info: nametuple
     :return: float
     """
-    value_in_deposit = pts * all_symbols_info[symbol].pt_value * exchg_rate
+    value_in_deposit = pts * all_symbols_info[symbol]['pt_value'] * exchg_rate
     return value_in_deposit
 
 def get_point_diff_value(symbol, new, old, all_symbols_info):
-    digits = all_symbols_info[symbol].digits
-    pt_value = (new - old) * (10 ** digits) * all_symbols_info[symbol].pt_value
+    digits = all_symbols_info[symbol]['digits']
+    pt_value = (new - old) * (10 ** digits) * all_symbols_info[symbol]['pt_value']
     return pt_value
 
 def get_points_dff_values_df(symbols, new_prices, old_prices, all_symbols_info, col_names=None):
@@ -30,8 +30,8 @@ def get_points_dff_values_df(symbols, new_prices, old_prices, all_symbols_info, 
     if type(new_prices) == pd.Series: new_prices = pd.DataFrame(new_prices, index=new_prices.index) # avoid the error of "too many index" if len(symbols) = 1
     points_dff_values_df = pd.DataFrame(index=new_prices.index)
     for c, symbol in enumerate(symbols):
-        digits = all_symbols_info[symbol].digits # (note 44b)
-        points_dff_values_df[symbol] = (new_prices.iloc[:, c] - old_prices.iloc[:, c]) * (10 ** digits) * all_symbols_info[symbol].pt_value
+        digits = all_symbols_info[symbol]['digits'] # (note 44b)
+        points_dff_values_df[symbol] = (new_prices.iloc[:, c] - old_prices.iloc[:, c]) * (10 ** digits) * all_symbols_info[symbol]['pt_value']
     if col_names != None:
         points_dff_values_df.columns = col_names
     elif col_names == None:
@@ -48,8 +48,8 @@ def get_points_dff_values_arr(symbols, news, olds, all_symbols_info):
     """
     pt_values = np.zeros((len(symbols),))
     for i, (symbol, new, old) in enumerate(zip(symbols, news, olds)):
-        digits = all_symbols_info[symbol].digits
-        pt_values[i] = (new - old) * (10 ** digits) * all_symbols_info[symbol].pt_value
+        digits = all_symbols_info[symbol]['digits']
+        pt_values[i] = (new - old) * (10 ** digits) * all_symbols_info[symbol]['pt_value']
     return pt_values
 
 # def get_points_dff(symbols, news, olds, all_symbols_info):

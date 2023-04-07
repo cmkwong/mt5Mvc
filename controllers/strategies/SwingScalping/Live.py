@@ -5,7 +5,7 @@ import time
 
 class Live(Base):
     def __init__(self, mainController, *, auto=False):
-        super(Live, self).__init__(mainController.mt5Controller, mainController.nodeJsServerController)
+        super(Live, self).__init__(mainController.mt5Controller, mainController.nodeJsApiController)
         # init the variables
         self.breakThroughTime = None
         self.breakThroughCondition, self.trendRangeCondition = False, False

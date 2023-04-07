@@ -2,7 +2,7 @@ import requests
 import pandas as pd
 
 # upload the forex loader
-class ApiController:
+class HttpController:
 
     def postDataframe(self, url: str, df: pd.DataFrame):
         """
@@ -17,7 +17,6 @@ class ApiController:
         if r.status_code != 200:
             print(r.text)
             return False
-        print(f"Data being uploaded: {len(listData)}")
         return True
 
     def getDataframe(self, url: str, body: dict):
@@ -32,7 +31,6 @@ class ApiController:
         if r.status_code != 200:
             print(r.text)
             return False
-        print(f"Data being downloaded: {len(res['data'])}")
         # change to dataframe
         return pd.DataFrame.from_dict(res['data'])
 

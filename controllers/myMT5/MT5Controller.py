@@ -8,13 +8,13 @@ import MetaTrader5 as mt5
 from datetime import datetime, timedelta
 
 class MT5Controller:
-    def __init__(self, timezone='Hongkong', deposit_currency='USD', type_filling='ioc'):
+    def __init__(self, nodeJsApiController, timezone='Hongkong', deposit_currency='USD', type_filling='ioc'):
         self.connect_server()
         self.mt5SymbolController = MT5SymbolController()
         self.mt5TickController = MT5TickController()
         self.mt5TimeController = MT5TimeController()
         self.mt5Executor = MT5Executor(type_filling)  # execute the request (buy/sell)
-        self.mt5PricesLoader = MT5PricesLoader(self.mt5TimeController, self.mt5SymbolController, timezone, deposit_currency)  # loading the loader
+        self.mt5PricesLoader = MT5PricesLoader(self.mt5TimeController, self.mt5SymbolController, nodeJsApiController, timezone, deposit_currency)  # loading the loader
 
     def print_terminal_info(self):
         # request connection status and parameters
