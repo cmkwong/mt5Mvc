@@ -3,8 +3,8 @@ import pandas as pd
 
 from models.rl.State import State
 
-from myBacktest import techModel
-from myUtils import dicModel
+from models.myBacktest import techModel
+from models.myUtils import dicModel
 
 
 class Env:

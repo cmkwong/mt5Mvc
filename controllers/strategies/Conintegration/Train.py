@@ -17,11 +17,7 @@ class Train:
         :return:
         """
         # get Prices
-        if strModel.patternsExisted(timeframe, ['H', 'D']):
-            Prices = self.mt5Controller.mt5PricesLoader.getPrices(symbols=symbols, start=start, end=end, timeframe=timeframe)
-        else:
-            pass
-
+        Prices = self.mt5Controller.mt5PricesLoader.getPrices(symbols=symbols, start=start, end=end, timeframe=timeframe, count=0, ohlcvs='111100')
         # changes plotting
         cc = Prices.cc
         cc_coef = coinModel.get_coefficient_vector(cc.values[:, :-1], cc.values[:, -1])

@@ -1,6 +1,7 @@
+from models.myUtils import dfModel
+
 from dataclasses import dataclass
 import pandas as pd
-
 
 @dataclass
 class InitPrices:
@@ -16,6 +17,7 @@ class InitPrices:
     volume: pd.DataFrame = pd.DataFrame()
     spread: pd.DataFrame = pd.DataFrame()
 
+
     def getValidCols(self):
         validCol = []
         for name, field in self.__dataclass_fields__.items():
@@ -24,6 +26,18 @@ class InitPrices:
                 validCol.append(value)
         return validCol
 
+    def split_Prices(self, percentage):
+        trainDict, testDict = {}, {}
+        for name, field in self.__dataclass_fields__.items():
+            attr = getattr(self, name)
+            if not isinstance(attr, pd.DataFrame):
+                trainDict[name] = attr
+                testDict[name] = attr
+            else:
+                trainDict[name], testDict[name] = dfModel.split_df(attr, percentage)
+        return InitPrices(**trainDict), InitPrices(**testDict)
+
+    # get {'symbol': df with ohlcvs}
     def getOhlcvsFromPrices(self):
         """
         resume into normal dataframe
@@ -34,21 +48,21 @@ class InitPrices:
         ohlcsvs = {}
         nameDict = {'open': 'open', 'high': 'high', 'low': 'low', 'close': 'close', 'volume': 'volume', 'spread': 'spread', 'ptDv': 'ptDv', 'quote_exchg': 'quote_exchg', 'base_exchg': 'base_exchg'}
         for si, symbol in enumerate(self.symbols):
-            requiredDf = pd.DataFrame() # create empty df
+            requiredDf = pd.DataFrame()  # create empty df
             for name, field in self.__dataclass_fields__.items():  # name = variable name; field = pd.dataframe/ value
-                if name not in nameDict.keys(): continue  # only need the cols in nameDict
-                df = getattr(self, name)
-                if not df.empty:
-                    dfCol = df.iloc[:, si].rename(nameDict[name])  # get required column
-                    if requiredDf.empty:
-                        requiredDf = dfCol.copy()
-                    else:
-                        requiredDf = pd.concat([requiredDf, dfCol], axis=1)
+                # only need the cols in nameDict
+                if name not in nameDict.keys(): continue
+                # get the attr
+                attr = getattr(self, name)
+                # if not dataframe
+                if not isinstance(attr, pd.DataFrame): continue
+                # if dataframe empty
+                if attr.empty: continue
+                # assign columns
+                dfCol = attr.iloc[:, si].rename(nameDict[name])  # get required column
+                if requiredDf.empty:
+                    requiredDf = dfCol.copy()
+                else:
+                    requiredDf = pd.concat([requiredDf, dfCol], axis=1)
             ohlcsvs[symbol] = requiredDf
         return ohlcsvs
-        # o = Prices.o.iloc[:, i].rename('open')
-        # h = Prices.h.iloc[:, i].rename('high')
-        # l = Prices.l.iloc[:, i].rename('low')
-        # c = Prices.c.iloc[:, i].rename('close')
-        # v = Prices.volume.iloc[:, i].rename('volume')  # volume
-        # s = Prices.spread.iloc[:, i].rename('spread')  # spread

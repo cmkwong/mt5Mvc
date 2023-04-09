@@ -15,10 +15,10 @@ from models.rl.Tracker import Tracker
 
 
 class Train(Options):
-    def __init__(self, mt5Controller, nodeJsServerController):
+    def __init__(self, mainController):
         super(Train, self).__init__()
-        self.mt5Controller = mt5Controller
-        self.nodeJsServerController = nodeJsServerController
+        self.mt5Controller = mainController.mt5Controller
+        self.nodeJsApiController = mainController.nodeJsApiController
         self.RUNNING = False
         self.initTrainTestSet()
         self.initState()
@@ -44,10 +44,12 @@ class Train(Options):
         Prices = self.mt5Controller.mt5PricesLoader.getPrices(symbols=self.data_options['symbols'],
                                                               start=self.data_options['start'],
                                                               end=self.data_options['end'],
-                                                              timeframe=self.data_options['timeframe']
+                                                              timeframe=self.data_options['timeframe'],
+                                                              count=0,
+                                                              ohlcvs='111111'
                                                               )
         # split into train set and test set
-        self.Train_Prices, self.Test_Prices = self.mt5Controller.mt5PricesLoader.split_Prices(Prices, percentage=self.data_options['trainTestSplit'])
+        self.Train_Prices, self.Test_Prices = Prices.split_Prices(percentage=self.data_options['trainTestSplit'])
 
     def initState(self):
         # build the state
