@@ -1,4 +1,4 @@
-from myBacktest import pointsModel, indexModel, coinModel
+from models.myBacktest import pointsModel, indexModel, coinModel
 from datetime import timedelta
 import pandas as pd
 import numpy as np

@@ -1,6 +1,6 @@
 from controllers.myMT5.InitPrices import InitPrices
 from models.myBacktest import exchgModel, pointsModel
-from models.myUtils import dfModel, timeModel
+from models.myUtils import timeModel
 from models.myUtils.paramModel import SymbolList, DatetimeTuple
 
 import collections
@@ -245,18 +245,18 @@ class MT5PricesLoader:  # created note 86a
 
         return prices
 
-    # split the Prices by ratio
-    def split_Prices(self, Prices, percentage):
-        keys = list(Prices.__dict__.keys())
-        prices = collections.namedtuple("prices", keys)
-        train_list, test_list = [], []
-        for key, df in Prices.__dict__.items():
-            train, test = dfModel.split_df(df, percentage)
-            train_list.append(train)
-            test_list.append(test)
-        Train_Prices = prices._make(train_list)
-        Test_Prices = prices._make(test_list)
-        return Train_Prices, Test_Prices
+    # # split the Prices by ratio
+    # def split_Prices(self, Prices, percentage):
+    #     keys = list(Prices.__dict__.keys())
+    #     prices = collections.namedtuple("prices", keys)
+    #     train_list, test_list = [], []
+    #     for key, df in Prices.__dict__.items():
+    #         train, test = dfModel.split_df(df, percentage)
+    #         train_list.append(train)
+    #         test_list.append(test)
+    #     Train_Prices = prices._make(train_list)
+    #     Test_Prices = prices._make(test_list)
+    #     return Train_Prices, Test_Prices
 
     # get latest Prices format
     def get_latest_Prices_format(self, symbols, prices, q2d_exchg_symbols, count):

@@ -1,9 +1,10 @@
-from myBacktest import pointsModel, returnModel, coinModel
-from myBacktest import techModel
-from myUtils import dicModel
+from models.myBacktest import pointsModel, returnModel, coinModel
+from models.myBacktest import techModel
+from models.myUtils import dicModel
 
 import numpy as np
 import pandas as pd
+import random
 
 class State:
     def __init__(self, Prices, symbol, tech_params,
@@ -59,16 +60,13 @@ class State:
         """
         res = []
         earning = 0.0
-        try:
-            res.extend(list(self.dependent_datas.iloc[self._offset, :].values))
-        except:
-            print('stop')
+        res.extend(list(self.dependent_datas.iloc[self._offset, :].values))
         if self.have_position:
             earning = self.cal_profit(self.closePrice.iloc[self._offset, :].values, self._prev_action_price, self.quote_exchg.iloc[self._offset, :].values)
         res.extend([earning, float(self.have_position)])  # earning, have_position (True = 1.0, False = 0.0)
         return np.array(res, dtype=np.float32)
 
-    def step(self, action):
+    def step(self, action: int):
         """
         Calculate the rewards and check if the env is done
         :param action: long/short * Open/Close/hold position: 6 actions
@@ -113,6 +111,16 @@ class AttnState(State):
         super(AttnState, self).__init__(Prices, symbol, tech_params, time_cost_pt, commission_pt, spread_pt, long_mode, all_symbols_info, reset_on_close)
         self.seqLen = seqLen
 
+    def reset(self, new_offset):
+        # set offset if equal / larger than zero
+        if new_offset >= 0:
+            self._offset = new_offset
+        # random index
+        else:
+            random_offset = random.randint(0, len(self.Prices.open) - self.seqLen)
+            self._offset = random_offset
+        self.have_position = False
+
     def encode(self):
         """
         :return: state
@@ -121,6 +129,6 @@ class AttnState(State):
         earning = 0.0
         if self.have_position:
             earning = self.cal_profit(self.closePrice.iloc[self._offset, :].values, self._prev_action_price, self.quote_exchg.iloc[self._offset, :].values)
-        state['encoderInput'] = self.dependent_datas.iloc[self._offset - self.seqLen:self._offset, :].values  # getting seqLen * 2 len of Data
+        state['encoderInput'] = self.dependent_datas.iloc[self._offset:self._offset + self.seqLen, :].values  # getting seqLen * 2 len of Data
         state['status'] = np.array([earning, float(self.have_position)])  # earning, have_position (True = 1.0, False = 0.0)
         return state

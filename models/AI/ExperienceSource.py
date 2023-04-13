@@ -161,7 +161,7 @@ class ExperienceSourceCMK:
                 action = np.random.randint(self.env.get_action_space_size())
             else:
                 action, _ = self.agent.getActionIndex([state])
-            next_obs, r, is_done = self.env.step(action)
+            next_obs, r, is_done = self.env.step(action[0])
             cur_reward += r
             cur_step += 1
             history.append(Experience(state=state, action=action, reward=r, done=is_done))

@@ -3,15 +3,15 @@ import torch
 from torch.utils.tensorboard import SummaryWriter
 
 from controllers.strategies.RL_Simple.Options import Options
-from models.rl.State import State, AttnState
-from models.rl.Env import Env
-from models.rl.Nets import AttentionTimeSeries, SimpleFFDQN, SimpleLSTM
-from models.rl.Actions import EpsilonGreedyActionSelector
-from models.rl.Agents import DQNAgentAttn
-from models.rl.ExperienceSource import ExperienceSourceFirstLast
-from models.rl.ExperienceBuffer import ExperienceReplayBuffer
-from models.rl.Validator import StockValidator
-from models.rl.Tracker import Tracker
+from models.AI.State import State, AttnState
+from models.AI.Env import Env
+from models.AI.Nets import AttentionTimeSeries, SimpleFFDQN, SimpleLSTM
+from models.AI.Actions import EpsilonGreedyActionSelector
+from models.AI.Agents import DQNAgentAttn
+from models.AI.ExperienceSource import ExperienceSourceFirstLast
+from models.AI.ExperienceBuffer import ExperienceReplayBuffer
+from models.AI.Validator import StockValidator
+from models.AI.Tracker import Tracker
 
 
 class Train(Options):
@@ -19,7 +19,7 @@ class Train(Options):
         super(Train, self).__init__()
         self.mt5Controller = mainController.mt5Controller
         self.nodeJsApiController = mainController.nodeJsApiController
-        self.RUNNING = False
+        self.all_symbol_info = mainController.mt5Controller.mt5PricesLoader.all_symbol_info
         self.initTrainTestSet()
         self.initState()
         self.initEnv()
@@ -56,18 +56,18 @@ class Train(Options):
         if self.RL_options['netType'] == 'simple':
             self.state = State(self.Train_Prices, self.data_options['symbols'][0], self.tech_params,
                                self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
-                               self.mt5Controller.all_symbol_info, self.state_options['reset_on_close'])
+                               self.all_symbol_info, self.state_options['reset_on_close'])
             self.state_val = State(self.Test_Prices, self.data_options['symbols'][0], self.tech_params,
                                    self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
-                                   self.mt5Controller.all_symbol_info, False)
+                                   self.all_symbol_info, False)
         elif self.RL_options['netType'] == 'attention':
             # Prices, symbol, tech_params, time_cost_pt, commission_pt, spread_pt, long_mode, all_symbols_info, reset_on_close
             self.state = AttnState(self.RL_options['seqLen'], self.Train_Prices, self.data_options['symbols'][0], self.tech_params,
                                    self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
-                                   self.mt5Controller.all_symbol_info, self.state_options['reset_on_close'])
+                                   self.all_symbol_info, self.state_options['reset_on_close'])
             self.state_val = AttnState(self.RL_options['seqLen'], self.Test_Prices, self.data_options['symbols'][0], self.tech_params,
                                        self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
-                                       self.mt5Controller.all_symbol_info, False)
+                                       self.all_symbol_info, False)
 
     def initEnv(self):
         # build the env
@@ -155,7 +155,7 @@ class Train(Options):
                     self.agent.sync()
 
                 # save the check point
-                if self.step_idx % self.RL_options['checkpoint_step'] == 0:
+                if self.step_idx % self.RL_options['checkpoint_step'] == -1:
                     # idx = step_idx // CHECKPOINT_EVERY_STEP
                     checkpoint = {
                         "state_dict": self.agent.net.state_dict()

@@ -4,6 +4,8 @@ import torch
 from torch import nn
 from torch.nn import functional as func
 
+from typing import Union, Tuple, Any, Callable, Iterator, Set, Optional, overload, TypeVar, Mapping, Dict, List
+
 class BaseAgent:
     def __init__(self, train_on_gpu, **kw):
         # choose device
@@ -12,7 +14,7 @@ class BaseAgent:
         else:
             self.device = torch.device("cpu")
 
-    def default_states_preprocessor(self, states, unitVector=True):
+    def default_states_preprocessor(self, states, unitVector = True) -> object:
         """
         Convert list of states into the form suitable for model. By default we assume Variable
         :param states: list of numpy arrays with states
