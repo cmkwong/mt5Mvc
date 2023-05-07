@@ -6,6 +6,8 @@ from controllers.strategies.Covariance.Train import Train as            Covarian
 from controllers.strategies.Conintegration.Train import Train as        Cointegration_Train
 from controllers.strategies.RL_Simple.Train import Train as             RL_Simple_Train
 
+from controllers.DfController import DfController
+
 import paramStorage
 
 class CommandController:
@@ -25,13 +27,13 @@ class CommandController:
         elif command == '-cov':
             strategy = Covariance_Train(self.mainController)
             defaultParam = paramStorage.METHOD_PARAMS['Covariance_Live'][0]
-            defaultParam = paramModel.ask_dictParams(strategy.run, defaultParam)
+            defaultParam = paramModel.ask_params(strategy.run, defaultParam)
             self.mainController.strategyController.runThreadFunction(strategy.run, **defaultParam)
 
         elif command == '-coinT':
             strategy = Cointegration_Train(self.mainController)
             defaultParam = paramStorage.METHOD_PARAMS['Cointegration_Train'][0]
-            defaultParam = paramModel.ask_dictParams(strategy.simpleCheck, defaultParam)
+            defaultParam = paramModel.ask_params(strategy.simpleCheck, defaultParam)
             self.mainController.strategyController.runThreadFunction(strategy.simpleCheck, **defaultParam)
 
         elif command == '-rlT':
@@ -45,7 +47,7 @@ class CommandController:
             self.mainController.mt5Controller.mt5PricesLoader.source = 'mt5'
             # upload Prices
             param = paramStorage.METHOD_PARAMS['upload_mt5_getPrices'][0]
-            param = paramModel.ask_dictParams(self.mainController.mt5Controller.mt5PricesLoader.getPrices, param)
+            param = paramModel.ask_params(self.mainController.mt5Controller.mt5PricesLoader.getPrices, param)
             Prices = self.mainController.mt5Controller.mt5PricesLoader.getPrices(**param)
             self.mainController.nodeJsApiController.uploadOneMinuteForexData(Prices)
             # resume to original source
@@ -56,7 +58,7 @@ class CommandController:
             # upload all_symbol_info
             all_symbol_info = self.mainController.mt5Controller.mt5PricesLoader.all_symbol_info
             param = paramStorage.METHOD_PARAMS['upload_all_symbol_info'][0]
-            param = paramModel.ask_dictParams(self.mainController.nodeJsController.apiController.uploadAllSymbolInfo, param)
+            param = paramModel.ask_params(self.mainController.nodeJsController.apiController.uploadAllSymbolInfo, param)
             param['all_symbol_info'] = all_symbol_info
             self.mainController.nodeJsController.apiController.uploadAllSymbolInfo(**param)
 
@@ -68,36 +70,14 @@ class CommandController:
         elif command == '-source':
             self.mainController.mt5Controller.mt5PricesLoader.switchSource()
 
-        # # take the strategy into live and run
-        # elif command == '-_live':
-        #     strategyListTxt = self.mainController.strategyController.getListStrategiesText(strategyOperation='live')
-        #     strategyId = inputModel.askNum(f"{strategyListTxt}\nPlease input the index: ")
-        #     strategyName = self.mainController.strategyController.strategiesList['live'][strategyId]['name']
-        #     if inputModel.askConfirm("Do you want to run all of parameter?"): # ask for default all parameter or select specific parameter
-        #         self.mainController.strategyController.runAllParam(strategyId, strategyName, 'live')
-        #     else:
-        #         self.mainController.strategyController.selectOneParam(strategyId, strategyName, 'live')
-        #
-        # elif command == '-train':
-        #     strategyListTxt = self.mainController.strategyController.getListStrategiesText(strategyOperation='train')
-        #     strategyId = inputModel.askNum(f"{strategyListTxt}\nPlease input the index: ")
-        #     strategyName = self.mainController.strategyController.strategiesList['train'][strategyId]['name']
-        #     if inputModel.askConfirm("Do you want to run all of parameter?"):  # ask for default all parameter or select specific parameter
-        #         self.mainController.strategyController.runAllParam(strategyId, strategyName, 'train')
-        #     else:
-        #         self.mainController.strategyController.selectOneParam(strategyId, strategyName, 'train')
-        #
-        # elif command == '-backtest':
-        #     strategyTxt = self.mainController.strategyController.getListStrategiesText(strategyOperation='backtest')
-        #     strategyId = inputModel.askNum(f"{strategyTxt}\nPlease input the index: ")
-        #     inventoryId = self.mainController.strategyController.appendStrategiesInventory(strategyId, 'backtest', ask=True)
-        #     self.mainController.strategyController.runThreadStrategy(inventoryId, ask=False)
-        #
-        #
-        # elif command == '-inventory':
-        #     inventoryTxt = self.mainController.strategyController.getListStrategiesInventoryText()
-        #     print_at(inventoryTxt, self.mainController.tg)
-
+        # get the summary of df
+        elif command == '-dfsumr':
+            dfController = DfController()
+            # read the df
+            readParam = paramModel.ask_params(DfController.readAsDf)
+            sumParam = paramModel.ask_params(DfController.summaryPdf, {'filename': 'summary_car_sales_data.pdf'})
+            df = dfController.readAsDf(**readParam)
+            dfController.summaryPdf(df, **sumParam)
         else:
             print_at('No command detected. Please input again. ')
 """

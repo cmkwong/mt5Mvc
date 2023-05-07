@@ -5,7 +5,10 @@ from models.myUtils import fileModel
 from prompt_toolkit import prompt
 
 
-def paramPreprocess(input_data, paramSig):
+def decodeParam(input_data, paramSig):
+    """
+    eg:  "AUDCAD EURUSD AUDUSD" -> ["AUDCAD", "EURUSD", "AUDUSD"]
+    """
     if paramSig.annotation == list:
         required_input_data = input_data.split(' ')
         if len(input_data) == 0: required_input_data = []
@@ -17,73 +20,99 @@ def paramPreprocess(input_data, paramSig):
         required_input_data = input_data
     return required_input_data
 
+# convert dictionary parameter into raw string
+def encodeParam(dictParam):
+    """
+    eg: ["AUDCAD", "EURUSD", "AUDUSD"] -> "AUDCAD EURUSD AUDUSD"
+    """
+    encoded_params = {}
+    for key, param in dictParam.items():
+        if isinstance(param, list):
+            raw_param = " ".join([str(p) for p in param])
+        elif isinstance(param, tuple):
+            raw_param = str(param)
+        else:
+            raw_param = str(param)
+        encoded_params[key] = raw_param
+    return encoded_params
 
 # user input the param
-def input_param(paramSig, raw_param_dict):
-    # input_data = input(f"{paramSig.name}({paramSig.annotation.__name__})\nDefault: {raw_param_dict[paramSig.name]}: ")
-    input_data = prompt(f"{paramSig.name}({paramSig.annotation.__name__}): ", default=raw_param_dict[paramSig.name])
+def input_param(paramSig, encoded_params):
+    # ask use input parameter and allow user to modify the default parameter
+    input_data = prompt(f"{paramSig.name}({paramSig.annotation.__name__}): ", default=encoded_params[paramSig.name])
     # if no input, then assign default parameter
     if len(input_data) == 0:
-        input_data = raw_param_dict[paramSig.name]
+        input_data = encoded_params[paramSig.name]
     return input_data
 
+# def get_params(class_object, dictParam=None, preprocessNeed=False):
+#     if not dictParam:
+#         dictParam = {}
+#     # params details from object
+#     sig = inspect.signature(class_object)
+#     params = {}
+#     # looping the signature
+#     for paramSig in sig.parameters.values():
+#         # argument after(*) && has no default argument
+#         if paramSig.kind == paramSig.KEYWORD_ONLY:
+#             # check if parameter is missed in default and assigned dict
+#             if paramSig.name not in dictParam.keys():
+#                 if paramSig.default == paramSig.empty:
+#                     raise Exception(f'{paramSig.name} parameter is missed. ')
+#                 else:
+#                     dictParam[paramSig.name] = paramSig.default
+#             # encode the param
+#             encoded_params = encodeParam(dictParam)
+#             # asking params
+#             input_data = input_param(paramSig, encoded_params)
+#             # preprocess the param
+#             if preprocessNeed: input_data = decodeParam(input_data, paramSig)
+#             params[paramSig.name] = input_data
+#     return params
 
-def get_params(class_object, raw_param_dict, preprocessNeed=False):
+
+# # read the param from text
+# def get_raw_param_dict_from_txt_file(object_name, main_path, paramFile):
+#     text = fileModel.read_text(main_path, paramFile)
+#     param_text = [t for t in text.split('~') if len(t) > 0 and t.find(object_name) >= 0][0].strip()
+#     param_dict = {}
+#     for param_text in param_text.split('\n')[1:]:
+#         param_name, value = param_text.split(':', 1)
+#         param_dict[param_name.strip()] = value.strip()
+#     return param_dict
+#
+#
+# # ask user to input parameter or read from txt source
+# def ask_txtParams(class_object, main_path='', paramFile=''):
+#     # read the default params text
+#     encoded_params = get_raw_param_dict_from_txt_file(class_object.__name__, main_path, paramFile)
+#     params = get_params(class_object, encoded_params, True)
+#     return params
+
+# ask user to input parameter from dictionary
+def ask_params(class_object, dictParam=None, preprocessNeed=False):
+    if not dictParam:
+        dictParam = {}
     # params details from object
     sig = inspect.signature(class_object)
     params = {}
     # looping the signature
     for paramSig in sig.parameters.values():
         # argument after(*) && has no default argument
-        if (paramSig.kind == paramSig.KEYWORD_ONLY) and (paramSig.default == paramSig.empty):
-            # if the dictionary not included then not need to
-            if paramSig.name not in raw_param_dict.keys(): continue
+        if paramSig.kind == paramSig.KEYWORD_ONLY:
+            # check if parameter is missed in default and assigned dict
+            if paramSig.name not in dictParam.keys():
+                if paramSig.default == paramSig.empty:
+                    raise Exception(f'{paramSig.name} parameter is missed. ')
+                else:
+                    dictParam[paramSig.name] = paramSig.default
+            # encode the param
+            encoded_params = encodeParam(dictParam)
             # asking params
-            input_data = input_param(paramSig, raw_param_dict)
+            input_data = input_param(paramSig, encoded_params)
             # preprocess the param
-            if preprocessNeed: input_data = paramPreprocess(input_data, paramSig)
+            if preprocessNeed: input_data = decodeParam(input_data, paramSig)
             params[paramSig.name] = input_data
-    return params
-
-
-# read the param from text
-def get_raw_param_dict_from_txt_file(object_name, main_path, paramFile):
-    text = fileModel.read_text(main_path, paramFile)
-    param_text = [t for t in text.split('~') if len(t) > 0 and t.find(object_name) >= 0][0].strip()
-    param_dict = {}
-    for param_text in param_text.split('\n')[1:]:
-        param_name, value = param_text.split(':', 1)
-        param_dict[param_name.strip()] = value.strip()
-    return param_dict
-
-
-# ask user to input parameter or read from txt source
-def ask_txtParams(class_object, main_path='', paramFile=''):
-    # read the default params text
-    raw_param_dict = get_raw_param_dict_from_txt_file(class_object.__name__, main_path, paramFile)
-    params = get_params(class_object, raw_param_dict, True)
-    return params
-
-
-# convert dictionary parameter into raw string
-def get_raw_param_dict_from_dict(dictParam):
-    raw_param_dict = {}
-    for key, param in dictParam.items():
-        if isinstance(param, tuple):
-            raw_param = str(param)
-        elif isinstance(param, list):
-            raw_param = " ".join([str(p) for p in param])
-        else:
-            raw_param = str(param)
-        raw_param_dict[key] = raw_param
-    return raw_param_dict
-
-
-# ask user to input parameter from dictionary
-def ask_dictParams(class_object, dictParam):
-    # read the default params text
-    raw_param_dict = get_raw_param_dict_from_dict(dictParam)
-    params = get_params(class_object, raw_param_dict, True)
     return params
 
 
@@ -99,7 +128,7 @@ def insert_params(class_object, input_datas: list):
     params = {}
     for i, paramSig in enumerate(sig.parameters.values()):
         if (paramSig.kind == paramSig.KEYWORD_ONLY):  # and (param.default == param.empty)
-            input_data = paramPreprocess(input_datas[i], paramSig)
+            input_data = decodeParam(input_datas[i], paramSig)
             params[paramSig.name] = input_data
     return params
 

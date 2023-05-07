@@ -5,7 +5,11 @@ from torch.utils.tensorboard import SummaryWriter
 from controllers.strategies.RL_Simple.Options import Options
 from models.AI.State import State, AttnState
 from models.AI.Env import Env
-from models.AI.Nets import AttentionTimeSeries, SimpleFFDQN, SimpleLSTM
+
+from models.AI.Nets.Attn import AttentionTimeSeries
+from models.AI.Nets.TimeSeries import SimpleLSTM
+from models.AI.Nets.FullyConnected import SimpleFFDQN
+
 from models.AI.Actions import EpsilonGreedyActionSelector
 from models.AI.Agents import DQNAgentAttn
 from models.AI.ExperienceSource import ExperienceSourceFirstLast

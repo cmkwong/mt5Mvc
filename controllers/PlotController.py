@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from pandas.plotting import table
 import os
+import seaborn as sns
 import numpy as np
 
 class PlotController:
@@ -178,3 +180,22 @@ class PlotController:
         self.fig.tight_layout()
         image_name = os.path.join(outPath, filename)
         self.fig.savefig(image_name, bbox_inches="tight", transparent=True)
+
+    # plot head-map
+    def plotCorrHeatMap(self, df, outPath, filename):
+        sns.heatmap(df.corr(), annot=True, cmap='coolwarm')
+        self.fig.tight_layout()
+        fullPath = os.path.join(outPath, filename)
+        self.fig.savefig(fullPath, bbox_inches="tight", transparent=True)
+        return fullPath
+
+    # save df into img
+    def df2Img(self, df, path, filename):
+        ax = self.plt.subplot(111, frame_on=False)  # no visible frame
+        ax.xaxis.set_visible(False)  # hide the x axis
+        ax.yaxis.set_visible(False)  # hide the y axis
+        table(ax, df, loc='center')  # where df is your data frame
+        # save img
+        fullPath = os.path.join(path, filename)
+        plt.savefig(fullPath, bbox_inches='tight')
+        return fullPath

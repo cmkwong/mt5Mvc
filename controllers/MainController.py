@@ -10,4 +10,3 @@ class MainController:
         self.mt5Controller = MT5Controller(self.nodeJsApiController, timezone=timezone, deposit_currency=deposit_currency, type_filling=type_filling)
         self.plotController = PlotController()
         self.strategyController = StrategyController()
-

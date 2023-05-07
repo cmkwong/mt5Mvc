@@ -1,6 +1,6 @@
 import inspect
 import os
-from myUtils import listModel
+from models.myUtils import listModel
 
 def getFileList(pathDir, reverse=False):
     required_fileNames = []
