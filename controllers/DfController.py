@@ -100,19 +100,17 @@ class DfController:
         """
         # set the dataframe display in floating point
         pd.set_option('display.float_format', lambda x: f'{x:.3f}')
+        self.pdf.set_font('Helvetica', 'B', 9)
 
         # create pdf
         self.pdf.add_page()
-        self.pdf.set_font('Helvetica', 'B', 9)
-        # self.pdf.image(name=self.plotController.df2Img(df.head(10), './docs/temp', 'head.png'))
-        # self.pdf.image(name=self.plotController.df2Img(df.tail(10), './docs/temp', 'tail.png'))
         self.pdf.write_html(df.head(10).to_html())
         self.pdf.write_html(df.tail(10).to_html())
-        self.pdf.add_page()
 
+        self.pdf.add_page()
         txt = f'Dataset size: {df.shape}'
         self.pdf.cell(self.pdf.get_string_width(txt), 9, txt)
-        # self.pdf.ln()
+        self.pdf.ln()
 
         txt = 'Missing values:'
         self.pdf.cell(self.pdf.get_string_width(txt), 9, txt)
@@ -131,12 +129,12 @@ class DfController:
             unique = df[col].unique()
             # not discrete data
             if len(unique) > 50:
-                colDetails[col] = ", ".join([f"{v}" for v in unique[:50]]) + " ..."
+                colDetails[col] = ", ".join([f"{v}" for v in unique[:10]]) + " ..."
             # discrete data: further analysis
             else:
-                counts = df[col].value_counts()
-                counts_percent = df[col].value_counts(normalize=True) * 100
-                colDetails[col] = ", ".join([f"{field}({counts[field]}-{counts_percent[field]:.1f}%)" for field in unique])
+                counts = df[col].value_counts(dropna=False)
+                counts_percent = df[col].value_counts(dropna=False, normalize=True) * 100
+                colDetails[col] = ", ".join([f"{field}({counts[field]}[{counts_percent[field]:.1f}%])" for field in unique])
         df_colDetails = pd.DataFrame.from_dict(colDetails, orient='index', columns=['details'])
         self.pdf.write_html(df_colDetails.to_html())
 
