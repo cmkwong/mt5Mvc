@@ -63,7 +63,16 @@ class Live(Base):
                 if (self.trendType == 'rise' and (lastPrice >= self.status['tp'] or lastPrice <= self.status['sl'])) or (self.trendType == 'down' and (lastPrice <= self.status['tp'] or lastPrice >= self.status['sl'])):
                     self.inPosition = False
 
-    def run(self, *, symbol: str, diff_ema_upper_middle: int, diff_ema_middle_lower: int, ratio_sl_sp: float, lowerEma: int, middleEma: int, upperEma: int, trendType: str, lot: int):
+    def run(self, *,
+            symbol: str,
+            diff_ema_upper_middle: int,
+            diff_ema_middle_lower: int,
+            ratio_sl_sp: float,
+            lowerEma: int,
+            middleEma: int,
+            upperEma: int,
+            trendType: str,
+            lot: int):
         self.diff_ema_upper_middle = diff_ema_upper_middle
         self.diff_ema_middle_lower = diff_ema_middle_lower
         self.ratio_sl_sp = ratio_sl_sp
@@ -79,7 +88,7 @@ class Live(Base):
             Prices = self.mt5Controller.mt5PricesLoader.getPrices(symbols=[symbol],
                                                                   start=None,
                                                                   end=None,
-                                                                  timeframe='5min',
+                                                                  timeframe='1H',
                                                                   count=1000,
                                                                   ohlcvs='111111'
                                                                   )

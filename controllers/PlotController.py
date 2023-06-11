@@ -5,19 +5,27 @@ import os
 import seaborn as sns
 import numpy as np
 
+
 class PlotController:
-    def __init__(self, adjustTimeResolution=False, figsize=(10, 6), dpi=150):
+    def __init__(self, adjustTimeResolution=False, figsize=(10, 6), dpi=150, preview=False):
         self.locator = self.getLocator()
         self.formatter = self.getFormatter(self.locator)
         self.adjustTimeResolution = adjustTimeResolution
-        self.plt = plt
-        self.fig = plt.figure(figsize=figsize, dpi=dpi)
+        self.figsize = figsize
+        self.dpi = dpi
+        # self.fig = plt.figure(figsize=figsize, dpi=dpi)
+        self.preview = preview
 
     def getLocator(self):
         # matplotlib format setup
+        # https://stackoverflow.com/questions/15165065/matplotlib-datetime-xlabel-issue
         locator = mdates.AutoDateLocator()
-        locator.intervald[mdates.DAILY] = [1]
+        locator.intervald[mdates.YEARLY] = [1, 2, 4, 5, 10]
+        locator.intervald[mdates.MONTHLY] = [1, 2, 3, 4, 6]
+        locator.intervald[mdates.DAILY] = [1, 2, 3, 4,7,14]
         locator.intervald[mdates.HOURLY] = [1, 2, 3, 6]
+        locator.intervald[mdates.MINUTELY] = [1, 5, 10, 15, 30]
+        locator.intervald[mdates.SECONDLY] = [1, 5, 10, 15, 30]
         return locator
 
     def getFormatter(self, locator):
@@ -67,14 +75,14 @@ class PlotController:
 
     def plotHistorgram(self, series, width, yLabel, color, edgecolor, outPath, filename, binUnit='', ylim=False, decimal=1):
         # reset axis
-        self.plt.delaxes()
+        plt.delaxes()
 
         # add sub-plot
-        ax = self.fig.add_subplot()
+        fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
         ax.bar(series.index, series, width=width, color=color, edgecolor=edgecolor)
 
         # rotate the x-axis
-        self.plt.xticks(rotation=90)
+        plt.xticks(rotation=90)
 
         ax.xaxis.set_major_locator(self.locator)
         # ax.xaxis.set_major_formatter(self.formatter)
@@ -108,14 +116,14 @@ class PlotController:
                     rotation=90,
                     color=txtColor,
                 )
-        self.fig.tight_layout()
+        fig.tight_layout()
         image_name = os.path.join(outPath, filename)
-        self.fig.savefig(image_name, bbox_inches="tight", transparent=True)
+        fig.savefig(image_name, bbox_inches="tight", transparent=True)
 
     def plotMultiHistogramWithSum(self, df, yLabel, outPath, filename):
         # reset axis
-        self.plt.delaxes()
-        ax = self.fig.add_subplot()
+        plt.delaxes()
+        fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
 
         # define the bar width
         width = 0.3
@@ -132,7 +140,7 @@ class PlotController:
 
         # reassign the x-ticks
         ax.set_xticks(x, df.index)
-        self.plt.xticks(rotation=90)
+        plt.xticks(rotation=90)
 
         # set axis
         ax.xaxis.set_major_locator(self.locator)
@@ -140,62 +148,63 @@ class PlotController:
         ax.legend(loc='upper left')
 
         # set layout
-        self.fig.tight_layout()
-        self.plt.autoscale(enable=True, axis='x', tight=True)
+        fig.tight_layout()
+        plt.autoscale(enable=True, axis='x', tight=True)
         image_name = os.path.join(outPath, filename)
-        self.fig.savefig(image_name, bbox_inches="tight", transparent=True)
+        fig.savefig(image_name, bbox_inches="tight", transparent=True)
 
     def plotSimpleLine(self, series, yLabel, outPath, filename):
         # reset axis
-        self.plt.delaxes()
+        # plt.cla()
 
         # add sub-plot
-        ax = self.fig.add_subplot()
+        fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
         ax.plot(series.index, series)
+        ax.xaxis.set_major_formatter(self.formatter)
 
         # rotate the x-axis
-        self.plt.xticks(rotation=90)
+        plt.xticks(rotation=90)
         ax.xaxis.set_major_locator(self.locator)
 
         # set ylabel
         ax.set_ylabel(yLabel)
 
-        self.fig.tight_layout()
+        fig.tight_layout()
         image_name = os.path.join(outPath, filename)
-        self.fig.savefig(image_name, bbox_inches="tight", transparent=True)
+        fig.savefig(image_name, bbox_inches="tight", transparent=True)
 
     def plotMultiLine(self, df, yLabel, outPath, filename):
         # reset axis
-        self.plt.delaxes()
-        ax = self.fig.add_subplot()
+        plt.delaxes()
+        fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
 
         # plot graph
         for colName in df:
             ax.plot(df.index, df[colName], label=colName)
 
-        self.plt.xticks(rotation=90)
+        plt.xticks(rotation=90)
         ax.xaxis.set_major_locator(self.locator)
         ax.set_ylabel(yLabel)
         ax.legend(loc='upper left')
-        self.fig.tight_layout()
+        fig.tight_layout()
         image_name = os.path.join(outPath, filename)
-        self.fig.savefig(image_name, bbox_inches="tight", transparent=True)
+        fig.savefig(image_name, bbox_inches="tight", transparent=True)
 
     # plot head-map
     def plotCorrHeatMap(self, df, outPath, filename):
         sns.heatmap(df.corr(), annot=True, cmap='coolwarm')
-        self.fig.tight_layout()
+        plt.tight_layout()
         fullPath = os.path.join(outPath, filename)
-        self.fig.savefig(fullPath, bbox_inches="tight", transparent=True)
+        plt.savefig(fullPath, bbox_inches="tight", transparent=True)
         return fullPath
 
     # save df into img
     def df2Img(self, df, path, filename):
-        ax = self.plt.subplot(111, frame_on=False)  # no visible frame
+        fig, ax = plt.subplots(111, figsize=self.figsize, dpi=self.dpi, frame_on=False)  # no visible frame
         ax.xaxis.set_visible(False)  # hide the x axis
         ax.yaxis.set_visible(False)  # hide the y axis
         table(ax, df, loc='center')  # where df is your data frame
         # save img
         fullPath = os.path.join(path, filename)
-        plt.savefig(fullPath, bbox_inches='tight')
+        fig.savefig(fullPath, bbox_inches='tight')
         return fullPath

@@ -49,7 +49,7 @@ def askConfirm(question=''):
         return False
 
 # ask user for selection from a {txt: callback}
-def askSelection(questions: list):
-    placeholder = f"{listModel.optionsTxt(questions)}\nPlease Select: "
+def askSelection(options: list):
+    placeholder = f"{listModel.optionsTxt(options)}\nPlease Select: "
     userInput = askNum(placeholder)
     return userInput

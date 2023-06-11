@@ -74,8 +74,10 @@ class CommandController:
         elif command == '-dfsumr':
             dfController = DfController()
             # read the df
-            readParam = paramModel.ask_params(DfController.readAsDf, {'filename': 'Health_conditions_among_children_under_age_18__by_selected_characteristics__United_States.csv'})
-            sumParam = paramModel.ask_params(DfController.summaryPdf, {'filename': 'Health_conditions_among_children_under_age_18__by_selected_characteristics__United_States.pdf'})
+            print("Read File csv/exsl: ")
+            readParam = paramModel.ask_params(DfController.readAsDf)
+            print("Output pdf: ")
+            sumParam = paramModel.ask_params(DfController.summaryPdf)
             df = dfController.readAsDf(**readParam)
             dfController.summaryPdf(df, **sumParam)
         else:

@@ -93,7 +93,7 @@ METHOD_PARAMS = {
         ],
     "upload_mt5_getPrices":
         [
-            {'symbols': config.DefaultSymbols, 'start': (2023, 3, 1, 0, 0), 'end': (2023, 3, 23, 23, 59), 'timeframe': '1min', 'count': 0, 'ohlcvs': '111111'}
+            {'symbols': config.DefaultSymbols, 'start': (2023, 3, 24, 0, 0), 'end': (2023, 6, 1, 23, 59), 'timeframe': '1min', 'count': 0, 'ohlcvs': '111111'}
         ]
 }
 

@@ -33,7 +33,7 @@ def getTimeS(dateTuple, outputFormat="%Y-%m-%d %H:%M:%S"):
         dateTuple = (now.year, now.month, now.day, now.hour, now.minute, now.second)
     else:
         # fill the tuple if it is not full, like (2022, 12, 30) -> (2022, 12, 30, 0, 0, 0)
-        lenLeft = 6 - len(dateTuple)
+        lenLeft = 7 - len(dateTuple)
         for c in range(lenLeft):
             dateTuple = dateTuple + (0,)
     # replace and get required date string

@@ -4,7 +4,7 @@ import numpy as np
 from fpdf import FPDF
 
 from controllers.PlotController import PlotController
-from models.myUtils import dicModel, listModel
+from models.myUtils import inputModel, listModel, fileModel, timeModel
 
 class DfController:
     """
@@ -14,7 +14,16 @@ class DfController:
         self.plotController = PlotController()
         self.pdf = FPDF('L', 'mm', 'A4')
 
-    def readAsDf(self, *, path: str='./docs/tables', filename: str='car_sales_data.csv'):
+    def readAsDf(self, *, path: str='./docs/datas'):
+        """
+        :param path: read as dataframe
+        """
+        # ask user to select the file name
+        fileList = fileModel.getFileList(path)
+        fileNum = inputModel.askSelection(fileList)
+
+        # assigne user selected file
+        filename = fileList[fileNum]
         fullPath = os.path.join(path, filename)
         if filename.endswith('.xlsx'):
             df = pd.read_excel(fullPath)
@@ -91,7 +100,7 @@ class DfController:
         return df
 
     # preview the summary
-    def summaryPdf(self, df, *, path: str= './docs/pdf', filename: str):
+    def summaryPdf(self, df, *, path: str= './docs/pdf'):
         """
         :param df: dataframe
         :param path: str, path to generate the pdf
@@ -143,5 +152,8 @@ class DfController:
         self.pdf.image(name=self.plotController.plotCorrHeatMap(df, "./docs/temp", 'heatmap.png'), h=self.pdf.eph, w=self.pdf.epw)
 
         # output pdf
-        self.pdf.output(os.path.join(path, filename), 'F')
+        filename = f"{timeModel.get_current_time_string()}_summary.pdf"
+        pdf_fullPath = os.path.join(path, filename)
+        print(f"File is output to {pdf_fullPath}")
+        self.pdf.output(pdf_fullPath, 'F')
 
