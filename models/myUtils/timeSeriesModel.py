@@ -8,6 +8,7 @@ from statsmodels.graphics import tsaplots
 from pandas import read_csv
 from matplotlib import pyplot
 from statsmodels.graphics.tsaplots import plot_acf
+import pyts
 
 
 def decomposeTimeSeries(timeSeries):

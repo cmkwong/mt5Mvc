@@ -15,8 +15,16 @@ class CommandController:
         self.mainController = mainController
 
     def run(self, command):
+        # switch the nodeJS server env: dev / prod
+        if command == '-env':
+            self.mainController.nodeJsApiController.switchEnv()
+
+        # switch the price loader source from mt5 / local
+        elif command == '-source':
+            self.mainController.mt5Controller.mt5PricesLoader.switchSource()
+
         # running SwingScalping_Live with all params
-        if command == '-swL':
+        elif command == '-swL':
             defaultParams = paramStorage.METHOD_PARAMS['SwingScalping_Live']
             for defaultParam in defaultParams:
                 strategy = SwingScalping_Live(self.mainController, auto=True)
@@ -29,6 +37,10 @@ class CommandController:
             defaultParam = paramStorage.METHOD_PARAMS['Covariance_Live'][0]
             defaultParam = paramModel.ask_params(strategy.run, defaultParam)
             self.mainController.strategyController.runThreadFunction(strategy.run, **defaultParam)
+
+        # view the time series into Gramian Angular Field Image
+        elif command == '-gaf':
+            pass
 
         elif command == '-coinT':
             strategy = Cointegration_Train(self.mainController)
@@ -61,14 +73,6 @@ class CommandController:
             param = paramModel.ask_params(self.mainController.nodeJsController.apiController.uploadAllSymbolInfo, param)
             param['all_symbol_info'] = all_symbol_info
             self.mainController.nodeJsController.apiController.uploadAllSymbolInfo(**param)
-
-        # switch the nodeJS server env: dev / prod
-        elif command == '-env':
-            self.mainController.nodeJsApiController.switchEnv()
-
-        # switch the price loader source from mt5 / local
-        elif command == '-source':
-            self.mainController.mt5Controller.mt5PricesLoader.switchSource()
 
         # get the summary of df
         elif command == '-dfsumr':
