@@ -1,3 +1,5 @@
+from pyts.image import GramianAngularField
+
 from models.myUtils.printModel import print_at
 from models.myUtils import dicModel, paramModel
 
@@ -5,10 +7,9 @@ from controllers.strategies.SwingScalping.Live import Live as           SwingSca
 from controllers.strategies.Covariance.Train import Train as            Covariance_Train
 from controllers.strategies.Conintegration.Train import Train as        Cointegration_Train
 from controllers.strategies.RL_Simple.Train import Train as             RL_Simple_Train
-
 from controllers.DfController import DfController
-
 import paramStorage
+
 
 class CommandController:
     def __init__(self, mainController):
@@ -40,7 +41,17 @@ class CommandController:
 
         # view the time series into Gramian Angular Field Image
         elif command == '-gaf':
-            pass
+            defaultParam = paramModel.ask_params(self.mainController.mt5Controller.mt5PricesLoader.getPrices)
+            Prices = self.mainController.mt5Controller.mt5PricesLoader.getPrices(**defaultParam)
+            ohlcvs_dfs = Prices.getOhlcvsFromPrices()
+            for symbol, df in ohlcvs_dfs.items():
+                gasf = GramianAngularField(method='summation', image_size=1.0)
+                X_gasf = gasf.fit_transform(df['close'].values.reshape(1, -1))
+                gadf = GramianAngularField(method='difference', image_size=1.0)
+                X_gadf = gadf.fit_transform(df['close'].values.reshape(1, -1))
+                self.mainController.plotController.imgSave(X_gasf[0, :, :], df['close'], f"{symbol}_gasf.jpg")
+                self.mainController.plotController.imgSave(X_gadf[0, :, :], df['close'], f"{symbol}_gadf.jpg")
+                print(f"{symbol} gaf generated. ")
 
         elif command == '-coinT':
             strategy = Cointegration_Train(self.mainController)
@@ -86,6 +97,8 @@ class CommandController:
             dfController.summaryPdf(df, **sumParam)
         else:
             print_at('No command detected. Please input again. ')
+
+
 """
 1. List the strategy, ask for train, backtest, go-live
 2. threading running command

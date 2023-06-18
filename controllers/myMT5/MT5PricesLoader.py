@@ -2,12 +2,13 @@ from controllers.myMT5.InitPrices import InitPrices
 from models.myBacktest import exchgModel, pointsModel
 from models.myUtils import timeModel
 from models.myUtils.paramModel import SymbolList, DatetimeTuple
+import config
 
-import collections
 from datetime import datetime
 
 import MetaTrader5 as mt5
 import pandas as pd
+
 
 # Mt5f loader price loader
 class MT5PricesLoader:  # created note 86a
@@ -339,7 +340,13 @@ class MT5PricesLoader:  # created note 86a
 
         return Prices
 
-    def getPrices(self, *, symbols: SymbolList, start: DatetimeTuple, end: DatetimeTuple, timeframe: str, count: int, ohlcvs: str):
+    def getPrices(self, *,
+                  symbols: SymbolList = config.DefaultSymbols,
+                  start: DatetimeTuple = (2023, 5, 1, 0, 0),
+                  end: DatetimeTuple = (2023, 6, 1, 23, 59),
+                  timeframe: str = '15min',
+                  count: int = 0,
+                  ohlcvs: str = '111111'):
         """
         :param count: 0 if want to get the Data from start to end, otherwise will get the latest bar Data
         :param ohlcvs: 000000 means that get simple version of prices

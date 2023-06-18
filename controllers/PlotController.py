@@ -6,6 +6,15 @@ import seaborn as sns
 import numpy as np
 
 
+# def testing(f):
+#     def wrapper(*args):
+#         print(args[0].url)
+#         return f(*args)
+#     print(f)
+#     return wrapper
+#     # for k, v in kwargs.items():
+#     #     print(k, v)
+
 class PlotController:
     def __init__(self, adjustTimeResolution=False, figsize=(10, 6), dpi=150, preview=False):
         self.locator = self.getLocator()
@@ -75,7 +84,7 @@ class PlotController:
 
     def plotHistorgram(self, series, width, yLabel, color, edgecolor, outPath, filename, binUnit='', ylim=False, decimal=1):
         # reset axis
-        plt.delaxes()
+        plt.clf()
 
         # add sub-plot
         fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
@@ -117,12 +126,14 @@ class PlotController:
                     color=txtColor,
                 )
         fig.tight_layout()
-        image_name = os.path.join(outPath, filename)
-        fig.savefig(image_name, bbox_inches="tight", transparent=True)
+        imgFullPath = os.path.join(outPath, filename)
+        fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
+        plt.close('all')
+        return imgFullPath
 
     def plotMultiHistogramWithSum(self, df, yLabel, outPath, filename):
         # reset axis
-        plt.delaxes()
+        plt.clf()
         fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
 
         # define the bar width
@@ -150,8 +161,10 @@ class PlotController:
         # set layout
         fig.tight_layout()
         plt.autoscale(enable=True, axis='x', tight=True)
-        image_name = os.path.join(outPath, filename)
-        fig.savefig(image_name, bbox_inches="tight", transparent=True)
+        imgFullPath = os.path.join(outPath, filename)
+        fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
+        plt.close('all')
+        return imgFullPath
 
     def plotSimpleLine(self, series, yLabel, outPath, filename):
         # reset axis
@@ -170,12 +183,14 @@ class PlotController:
         ax.set_ylabel(yLabel)
 
         fig.tight_layout()
-        image_name = os.path.join(outPath, filename)
-        fig.savefig(image_name, bbox_inches="tight", transparent=True)
+        imgFullPath = os.path.join(outPath, filename)
+        fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
+        plt.close('all')
+        return imgFullPath
 
     def plotMultiLine(self, df, yLabel, outPath, filename):
         # reset axis
-        plt.delaxes()
+        plt.clf()
         fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
 
         # plot graph
@@ -187,19 +202,23 @@ class PlotController:
         ax.set_ylabel(yLabel)
         ax.legend(loc='upper left')
         fig.tight_layout()
-        image_name = os.path.join(outPath, filename)
-        fig.savefig(image_name, bbox_inches="tight", transparent=True)
+        imgFullPath = os.path.join(outPath, filename)
+        fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
+        plt.close('all')
+        return imgFullPath
 
     # plot head-map
     def plotCorrHeatMap(self, df, outPath, filename):
         sns.heatmap(df.corr(), annot=True, cmap='coolwarm')
         plt.tight_layout()
-        fullPath = os.path.join(outPath, filename)
-        plt.savefig(fullPath, bbox_inches="tight", transparent=True)
-        return fullPath
+        imgFullPath = os.path.join(outPath, filename)
+        plt.savefig(imgFullPath, bbox_inches="tight", transparent=True)
+        plt.close('all')
+        return imgFullPath
 
     # save df into img
     def df2Img(self, df, path, filename):
+        plt.clf()
         fig, ax = plt.subplots(111, figsize=self.figsize, dpi=self.dpi, frame_on=False)  # no visible frame
         ax.xaxis.set_visible(False)  # hide the x axis
         ax.yaxis.set_visible(False)  # hide the y axis
@@ -207,4 +226,39 @@ class PlotController:
         # save img
         fullPath = os.path.join(path, filename)
         fig.savefig(fullPath, bbox_inches='tight')
+        plt.close('all')
         return fullPath
+
+    # @testing
+    def imgSave(self, x, series, filename):
+        """
+        :param x: np.array
+        :param filename: str
+        """
+        # reset axis
+        plt.clf()
+        fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, figsize=(10, 10), dpi=self.dpi)
+
+        index = series.reset_index().index
+        # set limit
+        ax1.set_xlim([index.min(), index.max()])
+        # plot graph
+        ax1.plot(index, series)
+        # show image
+        c = ax2.imshow(x, aspect='auto')
+        fig.colorbar(c, ax=ax2, orientation="horizontal")
+
+        fig.tight_layout()
+        fig.savefig(f'./docs/img/{filename}')
+        plt.close('all')
+
+    # def imgSave2(self, arr2D, series, filename):
+    #     """
+    #     :param x: np.array
+    #     :param filename: str
+    #     """
+    #     # reset axis
+    #     plt.clf()
+    #     fig = plt.figure(figsize=self.figsize)
+    #     gs = fig.add_gridspec(2, 1, height_ratios=(5, 1))
+    #     fig.add
