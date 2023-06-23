@@ -39,6 +39,16 @@ class CommandController:
             defaultParam = paramModel.ask_params(strategy.run, defaultParam)
             self.mainController.strategyController.runThreadFunction(strategy.run, **defaultParam)
 
+        elif command == '-coinT':
+            strategy = Cointegration_Train(self.mainController)
+            defaultParam = paramStorage.METHOD_PARAMS['Cointegration_Train'][0]
+            defaultParam = paramModel.ask_params(strategy.simpleCheck, defaultParam)
+            self.mainController.strategyController.runThreadFunction(strategy.simpleCheck, **defaultParam)
+
+        elif command == '-rlT':
+            strategy = RL_Simple_Train(self.mainController)
+            strategy.run()
+
         # view the time series into Gramian Angular Field Image
         elif command == '-gaf':
             defaultParam = paramModel.ask_params(self.mainController.mt5Controller.mt5PricesLoader.getPrices)
@@ -49,19 +59,8 @@ class CommandController:
                 X_gasf = gasf.fit_transform(df['close'].values.reshape(1, -1))
                 gadf = GramianAngularField(method='difference', image_size=1.0)
                 X_gadf = gadf.fit_transform(df['close'].values.reshape(1, -1))
-                self.mainController.plotController.imgSave(X_gasf[0, :, :], df['close'], f"{symbol}_gasf.jpg")
-                self.mainController.plotController.imgSave(X_gadf[0, :, :], df['close'], f"{symbol}_gadf.jpg")
+                self.mainController.plotController.getGafImg(X_gasf[0, :, :], X_gadf[0, :, :], df['close'], f"{symbol}_gaf.jpg")
                 print(f"{symbol} gaf generated. ")
-
-        elif command == '-coinT':
-            strategy = Cointegration_Train(self.mainController)
-            defaultParam = paramStorage.METHOD_PARAMS['Cointegration_Train'][0]
-            defaultParam = paramModel.ask_params(strategy.simpleCheck, defaultParam)
-            self.mainController.strategyController.runThreadFunction(strategy.simpleCheck, **defaultParam)
-
-        elif command == '-rlT':
-            strategy = RL_Simple_Train(self.mainController)
-            strategy.run()
 
         # upload the data into mySql server
         elif command == '-upload':

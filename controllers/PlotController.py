@@ -230,14 +230,14 @@ class PlotController:
         return fullPath
 
     # @testing
-    def imgSave(self, x, series, filename):
+    def getGafImg(self, x_gasf, x_gadf, series, filename):
         """
         :param x: np.array
         :param filename: str
         """
         # reset axis
         plt.clf()
-        fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, figsize=(10, 10), dpi=self.dpi)
+        fig, (ax1, ax2, ax3) = plt.subplots(nrows=3, ncols=1, figsize=(12, 12), dpi=self.dpi)
 
         index = series.reset_index().index
         # set limit
@@ -245,8 +245,12 @@ class PlotController:
         # plot graph
         ax1.plot(index, series)
         # show image
-        c = ax2.imshow(x, aspect='auto')
-        fig.colorbar(c, ax=ax2, orientation="horizontal")
+        c = ax2.imshow(x_gasf, origin='lower', aspect='auto')
+        ax2.text(5,5, 'gasf')
+        # fig.colorbar(c, ax=ax2, orientation="horizontal")
+        c = ax3.imshow(x_gadf, origin='lower', aspect='auto')
+        ax3.text(5, 5, 'gadf')
+        # fig.colorbar(c, ax=ax3, orientation="horizontal")
 
         fig.tight_layout()
         fig.savefig(f'./docs/img/{filename}')
