@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from models.AI.State import State
+from models.AI.ForexState import ForexState
 
 from models.myBacktest import techModel
 from models.myUtils import dicModel

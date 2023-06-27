@@ -46,6 +46,8 @@ def get_points_dff_values_arr(symbols, news, olds, all_symbols_info):
     :param all_symbols_info: nametuple object
     :return: np.array
     """
+    if isinstance(symbols, str): symbols = [symbols]
+
     pt_values = np.zeros((len(symbols),))
     for i, (symbol, new, old) in enumerate(zip(symbols, news, olds)):
         digits = all_symbols_info[symbol]['digits']

@@ -1,29 +1,30 @@
-from models.myBacktest import pointsModel, returnModel, coinModel
+from models.myBacktest import pointsModel
 from models.myBacktest import techModel
 from models.myUtils import dicModel
+import config
 
 import numpy as np
 import pandas as pd
 import random
 
-class State:
-    def __init__(self, Prices, symbol, tech_params,
-                 time_cost_pt, commission_pt, spread_pt, long_mode, all_symbols_info, reset_on_close):
+class ForexState:
+    def __init__(self, Prices, tech_params,
+                 long_mode, all_symbols_info, reset_on_close):
+        self._init_action_space()
         self.Prices = Prices
-        self.symbol = symbol
-        self.tech_params = tech_params  # pd.DataFrame
-        self.closePrice = Prices.close  # close price (pd.DataFrame)
-        self.quote_exchg = Prices.quote_exchg  # quote to deposit (pd.DataFrame)
-        # should be shift 1 forward, because it takes action on next-day of open-price (pd.DataFrame)
-        self.dependent_datas = pd.concat([self._get_tech_df(Prices), Prices.open, Prices.high, Prices.low, Prices.close], axis=1, join='outer').fillna(0)
-        self.time_cost_pt = time_cost_pt    # float, eg: 0.05
-        self.commission_pt = commission_pt  # float, eg: 8
-        self.spread_pt = spread_pt          # float, eg: 15
-        self.long_mode = long_mode          # Boolean
+        self.symbol = Prices.symbols[0]
+        self.tech_params = tech_params              # pd.DataFrame
+        self.closePrice = Prices.close              # close price (pd.DataFrame)
+        self.quote_exchg = Prices.quote_exchg       # quote to deposit (pd.DataFrame)
+        self.long_mode = long_mode                  # Boolean
         self.all_symbols_info = all_symbols_info    # dict
         self.reset_on_close = reset_on_close        # Boolean
-        self._init_action_space()
+        self.time_cost_pt = config.TimeCostPt       # float, eg: 0.05
+        self.commission_pt = config.CommisionPt     # float, eg: 8
+        self.spread_pt = config.SpreadPt            # float, eg: 15
         self.deal_step = 0.0  # step counter from buy to sell (buy date = step 1, if sell date = 4, time cost = 3)
+        # should be shift 1 forward, because it takes action on next-day of open-price (pd.DataFrame)
+        self.dependent_datas = pd.concat([self._get_tech_df(Prices), Prices.open, Prices.high, Prices.low, Prices.close], axis=1, join='outer').fillna(0)
 
     def _get_tech_df(self, Prices):
         tech_df = pd.DataFrame()
@@ -51,8 +52,13 @@ class State:
         self.have_position = False
 
     def cal_profit(self, curr_action_price, open_action_price, q2d_at):
-        modified_coefficient_vector = coinModel.get_modified_coefficient_vector(np.array([]), self.long_mode, 1)  # lot_times always in 1
-        return returnModel.get_value_of_earning(self.symbol, curr_action_price, open_action_price, q2d_at, self.all_symbols_info, modified_coefficient_vector)
+        if self.long_mode:
+            modified_coefficient_vector = 1
+        else:
+            modified_coefficient_vector = -1
+        points_dff_values = pointsModel.get_points_dff_values_arr(self.symbol, curr_action_price, open_action_price, self.all_symbols_info)
+        return np.sum(q2d_at * points_dff_values) * modified_coefficient_vector
+        # return returnModel.get_value_of_earning(self.symbol, curr_action_price, open_action_price, q2d_at, self.all_symbols_info, modified_coefficient_vector)
 
     def encode(self):
         """
@@ -106,9 +112,9 @@ class State:
 
 # Prices, symbol, tech_params,
 # time_cost_pt, commission_pt, spread_pt, long_mode, all_symbols_info, reset_on_close
-class AttnState(State):
+class AttnForexState(ForexState):
     def __init__(self, seqLen, Prices, symbol, tech_params, time_cost_pt, commission_pt, spread_pt, long_mode, all_symbols_info, reset_on_close):
-        super(AttnState, self).__init__(Prices, symbol, tech_params, time_cost_pt, commission_pt, spread_pt, long_mode, all_symbols_info, reset_on_close)
+        super(AttnForexState, self).__init__(Prices, tech_params, long_mode, all_symbols_info, reset_on_close)
         self.seqLen = seqLen
 
     def reset(self, new_offset):

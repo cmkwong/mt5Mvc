@@ -1,4 +1,4 @@
-from models.myBacktest import pointsModel, indexModel, coinModel
+from models.myBacktest import indexModel
 from datetime import timedelta
 import pandas as pd
 import numpy as np
@@ -24,32 +24,6 @@ def get_ret_earning_list(ret_by_signal, earning_by_signal, signal):
         rets.append(ret_series.prod())
         earnings.append(np.sum(earning_series))
     return rets, earnings
-
-def get_ret_earning(new_prices, old_prices, modify_exchg_q2d, points_dff_values_df, coefficient_vector, long_mode, lot_times=1): # see note (45a)
-    """
-    :param new_prices: pd.DataFrame
-    :param old_prices: pd.DataFrame
-    :param modify_exchg_q2d: pd.Dataframe, that exchange the dollar into same deposit assert
-    :param points_dff_values_df: points the change with respect to quote currency
-    :param coefficient_vector: np.array
-    :param long_mode: Boolean
-    :param lot_times: lot times
-    :return: pd.Series, pd.Series
-    """
-    modified_coefficient_vector = coinModel.get_modified_coefficient_vector(coefficient_vector, long_mode, lot_times)
-
-    # ret
-    change = (new_prices - old_prices) / old_prices
-    olds = np.sum(np.abs(modified_coefficient_vector))
-    news = (np.abs(modified_coefficient_vector) + (change * modified_coefficient_vector)).sum(axis=1)
-    ret = pd.Series(news / olds, index=new_prices.index, name="return")
-
-    # earning
-    weighted_pt_diff = points_dff_values_df.values * modified_coefficient_vector.reshape(-1, )
-    # calculate the price in required deposit dollar
-    earning = pd.Series(np.sum(modify_exchg_q2d.values * weighted_pt_diff, axis=1), index=modify_exchg_q2d.index, name="earning")  # see note 34b and 35 why shift(1)
-
-    return ret, earning
 
 def get_ret_earning_by_signal(ret, earning, signal, min_ret=None, min_earning=None, slsp=None, timeframe=None):
     """
@@ -118,64 +92,3 @@ def modify_ret_earning_with_SLSP(min_ret_series, min_earning_series, sl, sp, ref
     if len(resampled_masked_earning.index) > len(refer_index):
         resampled_masked_ret, resampled_masked_earning = _packing_datetime(resampled_masked_ret, resampled_masked_earning, refer_index)
     return resampled_masked_ret, resampled_masked_earning
-
-def get_value_of_ret(new_values, old_values, modified_coefficient_vector):
-    # ret value
-    changes = (new_values - old_values) / old_values
-    olds = np.sum(np.abs(modified_coefficient_vector))
-    news = (np.abs(modified_coefficient_vector) + (changes * modified_coefficient_vector)).sum()
-    ret = news / olds
-    return ret
-
-def get_value_of_earning(symbols, new_values, old_values, q2d_at, all_symbols_info, modified_coefficient_vector):
-    """
-    :param symbols: [str]
-    :param new_values: np.array
-    :param old_values: np.array
-    :param q2d_at: np.array
-    :param all_symbols_info: nametuple
-    :param modified_coefficient_vector: np.array
-    :return: float
-    """
-    if isinstance(symbols, str): symbols = [symbols]
-    if isinstance(new_values, (float, int)): new_values = np.array([new_values])
-    if isinstance(old_values, (float, int)): old_values = np.array([old_values])
-    if isinstance(q2d_at, (float, int)): q2d_at = np.array([q2d_at])
-
-    # earning value
-    points_dff_values = pointsModel.get_points_dff_values_arr(symbols, new_values, old_values, all_symbols_info)
-    weighted_pt_diff = points_dff_values * modified_coefficient_vector.reshape(-1, )
-    # calculate the price in required deposit dollar
-    earning = np.sum(q2d_at * weighted_pt_diff)
-    return earning
-
-def get_value_of_ret_earning(symbols, new_values, old_values, q2d_at, all_symbols_info, lot_times, coefficient_vector, long_mode):
-    """
-    This is calculate the return and earning from raw value (instead of from dataframe)
-    :param symbols: [str]
-    :param new_values: np.array (Not dataframe)
-    :param old_values: np.array (Not dataframe)
-    :param q2d_at: np.array, values at brought the assert
-    :param coefficient_vector: np.array
-    :param all_symbols_info: nametuple
-    :param long_mode: Boolean
-    :return: float, float: ret, earning
-    """
-    if not isinstance(symbols, list):
-        symbols = [symbols]
-    if not isinstance(new_values, np.ndarray):
-        new_values = np.array([new_values])
-    if not isinstance(old_values, np.ndarray):
-        old_values = np.array([old_values])
-    if not isinstance(q2d_at, np.ndarray):
-        q2d_at = np.array([q2d_at])
-
-    modified_coefficient_vector = coinModel.get_modified_coefficient_vector(coefficient_vector, long_mode, lot_times)
-
-    # ret value
-    ret = get_value_of_ret(new_values, old_values, modified_coefficient_vector)
-
-    # earning value
-    earning = get_value_of_earning(symbols, new_values, old_values, q2d_at, all_symbols_info, modified_coefficient_vector)
-
-    return ret, earning

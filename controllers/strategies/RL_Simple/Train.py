@@ -3,7 +3,7 @@ import torch
 from torch.utils.tensorboard import SummaryWriter
 
 from controllers.strategies.RL_Simple.Options import Options
-from models.AI.State import State, AttnState
+from models.AI.ForexState import ForexState, AttnForexState
 from models.AI.Env import Env
 
 from models.AI.Nets.Attn import AttentionTimeSeries
@@ -58,20 +58,20 @@ class Train(Options):
     def initState(self):
         # build the state
         if self.RL_options['netType'] == 'simple':
-            self.state = State(self.Train_Prices, self.data_options['symbols'][0], self.tech_params,
-                               self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
-                               self.all_symbol_info, self.state_options['reset_on_close'])
-            self.state_val = State(self.Test_Prices, self.data_options['symbols'][0], self.tech_params,
-                                   self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
-                                   self.all_symbol_info, False)
+            self.state = ForexState(self.Train_Prices, self.data_options['symbols'][0], self.tech_params,
+                                    self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
+                                    self.all_symbol_info, self.state_options['reset_on_close'])
+            self.state_val = ForexState(self.Test_Prices, self.data_options['symbols'][0], self.tech_params,
+                                        self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
+                                        self.all_symbol_info, False)
         elif self.RL_options['netType'] == 'attention':
             # Prices, symbol, tech_params, time_cost_pt, commission_pt, spread_pt, long_mode, all_symbols_info, reset_on_close
-            self.state = AttnState(self.RL_options['seqLen'], self.Train_Prices, self.data_options['symbols'][0], self.tech_params,
-                                   self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
-                                   self.all_symbol_info, self.state_options['reset_on_close'])
-            self.state_val = AttnState(self.RL_options['seqLen'], self.Test_Prices, self.data_options['symbols'][0], self.tech_params,
-                                       self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
-                                       self.all_symbol_info, False)
+            self.state = AttnForexState(self.RL_options['seqLen'], self.Train_Prices, self.data_options['symbols'][0], self.tech_params,
+                                        self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
+                                        self.all_symbol_info, self.state_options['reset_on_close'])
+            self.state_val = AttnForexState(self.RL_options['seqLen'], self.Test_Prices, self.data_options['symbols'][0], self.tech_params,
+                                            self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
+                                            self.all_symbol_info, False)
 
     def initEnv(self):
         # build the env
