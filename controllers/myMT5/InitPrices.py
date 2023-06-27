@@ -3,9 +3,11 @@ from models.myUtils import dfModel
 from dataclasses import dataclass
 import pandas as pd
 
+
 @dataclass
 class InitPrices:
     symbols: list
+    all_symbols_info: dict
     close: pd.DataFrame
     cc: pd.DataFrame
     ptDv: pd.DataFrame
@@ -16,7 +18,6 @@ class InitPrices:
     low: pd.DataFrame = pd.DataFrame()
     volume: pd.DataFrame = pd.DataFrame()
     spread: pd.DataFrame = pd.DataFrame()
-
 
     def getValidCols(self):
         validCol = []
@@ -66,3 +67,17 @@ class InitPrices:
                     requiredDf = pd.concat([requiredDf, dfCol], axis=1)
             ohlcsvs[symbol] = requiredDf
         return ohlcsvs
+
+    def getValuesFromPoint(self, pts, offset):
+        """
+        :param symbol: str
+        :param pts: float
+        :param exchg_rate: float
+        :param all_symbols_info: nametuple
+        :return: [float]
+        """
+        value_in_deposit = []
+        for i, symbol in enumerate(self.symbols):
+            q2d_at = self.quote_exchg.iloc[offset].values[i]
+            value_in_deposit.append(pts * self.all_symbols_info[symbol]['pt_value'] * q2d_at)
+        return value_in_deposit

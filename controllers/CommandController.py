@@ -78,7 +78,7 @@ class CommandController:
         # all symbol info upload
         elif command == '-symbol':
             # upload all_symbol_info
-            all_symbol_info = self.mainController.mt5Controller.mt5PricesLoader.all_symbol_info
+            all_symbol_info = self.mainController.mt5Controller.mt5PricesLoader.all_symbols_info
             param = paramStorage.METHOD_PARAMS['upload_all_symbol_info'][0]
             param = paramModel.ask_params(self.mainController.nodeJsController.apiController.uploadAllSymbolInfo, param)
             param['all_symbol_info'] = all_symbol_info

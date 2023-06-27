@@ -23,7 +23,7 @@ class Train(Options):
         super(Train, self).__init__()
         self.mt5Controller = mainController.mt5Controller
         self.nodeJsApiController = mainController.nodeJsApiController
-        self.all_symbol_info = mainController.mt5Controller.mt5PricesLoader.all_symbol_info
+        self.all_symbol_info = mainController.mt5Controller.mt5PricesLoader.all_symbols_info
         self.initTrainTestSet()
         self.initState()
         self.initEnv()

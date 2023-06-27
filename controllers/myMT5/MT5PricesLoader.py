@@ -18,7 +18,7 @@ class MT5PricesLoader:  # created note 86a
         self.mt5TimeController = mt5TimeController
 
         # for Mt5f
-        self.all_symbol_info = self.mt5SymbolController.get_all_symbols_info()
+        self.all_symbols_info = self.mt5SymbolController.get_all_symbols_info()
         self.timezone = timezone  # Check: set(pytz.all_timezones_set) - (Etc/UTC)
         self.deposit_currency = deposit_currency
 
@@ -85,7 +85,7 @@ class MT5PricesLoader:  # created note 86a
         if not self._symbols_available:
             for symbol in required_symbols:
                 try:
-                    _ = self.all_symbol_info[symbol]
+                    _ = self.all_symbols_info[symbol]
                 except KeyError:
                     raise Exception("The {} is not provided.".format(symbol))
             self._symbols_available = True
@@ -188,7 +188,7 @@ class MT5PricesLoader:  # created note 86a
         :param exchg_type: str, 'q2d' = quote to deposit OR 'b2d' = base to deposit
         :return: [str], get required exchange symbol in list: ['USDJPY', 'AUDUSD', 'USDJPY', 'EURUSD', 'NZDUSD', 'USDCAD']
         """
-        symbol_names = list(self.all_symbol_info.keys())
+        symbol_names = list(self.all_symbols_info.keys())
         exchange_symbols = []
         target_symbol = None
         for symbol in symbols:
@@ -271,7 +271,7 @@ class MT5PricesLoader:  # created note 86a
         change_close_prices = ((close_prices - close_prices.shift(1)) / close_prices.shift(1)).fillna(0.0)
 
         # get point diff values with latest value
-        points_dff_values_df = pointsModel.get_points_dff_values_df(symbols, close_prices, close_prices.shift(periods=1), self.all_symbol_info)
+        points_dff_values_df = pointsModel.get_points_dff_values_df(symbols, close_prices, close_prices.shift(periods=1), self.all_symbols_info)
 
         # get quote exchange with values
         exchg_close_prices = self._get_specific_from_prices(prices, q2d_exchg_symbols, ohlcvs='000100')
@@ -282,6 +282,7 @@ class MT5PricesLoader:  # created note 86a
             return False
 
         Prices = InitPrices(symbols=symbols,
+                            all_symbols_info=self.all_symbols_info,
                             close=close_prices,
                             cc=change_close_prices,
                             ptDv=points_dff_values_df,
@@ -301,7 +302,7 @@ class MT5PricesLoader:  # created note 86a
 
         # get point diff values
         # open_prices = _get_specific_from_prices(prices, symbols, ohlcvs='1000')
-        points_dff_values_df = pointsModel.get_points_dff_values_df(symbols, close_prices, close_prices.shift(periods=1), self.all_symbol_info)
+        points_dff_values_df = pointsModel.get_points_dff_values_df(symbols, close_prices, close_prices.shift(periods=1), self.all_symbols_info)
 
         # get the quote to deposit exchange rate
         exchg_close_prices = self._get_specific_from_prices(prices, q2d_exchg_symbols, ohlcvs='000100')
@@ -313,6 +314,7 @@ class MT5PricesLoader:  # created note 86a
 
         # assign the column into each collection tuple
         Prices = InitPrices(symbols=symbols,
+                            all_symbols_info=self.all_symbols_info,
                             close=close_prices,
                             cc=changes,
                             ptDv=points_dff_values_df,

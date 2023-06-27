@@ -2,17 +2,6 @@ import pandas as pd
 import numpy as np
 import MetaTrader5 as mt5
 
-def get_point_to_deposit(symbol, pts, exchg_rate, all_symbols_info):
-    """
-    :param symbol: str
-    :param pts: float
-    :param exchg_rate: float
-    :param all_symbols_info: nametuple
-    :return: float
-    """
-    value_in_deposit = pts * all_symbols_info[symbol]['pt_value'] * exchg_rate
-    return value_in_deposit
-
 def get_point_diff_value(symbol, new, old, all_symbols_info):
     digits = all_symbols_info[symbol]['digits']
     pt_value = (new - old) * (10 ** digits) * all_symbols_info[symbol]['pt_value']
