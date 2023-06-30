@@ -68,16 +68,26 @@ class InitPrices:
             ohlcsvs[symbol] = requiredDf
         return ohlcsvs
 
-    def getValuesFromPoint(self, pts, offset):
+    # calculate the value of point with respect to that time exchage rate
+    def getPointValue(self, point, offset):
         """
-        :param symbol: str
-        :param pts: float
-        :param exchg_rate: float
-        :param all_symbols_info: nametuple
-        :return: [float]
+        :param point: float
+        :return: [float], depend on how many number of symbol (in-deposit)
         """
-        value_in_deposit = []
+        pointValues = {}
         for i, symbol in enumerate(self.symbols):
             q2d_at = self.quote_exchg.iloc[offset].values[i]
-            value_in_deposit.append(pts * self.all_symbols_info[symbol]['pt_value'] * q2d_at)
-        return value_in_deposit
+            pointValues[symbol] = (point * self.all_symbols_info[symbol]['pt_value'] * q2d_at)
+        return pointValues
+
+    def getValueDiff(self, offset_s, offset_e):
+        """
+        :param offset_s:
+        :param offset_e:
+        :return:
+        """
+        pointValueDiffs = []
+        for i, symbol in enumerate(self.symbols):
+            pass
+
+

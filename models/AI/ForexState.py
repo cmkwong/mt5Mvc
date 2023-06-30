@@ -49,7 +49,7 @@ class ForexState:
             self._offset = random_offset
         self.have_position = False
 
-    def cal_profit(self, curr_action_price, open_action_price, q2d_at):
+    def calProfit(self, curr_action_price, open_action_price, q2d_at):
         if self.long_mode:
             modified_coefficient_vector = 1
         else:
@@ -65,7 +65,7 @@ class ForexState:
         earning = 0.0
         res.extend(list(self.dependent_datas.iloc[self._offset, :].values))
         if self.have_position:
-            earning = self.cal_profit(self.Prices.close.iloc[self._offset, :].values, self._prev_action_price, self.Prices.quote_exchg.iloc[self._offset, :].values)
+            earning = self.calProfit(self.Prices.close.iloc[self._offset, :].values, self._prev_action_price, self.Prices.quote_exchg.iloc[self._offset, :].values)
         res.extend([earning, float(self.have_position)])  # earning, have_position (True = 1.0, False = 0.0)
         return np.array(res, dtype=np.float32)
 
@@ -81,22 +81,22 @@ class ForexState:
         q2d_at = self.Prices.quote_exchg.iloc[self._offset].values[0]
 
         if action == self.actions['open'] and not self.have_position:
-            reward -= self.Prices.getValuesFromPoint(self.spread_pt, self._offset)[0]  # spread cost
+            reward -= self.Prices.getPointValue(self.spread_pt, self._offset)[self.symbol]  # spread cost
             self.openPos_price = curr_action_price
             self.have_position = True
 
         elif action == self.actions['close'] and self.have_position:
-            reward += self.cal_profit(curr_action_price, self._prev_action_price, q2d_at)  # calculate the profit
-            reward -= self.Prices.getValuesFromPoint(self.time_cost_pt, self._offset)[0]  # time cost
-            reward -= self.Prices.getValuesFromPoint(self.spread_pt, self._offset)[0]  # spread cost
-            reward -= self.Prices.getValuesFromPoint(self.commission_pt, self._offset)[0]  # commission cost
+            reward += self.calProfit(curr_action_price, self._prev_action_price, q2d_at)  # calculate the profit
+            reward -= self.Prices.getPointValue(self.time_cost_pt, self._offset)[self.symbol]  # time cost
+            reward -= self.Prices.getPointValue(self.spread_pt, self._offset)[self.symbol]  # spread cost
+            reward -= self.Prices.getPointValue(self.commission_pt, self._offset)[self.symbol]  # commission cost
             self.have_position = False
             if self.reset_on_close:
                 done = True
 
         elif action == self.actions['skip'] and self.have_position:
-            reward += self.cal_profit(curr_action_price, self._prev_action_price, q2d_at)
-            reward -= self.Prices.getValuesFromPoint(self.time_cost_pt, self._offset)[0]  # time cost
+            reward += self.calProfit(curr_action_price, self._prev_action_price, q2d_at)
+            reward -= self.Prices.getPointValue(self.time_cost_pt, self._offset)[self.symbol]  # time cost
             self.deal_step += 1
 
         # update status
@@ -132,7 +132,7 @@ class AttnForexState(ForexState):
         state = {}
         earning = 0.0
         if self.have_position:
-            earning = self.cal_profit(self.Prices.close.iloc[self._offset, :].values, self._prev_action_price, self.Prices.quote_exchg.iloc[self._offset, :].values)
+            earning = self.calProfit(self.Prices.close.iloc[self._offset, :].values, self._prev_action_price, self.Prices.quote_exchg.iloc[self._offset, :].values)
         state['encoderInput'] = self.dependent_datas.iloc[self._offset:self._offset + self.seqLen, :].values  # getting seqLen * 2 len of Data
         state['status'] = np.array([earning, float(self.have_position)])  # earning, have_position (True = 1.0, False = 0.0)
         return state

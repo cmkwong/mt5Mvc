@@ -3,10 +3,12 @@ from pyts.image import GramianAngularField
 from models.myUtils.printModel import print_at
 from models.myUtils import dicModel, paramModel
 
-from controllers.strategies.SwingScalping.Live import Live as           SwingScalping_Live
-from controllers.strategies.Covariance.Train import Train as            Covariance_Train
-from controllers.strategies.Conintegration.Train import Train as        Cointegration_Train
-from controllers.strategies.RL_Simple.Train import Train as             RL_Simple_Train
+# Strategy
+from controllers.strategies.SwingScalping.Live import Live as SwingScalping_Live
+from controllers.strategies.Covariance.Train import Train as Covariance_Train
+from controllers.strategies.Conintegration.Train import Train as Cointegration_Train
+from controllers.strategies.RL_Simple.Train import Train as RL_Simple_Train
+
 from controllers.DfController import DfController
 import paramStorage
 
