@@ -9,13 +9,13 @@ import random
 
 
 class ForexState:
-    def __init__(self, Prices, tech_params, long_mode, all_symbols_info, reset_on_close):
+    def __init__(self, Prices, tech_params, long_mode, reset_on_close):
         self._init_action_space()
         self.Prices = Prices
         self.symbol = Prices.symbols[0]
         self.tech_params = tech_params  # pd.DataFrame
         self.long_mode = long_mode  # Boolean
-        self.all_symbols_info = all_symbols_info  # dict
+        self.all_symbols_info = Prices.all_symbols_info  # dict
         self.reset_on_close = reset_on_close  # Boolean
         self.time_cost_pt = config.TimeCostPt  # float, eg: 0.05
         self.commission_pt = config.CommisionPt  # float, eg: 8

@@ -294,7 +294,7 @@ class MT5PricesLoader:  # created note 86a
     def get_Prices_format(self, symbols, prices, q2d_exchg_symbols, b2d_exchg_symbols, ohlcvs):
 
         # init to None
-        open_prices, high_prices, low_prices, close_prices, changes, volume, spread = None, None, None, None, None, None, None
+        # open_prices, high_prices, low_prices, close_prices, changes, volume, spread = None, None, None, None, None, None, None
 
         # get the change of close price
         close_prices = self._get_specific_from_prices(prices, symbols, ohlcvs='000100')
