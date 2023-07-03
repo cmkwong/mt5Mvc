@@ -2,6 +2,8 @@ import os
 import torch
 from torch.utils.tensorboard import SummaryWriter
 
+import config
+
 from controllers.strategies.RL_Simple.Options import Options
 from models.AI.ForexState import ForexState, AttnForexState
 from models.AI.Env import Env
@@ -58,12 +60,8 @@ class Train(Options):
     def initState(self):
         # build the state
         if self.RL_options['netType'] == 'simple':
-            self.state = ForexState(self.Train_Prices, self.data_options['symbols'][0], self.tech_params,
-                                    self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
-                                    self.all_symbol_info, self.state_options['reset_on_close'])
-            self.state_val = ForexState(self.Test_Prices, self.data_options['symbols'][0], self.tech_params,
-                                        self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
-                                        self.all_symbol_info, False)
+            self.state = ForexState(self.Train_Prices, self.tech_params, self.state_options['long_mode'], self.state_options['reset_on_close'])
+            self.state_val = ForexState(self.Test_Prices, self.tech_params, self.state_options['long_mode'], False)
         elif self.RL_options['netType'] == 'attention':
             # Prices, symbol, tech_params, time_cost_pt, commission_pt, spread_pt, long_mode, all_symbols_info, reset_on_close
             self.state = AttnForexState(self.RL_options['seqLen'], self.Train_Prices, self.data_options['symbols'][0], self.tech_params,
@@ -83,7 +81,7 @@ class Train(Options):
 
     # load net
     def _loadNet(self):
-        loadedPath = os.path.join(*[self.general_docs_path, self.RL_options['dt_str'], 'net'])
+        loadedPath = os.path.join(*[config.GENERAL_DOCS_PATH, self.RL_options['net_folder'], 'net'])
         with open(os.path.join(*[loadedPath, self.RL_options['net_file']]), "rb") as f:
             checkpoint = torch.load(f)
         # net = AttentionTimeSeries(hiddenSize=128, inputSize=55, seqLen=30, batchSize=128, outputSize=3, statusSize=2, pdrop=0.1)

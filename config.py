@@ -1,21 +1,28 @@
 import os
-from models.myUtils import sysModel
+from models.myUtils import sysModel, timeModel
+
+DT_STRING = timeModel.getTimeS(False, "%Y%m%d%H%M%S")
 
 PARAM_PATH = './'
 PARAM_FILE = 'param.txt'
 
 # relative path for different computer
 PROJECT_PATH = sysModel.find_required_path(os.getcwd(), '221227_mt5Mvc')
+GENERAL_DOCS_PATH = os.path.join(PROJECT_PATH, 'docs')
 
 Broker = 'RoboForex'
 Broker_Time_Between_UTC = 2
 DefaultSymbols = ['AUDJPY', 'AUDCAD', 'AUDUSD', 'CADJPY', 'EURAUD', 'EURCAD', 'EURGBP', 'EURUSD', 'GBPUSD', 'USDCAD', 'USDJPY']
 
+# RL Document Path
+NET_SAVED_PATH = os.path.join(GENERAL_DOCS_PATH, 'net')
+VAL_SAVED_PATH = os.path.join(GENERAL_DOCS_PATH, 'val')
+RUNS_SAVED_PATH = os.path.join(*[''])
 # For Forex State
-TimeCostPt = 0.05
-CommisionPt = 8
-SpreadPt = 15
-TechicalParams = {
+TIME_COST_POINT = 0.05
+COMMISSION_POINT = 8
+SPREAD_POINT = 15
+TECHNICAL_PARAMS = {
     'ma': [5, 10, 25, 50, 100, 150, 200, 250],
     'bb': [(20, 2, 2, 0), (20, 3, 3, 0), (20, 4, 4, 0), (40, 2, 2, 0), (40, 3, 3, 0), (40, 4, 4, 0)],
     'std': [(5, 1), (20, 1), (50, 1), (100, 1), (150, 1), (250, 1)],

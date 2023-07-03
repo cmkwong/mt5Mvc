@@ -28,7 +28,7 @@ class Options:
         self.RL_options = {
             'load_net': False,
             'lr': 0.01,
-            'dt_str': '220911104535',  # time that program being run
+            'net_folder': '220911104535',  # time that program being run
             'net_file': 'checkpoint-1440000.loader',
             'batch_size': 64,
             'epsilon_start': 1.0,
@@ -59,7 +59,6 @@ class Options:
             'commission_pt': 8,
             'spread_pt': 15,
             'long_mode': True,
-            'random_ofs_on_reset': True,
             'reset_on_close': True
         }
         self.env_options = {
@@ -73,7 +72,3 @@ class Options:
             'stocOsci': [(5, 3, 3, 0, 0), (14, 3, 3, 0, 0), (21, 14, 14, 0, 0)],
             'macd': [(12, 26, 9), (19, 39, 9)]
         }
-
-    # def getRunningTimeString(self):
-    #     now = datetime.now()
-    #     self.DT_STRING = now.strftime("%y%m%d%H%M%S")

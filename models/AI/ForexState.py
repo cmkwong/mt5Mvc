@@ -17,9 +17,9 @@ class ForexState:
         self.long_mode = long_mode  # Boolean
         self.all_symbols_info = Prices.all_symbols_info  # dict
         self.reset_on_close = reset_on_close  # Boolean
-        self.time_cost_pt = config.TimeCostPt  # float, eg: 0.05
-        self.commission_pt = config.CommisionPt  # float, eg: 8
-        self.spread_pt = config.SpreadPt  # float, eg: 15
+        self.time_cost_pt = config.TIME_COST_POINT  # float, eg: 0.05
+        self.commission_pt = config.COMMISSION_POINT  # float, eg: 8
+        self.spread_pt = config.SPREAD_POINT  # float, eg: 15
         self.deal_step = 0.0  # step counter from buy to sell (buy date = step 1, if sell date = 4, time cost = 3)
         # should be shift 1 forward, because it takes action on next-day of open-price (pd.DataFrame)
         self.dependent_datas = pd.concat([self._get_tech_df(Prices), Prices.open, Prices.high, Prices.low, Prices.close], axis=1, join='outer').fillna(0)
