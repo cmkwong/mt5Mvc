@@ -59,10 +59,10 @@ class Options:
             'commission_pt': 8,
             'spread_pt': 15,
             'long_mode': True,
-            'reset_on_close': True
+            'reset_on_close': True,
+            'random_ofs_on_reset': True
         }
         self.env_options = {
-            'random_ofs_on_reset': True
         }
         self.tech_params = {
             'ma': [5, 10, 25, 50, 100, 150, 200, 250],

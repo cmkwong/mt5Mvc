@@ -25,7 +25,7 @@ class Env:
             self.state.reset(0)
         else:
             # random offset
-            self.state.reset(-1)
+            self.state.reset()
         obs = self.state.encode()
         return obs
 

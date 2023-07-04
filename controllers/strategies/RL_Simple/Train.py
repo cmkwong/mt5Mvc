@@ -20,24 +20,98 @@ from models.AI.Validator import StockValidator
 from models.AI.Tracker import Tracker
 
 
-class Train(Options):
-    def __init__(self, mainController):
+class Train:
+    def __init__(self, mainController, *,
+                 symbol='EURUSD',
+                 timeframe='1H',
+                 start=(2010, 1, 2, 0, 0), end=(2020, 12, 30, 0, 0),
+                 seq_len=30, net_type='attention',
+                 load_net=False,
+                 long_mode=False
+                 ):
         super(Train, self).__init__()
+        self.mainController = mainController
         self.mt5Controller = mainController.mt5Controller
         self.nodeJsApiController = mainController.nodeJsApiController
-        self.all_symbol_info = mainController.mt5Controller.mt5PricesLoader.all_symbols_info
-        self.initTrainTestSet()
-        self.initState()
-        self.initEnv()
-        self.initNet()
-        self.initSelector()
-        self.initAgent()
-        self.initExpSource()
-        self.initExpBuffer()
-        self.initOptimizer()
-        self.initValidator()
-        self.initSummaryWriter()
-        self.initTracker()
+        # self.all_symbol_info = mainController.mt5Controller.mt5PricesLoader.all_symbols_info
+        # self.symbol = symbol
+
+        Prices = self.mt5Controller.mt5PricesLoader.getPrices(symbols=[symbol],
+                                                              start=start,
+                                                              end=end,
+                                                              timeframe=timeframe,
+                                                              count=0,
+                                                              ohlcvs='111111'
+                                                              )
+        # split into train set and test set
+        self.Train_Prices, self.Test_Prices = Prices.split_Prices(percentage=config.TRAIN_TEST_SPLIT)
+
+        # build the state
+        if net_type == 'simple':
+            self.state = ForexState(self.Train_Prices, config.TECHNICAL_PARAMS, long_mode, config.RESET_ON_CLOSE)
+            self.state_val = ForexState(self.Test_Prices, config.TECHNICAL_PARAMS, long_mode, False)
+        elif net_type == 'attention':
+            # Prices, symbol, tech_params, time_cost_pt, commission_pt, spread_pt, long_mode, all_symbols_info, reset_on_close
+            self.state = AttnForexState(self.Train_Prices, config.TECHNICAL_PARAMS, long_mode, config.RESET_ON_CLOSE, seq_len)
+            self.state_val = AttnForexState(self.Test_Prices, config.TECHNICAL_PARAMS, long_mode, False, seq_len)
+
+        # build the env
+        self.env = Env(self.state, config.RANDOM_OFFSET_ON_RESET)
+        self.env_val = Env(self.state_val, False)
+
+        # selector
+        self.selector = EpsilonGreedyActionSelector(config.EPSILON_START)
+
+        # check using different net
+        if net_type == 'simple':
+            self.net = SimpleFFDQN(self.env.get_obs_len(), self.env.get_action_space_size())
+        elif net_type == 'attention':
+            self.net = AttentionTimeSeries(hiddenSize=128, inputSize=55, seqLen=30, batchSize=128, outputSize=3, statusSize=2, pdrop=0.1)
+
+        # if loading net
+        if load_net:
+            # load net
+            loadedPath = os.path.join(*[config.GENERAL_DOCS_PATH, 'net', config.NET_FOLDER])
+            with open(os.path.join(*[loadedPath, config.NET_FILE]), "rb") as f:
+                checkpoint = torch.load(f)
+            # net = AttentionTimeSeries(hiddenSize=128, inputSize=55, seqLen=30, batchSize=128, outputSize=3, statusSize=2, pdrop=0.1)
+            self.net.load_state_dict(checkpoint['state_dict'])
+
+        # pass net into gpu
+        self.net.to(torch.device("cuda"))
+
+        # init agent
+        self.agent = DQNAgentAttn(self.net, self.selector)
+
+        # init experience source
+        self.exp_source = ExperienceSourceFirstLast(self.env, self.agent, config.GAMMA, steps_count=config.REWARD_STEPS)
+
+        # init experience buffer
+        self.buffer = ExperienceReplayBuffer(self.exp_source, config.REPLAY_SIZE)
+
+        # create optimizer
+        self.optimizer = torch.optim.Adam(self.net.parameters(), lr=config.LEARNING_RATE)
+
+        # running testing environment
+        self.validator = StockValidator(self.env_val, save_path=config.VAL_SAVED_PATH, comission=0.1)
+
+        # writer for plotting the graph in tensorboard
+        self.summaryWriter = SummaryWriter(log_dir=config.RUNS_SAVED_PATH, comment="ForexRL")
+
+        # track the loss and reward. Console the log in screen
+        writer = SummaryWriter(log_dir=config.RUNS_SAVED_PATH, comment="ForexRL")
+        self.tracker = Tracker(writer, rewardMovAver=1, lossMovAver=1)
+
+        # self.initEnv()
+        # self.initNet()
+        # self.initSelector()
+        # self.initAgent()
+        # self.initExpSource()
+        # self.initExpBuffer()
+        # self.initOptimizer()
+        # self.initValidator()
+        # self.initSummaryWriter()
+        # self.initTracker()
         self.step_idx = 0
 
     @property
@@ -45,104 +119,62 @@ class Train(Options):
         parentFolder = os.path.basename(os.getcwd())
         return f'{parentFolder}({self.__class__.__name__})'
 
-    def initTrainTestSet(self):
-        # get the loader
-        Prices = self.mt5Controller.mt5PricesLoader.getPrices(symbols=self.data_options['symbols'],
-                                                              start=self.data_options['start'],
-                                                              end=self.data_options['end'],
-                                                              timeframe=self.data_options['timeframe'],
-                                                              count=0,
-                                                              ohlcvs='111111'
-                                                              )
-        # split into train set and test set
-        self.Train_Prices, self.Test_Prices = Prices.split_Prices(percentage=self.data_options['trainTestSplit'])
-
     def initState(self):
-        # build the state
-        if self.RL_options['netType'] == 'simple':
-            self.state = ForexState(self.Train_Prices, self.tech_params, self.state_options['long_mode'], self.state_options['reset_on_close'])
-            self.state_val = ForexState(self.Test_Prices, self.tech_params, self.state_options['long_mode'], False)
-        elif self.RL_options['netType'] == 'attention':
-            # Prices, symbol, tech_params, time_cost_pt, commission_pt, spread_pt, long_mode, all_symbols_info, reset_on_close
-            self.state = AttnForexState(self.RL_options['seqLen'], self.Train_Prices, self.data_options['symbols'][0], self.tech_params,
-                                        self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
-                                        self.all_symbol_info, self.state_options['reset_on_close'])
-            self.state_val = AttnForexState(self.RL_options['seqLen'], self.Test_Prices, self.data_options['symbols'][0], self.tech_params,
-                                            self.state_options['time_cost_pt'], self.state_options['commission_pt'], self.state_options['spread_pt'], self.state_options['long_mode'],
-                                            self.all_symbol_info, False)
+        pass
 
     def initEnv(self):
-        # build the env
-        self.env = Env(self.state, self.env_options['random_ofs_on_reset'])
-        self.env_val = Env(self.state_val, self.env_options['random_ofs_on_reset'])
+        pass
 
     def initSelector(self):
-        self.selector = EpsilonGreedyActionSelector(self.RL_options['epsilon_start'])
+        pass
 
-    # load net
     def _loadNet(self):
-        loadedPath = os.path.join(*[config.GENERAL_DOCS_PATH, self.RL_options['net_folder'], 'net'])
-        with open(os.path.join(*[loadedPath, self.RL_options['net_file']]), "rb") as f:
-            checkpoint = torch.load(f)
-        # net = AttentionTimeSeries(hiddenSize=128, inputSize=55, seqLen=30, batchSize=128, outputSize=3, statusSize=2, pdrop=0.1)
-        self.net.load_state_dict(checkpoint['state_dict'])
+        pass
 
     def initNet(self):
-        # check using different net
-        if self.RL_options['netType'] == 'simple':
-            self.net = SimpleFFDQN(self.env.get_obs_len(), self.env.get_action_space_size())
-        elif self.RL_options['netType'] == 'attention':
-            self.net = AttentionTimeSeries(hiddenSize=128, inputSize=55, seqLen=30, batchSize=128, outputSize=3, statusSize=2, pdrop=0.1)
-        # if loading net
-        if (self.RL_options['load_net']):
-            self._loadNet()
-        self.net.to(torch.device("cuda"))  # pass into gpu
+        pass
 
-    # init the agent
     def initAgent(self):
-        self.agent = DQNAgentAttn(self.net, self.selector)
+        pass
 
-    # init experience source
     def initExpSource(self):
-        self.exp_source = ExperienceSourceFirstLast(self.env, self.agent, self.RL_options['gamma'], steps_count=self.RL_options['reward_steps'])
+        pass
 
-    # init experience buffer
     def initExpBuffer(self):
-        self.buffer = ExperienceReplayBuffer(self.exp_source, self.RL_options['replay_size'])
+        pass
 
-    # create optimizer
     def initOptimizer(self):
-        self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.RL_options['lr'])
+        pass
 
-    # running testing environment
     def initValidator(self):
-        self.validator = StockValidator(self.env_val, save_path=os.path.join(*[self.RL_options['val_save_path']]), comission=0.1)
+        # self.validator = StockValidator(self.env_val, save_path=os.path.join(*[self.RL_options['val_save_path']]), comission=0.1)
+        pass
 
-    # writer for plotting the graph in tensorboard
     def initSummaryWriter(self):
-        self.summaryWriter = SummaryWriter(log_dir=os.path.join(self.RL_options['runs_save_path']), comment="ForexRL")
+        # self.summaryWriter = SummaryWriter(log_dir=os.path.join(self.RL_options['runs_save_path']), comment="ForexRL")
+        pass
 
-    # track the loss and reward. Console the log in screen
     def initTracker(self):
-        writer = SummaryWriter(log_dir=os.path.join(self.RL_options['runs_save_path']), comment="ForexRL")
-        self.tracker = Tracker(writer, rewardMovAver=1, lossMovAver=1)
+        # writer = SummaryWriter(log_dir=os.path.join(self.RL_options['runs_save_path']), comment="ForexRL")
+        # self.tracker = Tracker(writer, rewardMovAver=1, lossMovAver=1)
+        pass
 
     def run(self):
         with self.tracker:
             while (True):
                 self.agent.switchNetMode('populate')
                 self.buffer.populate(1)
-                self.selector.epsilon = max(self.RL_options['epsilon_end'], self.RL_options['epsilon_start'] - self.step_idx * 0.75 / self.RL_options['epsilon_step'])
+                self.selector.epsilon = max(config.EPSILON_END, config.EPSILON_START - self.step_idx * 0.75 / config.EPSILON_STEP)
 
                 doneRewards_doneSteps = self.exp_source.pop_rewards_steps()
 
                 if doneRewards_doneSteps:
                     self.tracker.reward(doneRewards_doneSteps, self.step_idx, self.selector.epsilon)
-                if len(self.buffer) < self.RL_options['replay_start']:
+                if len(self.buffer) < config.REPLAY_START:
                     continue
 
                 self.optimizer.zero_grad()
-                batch = self.buffer.sample(self.RL_options['batch_size'])
+                batch = self.buffer.sample(config.BATCH_SIZE)
 
                 # init the hidden both in network and tgt network
                 self.agent.switchNetMode('train')
@@ -160,7 +192,7 @@ class Train(Options):
                 if self.step_idx % self.RL_options['checkpoint_step'] == -1:
                     # idx = step_idx // CHECKPOINT_EVERY_STEP
                     checkpoint = {
-                        "state_dict": self.agent.net.state_dict()
+                        'state_dict': self.agent.net.state_dict()
                     }
                     with open(os.path.join(*[self.RL_options['net_saved_path'], f"checkpoint-{self.step_idx}.loader"]), "wb") as f:
                         torch.save(checkpoint, f)
