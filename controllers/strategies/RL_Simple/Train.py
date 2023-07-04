@@ -24,7 +24,7 @@ class Train:
     def __init__(self, mainController, *,
                  symbol='EURUSD',
                  timeframe='1H',
-                 start=(2010, 1, 2, 0, 0), end=(2020, 12, 30, 0, 0),
+                 start=(2018, 1, 2, 0, 0), end=(2020, 12, 30, 0, 0),
                  seq_len=30, net_type='attention',
                  load_net=False,
                  long_mode=False
@@ -119,45 +119,45 @@ class Train:
         parentFolder = os.path.basename(os.getcwd())
         return f'{parentFolder}({self.__class__.__name__})'
 
-    def initState(self):
-        pass
-
-    def initEnv(self):
-        pass
-
-    def initSelector(self):
-        pass
-
-    def _loadNet(self):
-        pass
-
-    def initNet(self):
-        pass
-
-    def initAgent(self):
-        pass
-
-    def initExpSource(self):
-        pass
-
-    def initExpBuffer(self):
-        pass
-
-    def initOptimizer(self):
-        pass
-
-    def initValidator(self):
-        # self.validator = StockValidator(self.env_val, save_path=os.path.join(*[self.RL_options['val_save_path']]), comission=0.1)
-        pass
-
-    def initSummaryWriter(self):
-        # self.summaryWriter = SummaryWriter(log_dir=os.path.join(self.RL_options['runs_save_path']), comment="ForexRL")
-        pass
-
-    def initTracker(self):
-        # writer = SummaryWriter(log_dir=os.path.join(self.RL_options['runs_save_path']), comment="ForexRL")
-        # self.tracker = Tracker(writer, rewardMovAver=1, lossMovAver=1)
-        pass
+    # def initState(self):
+    #     pass
+    #
+    # def initEnv(self):
+    #     pass
+    #
+    # def initSelector(self):
+    #     pass
+    #
+    # def _loadNet(self):
+    #     pass
+    #
+    # def initNet(self):
+    #     pass
+    #
+    # def initAgent(self):
+    #     pass
+    #
+    # def initExpSource(self):
+    #     pass
+    #
+    # def initExpBuffer(self):
+    #     pass
+    #
+    # def initOptimizer(self):
+    #     pass
+    #
+    # def initValidator(self):
+    #     # self.validator = StockValidator(self.env_val, save_path=os.path.join(*[self.RL_options['val_save_path']]), comission=0.1)
+    #     pass
+    #
+    # def initSummaryWriter(self):
+    #     # self.summaryWriter = SummaryWriter(log_dir=os.path.join(self.RL_options['runs_save_path']), comment="ForexRL")
+    #     pass
+    #
+    # def initTracker(self):
+    #     # writer = SummaryWriter(log_dir=os.path.join(self.RL_options['runs_save_path']), comment="ForexRL")
+    #     # self.tracker = Tracker(writer, rewardMovAver=1, lossMovAver=1)
+    #     pass
 
     def run(self):
         with self.tracker:
