@@ -29,20 +29,13 @@ class Train:
                  load_net=False,
                  long_mode=False
                  ):
-        super(Train, self).__init__()
         self.mainController = mainController
         self.mt5Controller = mainController.mt5Controller
         self.nodeJsApiController = mainController.nodeJsApiController
         # self.all_symbol_info = mainController.mt5Controller.mt5PricesLoader.all_symbols_info
         # self.symbol = symbol
 
-        Prices = self.mt5Controller.mt5PricesLoader.getPrices(symbols=[symbol],
-                                                              start=start,
-                                                              end=end,
-                                                              timeframe=timeframe,
-                                                              count=0,
-                                                              ohlcvs='111111'
-                                                              )
+        Prices = self.mt5Controller.mt5PricesLoader.getPrices(symbols=[symbol], start=start, end=end, timeframe=timeframe, count=0, ohlcvs='111111')
         # split into train set and test set
         self.Train_Prices, self.Test_Prices = Prices.split_Prices(percentage=config.TRAIN_TEST_SPLIT)
 
