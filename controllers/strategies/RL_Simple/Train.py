@@ -4,7 +4,6 @@ from torch.utils.tensorboard import SummaryWriter
 
 import config
 
-from controllers.strategies.RL_Simple.Options import Options
 from models.AI.ForexState import ForexState, AttnForexState
 from models.AI.Env import Env
 
@@ -22,7 +21,7 @@ from models.AI.Tracker import Tracker
 
 class Train:
     def __init__(self, mainController, *,
-                 symbol='EURUSD',
+                 symbol='USDJPY',
                  timeframe='1H',
                  start=(2018, 1, 2, 0, 0), end=(2020, 12, 30, 0, 0),
                  seq_len=30, net_type='attention',
@@ -38,6 +37,8 @@ class Train:
         Prices = self.mt5Controller.mt5PricesLoader.getPrices(symbols=[symbol], start=start, end=end, timeframe=timeframe, count=0, ohlcvs='111111')
         # split into train set and test set
         self.Train_Prices, self.Test_Prices = Prices.split_Prices(percentage=config.TRAIN_TEST_SPLIT)
+
+        value = self.Train_Prices.getValueDiff(1, 100)
 
         # build the state
         if net_type == 'simple':
@@ -111,46 +112,6 @@ class Train:
     def getName(self):
         parentFolder = os.path.basename(os.getcwd())
         return f'{parentFolder}({self.__class__.__name__})'
-
-    # def initState(self):
-    #     pass
-    #
-    # def initEnv(self):
-    #     pass
-    #
-    # def initSelector(self):
-    #     pass
-    #
-    # def _loadNet(self):
-    #     pass
-    #
-    # def initNet(self):
-    #     pass
-    #
-    # def initAgent(self):
-    #     pass
-    #
-    # def initExpSource(self):
-    #     pass
-    #
-    # def initExpBuffer(self):
-    #     pass
-    #
-    # def initOptimizer(self):
-    #     pass
-    #
-    # def initValidator(self):
-    #     # self.validator = StockValidator(self.env_val, save_path=os.path.join(*[self.RL_options['val_save_path']]), comission=0.1)
-    #     pass
-    #
-    # def initSummaryWriter(self):
-    #     # self.summaryWriter = SummaryWriter(log_dir=os.path.join(self.RL_options['runs_save_path']), comment="ForexRL")
-    #     pass
-    #
-    # def initTracker(self):
-    #     # writer = SummaryWriter(log_dir=os.path.join(self.RL_options['runs_save_path']), comment="ForexRL")
-    #     # self.tracker = Tracker(writer, rewardMovAver=1, lossMovAver=1)
-    #     pass
 
     def run(self):
         with self.tracker:

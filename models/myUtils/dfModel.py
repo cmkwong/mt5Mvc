@@ -1,8 +1,5 @@
 import pandas as pd
-import numpy as np
-import os
 
-from models.myUtils import listModel
 
 def concatDfs(df_dict):
     """
@@ -13,6 +10,7 @@ def concatDfs(df_dict):
     for key, df in df_dict.items():
         main_df = pd.concat([main_df, df], axis=0, sort=True)
     return main_df
+
 
 def getLastRow(df, pop=False):
     """
@@ -30,6 +28,7 @@ def getLastRow(df, pop=False):
         values = values[0]
     return last_index, values
 
+
 def df2ListDict(df: pd.DataFrame):
     """
     :param df: pd.DataFrame
@@ -37,10 +36,10 @@ def df2ListDict(df: pd.DataFrame):
     """
     return df.to_dict('records')
 
+
 # split the dataframe by rows
 def split_df(df, percentage):
     split_index = int(len(df) * percentage)
-    upper_df = df.iloc[:split_index,:]
+    upper_df = df.iloc[:split_index, :]
     lower_df = df.iloc[split_index:, :]
     return upper_df, lower_df
-

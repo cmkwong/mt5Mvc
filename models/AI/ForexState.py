@@ -43,8 +43,8 @@ class ForexState:
         # not random index
         if not new_offset:
             self._offset = new_offset
-        # random index
         else:
+            # random index
             self._offset = np.random.randint(len(self.Prices.open) - 10)
         self.have_position = False
 
@@ -90,7 +90,7 @@ class ForexState:
             reward -= self.Prices.getPointValue(self.spread_pt, self._offset)[self.symbol]  # spread cost
             reward -= self.Prices.getPointValue(self.commission_pt, self._offset)[self.symbol]  # commission cost
             self.have_position = False
-            if self.reset_on_close:
+            if self.resetOnDone:
                 done = True
 
         elif action == self.actions['skip'] and self.have_position:
@@ -105,6 +105,7 @@ class ForexState:
             done = True
 
         return reward, done
+
 
 # attention network
 class AttnForexState(ForexState):

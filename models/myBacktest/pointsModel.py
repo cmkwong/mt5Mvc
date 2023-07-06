@@ -3,10 +3,10 @@ import numpy as np
 import MetaTrader5 as mt5
 
 
-def get_point_diff_value(symbol, new, old, all_symbols_info):
-    digits = all_symbols_info[symbol]['digits']
-    pt_value = (new - old) * (10 ** digits) * all_symbols_info[symbol]['pt_value']
-    return pt_value
+# def get_point_diff_value(symbol, new, old, all_symbols_info):
+#     digits = all_symbols_info[symbol]['digits']
+#     pt_value = (new - old) * (10 ** digits) * all_symbols_info[symbol]['pt_value']
+#     return pt_value
 
 
 def get_points_dff_values_df(symbols, new_prices, old_prices, all_symbols_info, col_names=None):
