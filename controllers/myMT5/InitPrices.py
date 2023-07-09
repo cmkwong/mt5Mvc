@@ -69,7 +69,7 @@ class InitPrices:
         return ohlcsvs
 
     # calculate the value of point with respect to that time exchage rate
-    def getPointValue(self, point, offset, dfIndex=True):
+    def getPointValue(self, point, offset, iloc=True):
         """
         Getting forex point in deposit value
         :param point: float
@@ -79,13 +79,13 @@ class InitPrices:
         for i, symbol in enumerate(self.symbols):
             # getting the quote exchange
             q2d_at = self.quote_exchg.iloc[offset].values[i]
-            if not dfIndex:
+            if not iloc:
                 q2d_at = self.quote_exchg.loc[offset].values[i]
             # getting the point values
             pointValues[symbol] = (point * self.all_symbols_info[symbol]['pt_value'] * q2d_at)
         return pointValues
 
-    def getValueDiff(self, offset_s, offset_e, dfIndex=True):
+    def getValueDiff(self, offset_s, offset_e, iloc=True):
         """
         Getting the difference of close price between these offsets (In deposit exchange rate)
         :param offset_s:
@@ -100,7 +100,7 @@ class InitPrices:
             # getting new and old value
             old = self.close[symbol].iloc[offset_s]
             new = self.close[symbol].iloc[offset_e]
-            if not dfIndex:
+            if not iloc:
                 old = self.close[symbol].loc[offset_s]
                 new = self.close[symbol].loc[offset_e]
 

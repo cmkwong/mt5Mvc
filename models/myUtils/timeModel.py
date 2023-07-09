@@ -24,7 +24,7 @@ def get_current_time_string():
 
 
 # get tuple time to string
-def getTimeS(dateTuple, outputFormat="%Y-%m-%d %H:%M:%S"):
+def getTimeS(dateTuple=None, outputFormat="%Y-%m-%d %H:%M:%S"):
     """
     dateTuple if null/False, get the current time
     """
