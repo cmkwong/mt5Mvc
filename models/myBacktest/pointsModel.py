@@ -22,7 +22,8 @@ def get_points_dff_values_df(symbols, new_prices, old_prices, all_symbols_info, 
     points_dff_values_df = pd.DataFrame(index=new_prices.index)
     for c, symbol in enumerate(symbols):
         digits = all_symbols_info[symbol]['digits']  # (note 44b)
-        points_dff_values_df[symbol] = (new_prices.iloc[:, c] - old_prices.iloc[:, c]) * (10 ** digits) * all_symbols_info[symbol]['pt_value']
+        pt_value = all_symbols_info[symbol]['pt_value']
+        points_dff_values_df[symbol] = (new_prices.iloc[:, c] - old_prices.iloc[:, c]) * (10 ** digits) * pt_value
     if col_names != None:
         points_dff_values_df.columns = col_names
     elif col_names == None:

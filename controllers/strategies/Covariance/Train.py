@@ -18,7 +18,7 @@ class Train:
         return corelaDf
 
     def run(self, *, start: DatetimeTuple, end: DatetimeTuple, timeframe: str):
-        Prices = self.mt5Controller.mt5PricesLoader.getPrices(symbols=self.symbols, start=start, end=end, timeframe=timeframe, count=0, ohlcvs='111100')
+        Prices = self.mt5Controller.pricesLoader.getPrices(symbols=self.symbols, start=start, end=end, timeframe=timeframe, count=0, ohlcvs='111100')
         corelaDf = self.get_corelaDf(Prices)
         corelaTxtDf = pd.DataFrame()
         for symbol in self.symbols:

@@ -1,5 +1,5 @@
 import pandas as pd
-
+import numpy as np
 
 def concatDfs(df_dict):
     """
@@ -43,3 +43,33 @@ def split_df(df, percentage):
     upper_df = df.iloc[:split_index, :]
     lower_df = df.iloc[split_index:, :]
     return upper_df, lower_df
+
+def getLevelColumnIndex(**kwargs):
+    """
+    :param kwargs: level_1, level_2, level_3, ...
+    :return:
+    """
+    # check if not list, should be arise error
+    for cols in kwargs.values():
+        if not isinstance(cols, list):
+            raise Exception(f"The values should be list but gave {type(cols)}")
+    totalRows = np.prod([len(v) for v in kwargs.values()])
+    # eg: 2 times: a -> a a
+    duplicateTimes = []
+    # eg: 2 times: a a b b c c -> a a b b c c a a b b c c
+    patternTimes = []
+    accumTime = 1
+    for cols in reversed(kwargs.values()):
+        duplicateTimes.append(accumTime)
+        patternTimes.append(int(totalRows / (len(cols) * accumTime)))
+        accumTime = accumTime * len(cols)
+    levelArrs = []
+    for i, cols in enumerate(reversed(kwargs.values())):
+        l = []
+        for col in cols:
+            l.extend([col] * duplicateTimes[i])
+        levelArrs.append(np.array(l * patternTimes[i]))
+    # reverse the level
+    levelArrs.reverse()
+    return levelArrs
+

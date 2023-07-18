@@ -35,7 +35,7 @@ class Base:
 
     # calculate the ema difference
     def getRangePointDiff(self, symbol, upper, middle, lower):
-        digits = self.mt5Controller.mt5PricesLoader.all_symbols_info[symbol]['digits']
+        digits = self.mt5Controller.pricesLoader.all_symbols_info[symbol]['digits']
         return (upper - middle) * (10 ** digits), (middle - lower) * (10 ** digits)
 
     # get break through signal

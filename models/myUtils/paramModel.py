@@ -87,6 +87,9 @@ def insert_params(class_object, input_datas: list):
 
 
 class SymbolList(list):
+    """
+    Can allowed to be string with space and a list of value
+    """
     @staticmethod
     def get_default_text():
         return """
@@ -94,11 +97,14 @@ class SymbolList(list):
         """
 
     @staticmethod
-    def __new__(cls, text: str):
-        if len(text) == 0:
-            text = cls.get_default_text()
-        seq = text.strip().split(' ')
-        symbols = [str(s) for s in seq]
+    def __new__(cls, symbols):
+        if isinstance(symbols, list):
+            return symbols
+        elif isinstance(symbols, str):
+            if len(symbols) == 0:
+                symbols = cls.get_default_text()
+            symbol = symbols.strip().split(' ')
+            symbols = [str(s) for s in symbol]
         return symbols
 
 

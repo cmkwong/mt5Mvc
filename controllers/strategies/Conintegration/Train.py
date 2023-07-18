@@ -16,7 +16,7 @@ class Train(Base):
         :return:
         """
         # get Prices
-        Prices = self.mt5Controller.mt5PricesLoader.getPrices(symbols=symbols, start=start, end=end, timeframe=timeframe, count=0, ohlcvs='111100')
+        Prices = self.mt5Controller.pricesLoader.getPrices(symbols=symbols, start=start, end=end, timeframe=timeframe, count=0, ohlcvs='111100')
         # changes plotting
         cc = Prices.cc
         cc_coef = self.get_coefficient_vector(cc.values[:, :-1], cc.values[:, -1])

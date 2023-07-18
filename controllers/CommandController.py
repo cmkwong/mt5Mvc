@@ -8,6 +8,7 @@ from controllers.strategies.SwingScalping.Live import Live as SwingScalping_Live
 from controllers.strategies.Covariance.Train import Train as Covariance_Train
 from controllers.strategies.Conintegration.Train import Train as Cointegration_Train
 from controllers.strategies.RL_Simple.Train import Train as RL_Simple_Train
+from controllers.strategies.MovingAverage.Train import Train as MovingAverage_Train
 
 from controllers.DfController import DfController
 import paramStorage
@@ -24,7 +25,7 @@ class CommandController:
 
         # switch the price loader source from mt5 / local
         elif command == '-source':
-            self.mainController.mt5Controller.mt5PricesLoader.switchSource()
+            self.mainController.mt5Controller.pricesLoader.switchSource()
 
         # running SwingScalping_Live with all params
         elif command == '-swL':
@@ -51,10 +52,16 @@ class CommandController:
             strategy = RL_Simple_Train(self.mainController)
             strategy.run()
 
+        # finding the best index in moving average
+        elif command == '-movingT':
+            strategy = MovingAverage_Train(self.mainController)
+            defaultParam = paramModel.ask_params(strategy.run)
+            strategy.run(**defaultParam)
+
         # view the time series into Gramian Angular Field Image
         elif command == '-gaf':
-            defaultParam = paramModel.ask_params(self.mainController.mt5Controller.mt5PricesLoader.getPrices)
-            Prices = self.mainController.mt5Controller.mt5PricesLoader.getPrices(**defaultParam)
+            defaultParam = paramModel.ask_params(self.mainController.mt5Controller.pricesLoader.getPrices)
+            Prices = self.mainController.mt5Controller.pricesLoader.getPrices(**defaultParam)
             ohlcvs_dfs = Prices.getOhlcvsFromPrices()
             for symbol, df in ohlcvs_dfs.items():
                 gasf = GramianAngularField(method='summation', image_size=1.0)
@@ -67,20 +74,20 @@ class CommandController:
         # upload the data into mySql server
         elif command == '-upload':
             # setup the source into mt5
-            originalSource = self.mainController.mt5Controller.mt5PricesLoader.source
-            self.mainController.mt5Controller.mt5PricesLoader.source = 'mt5'
+            originalSource = self.mainController.mt5Controller.pricesLoader.source
+            self.mainController.mt5Controller.pricesLoader.source = 'mt5'
             # upload Prices
             param = paramStorage.METHOD_PARAMS['upload_mt5_getPrices'][0]
-            param = paramModel.ask_params(self.mainController.mt5Controller.mt5PricesLoader.getPrices, param)
-            Prices = self.mainController.mt5Controller.mt5PricesLoader.getPrices(**param)
+            param = paramModel.ask_params(self.mainController.mt5Controller.pricesLoader.getPrices, param)
+            Prices = self.mainController.mt5Controller.pricesLoader.getPrices(**param)
             self.mainController.nodeJsApiController.uploadOneMinuteForexData(Prices)
             # resume to original source
-            self.mainController.mt5Controller.mt5PricesLoader.source = originalSource
+            self.mainController.mt5Controller.pricesLoader.source = originalSource
 
         # all symbol info upload
         elif command == '-symbol':
             # upload all_symbol_info
-            all_symbol_info = self.mainController.mt5Controller.mt5PricesLoader.all_symbols_info
+            all_symbol_info = self.mainController.mt5Controller.pricesLoader.all_symbols_info
             param = paramStorage.METHOD_PARAMS['upload_all_symbol_info'][0]
             param = paramModel.ask_params(self.mainController.nodeJsController.apiController.uploadAllSymbolInfo, param)
             param['all_symbol_info'] = all_symbol_info

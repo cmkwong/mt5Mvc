@@ -2,7 +2,9 @@ import talib
 import pandas as pd
 import numpy as np
 
-def get_macd(closes, fastperiod, slowperiod, signalperiod):
+
+# get Moving Average Convergence & Divergence
+def get_MACD(closes, fastperiod, slowperiod, signalperiod):
     """
     :param closes: pd.DataFrame
     :param fastperiod: int
@@ -24,10 +26,12 @@ def get_macd(closes, fastperiod, slowperiod, signalperiod):
     # calculate macd
     macd = pd.DataFrame(columns=column_index_arr, index=closes.index)
     for symbol in closes.columns:
-        macd.loc[:,(symbol,'value')], macd.loc[:,(symbol,'signal')], macd.loc[:,(symbol,'hist')] = talib.MACD(closes[symbol], fastperiod, slowperiod, signalperiod)
+        macd.loc[:, (symbol, 'value')], macd.loc[:, (symbol, 'signal')], macd.loc[:, (symbol, 'hist')] = talib.MACD(closes[symbol], fastperiod, slowperiod, signalperiod)
     return macd
 
-def get_rsi(closes, period, normalized=True):
+
+# get relative strength index
+def get_RSI(closes, period, normalized=True):
     """
     :param closes: pd.DataFrame
     :param period: int
@@ -42,22 +46,24 @@ def get_rsi(closes, period, normalized=True):
             rsi[symbol] = talib.RSI(closes[symbol], timeperiod=period)
     return rsi
 
-def get_moving_average(closes, m_value, normalized=True):
+
+# get moving average
+def get_MA(close, m_value, normalized=True):
     """
-    :param closes: pd.DataFrame
+    :param close: pd.Series
     :param m_value: int
     :param normalized: boolean, the non-normalized value average by close price
     :return: pd.DataFrame
     """
-    ma = pd.DataFrame(columns=closes.columns, index=closes.index)
-    for symbol in closes.columns:
-        if normalized:
-            ma[symbol] = (closes[symbol].rolling(m_value).sum() / m_value ) - closes[symbol]
-        else:
-            ma[symbol] = closes[symbol].rolling(m_value).sum() / m_value
+    if normalized:
+        ma = (close.rolling(m_value).sum() / m_value) - close
+    else:
+        ma = close.rolling(m_value).sum() / m_value
     return ma
 
-def get_bollinger_band(closes, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0, normalized=True):
+
+# get bollinger band
+def get_BB(closes, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0, normalized=True):
     """
     :param closes: pd.DataFrame
     :param timeperiod: int
@@ -82,12 +88,14 @@ def get_bollinger_band(closes, timeperiod=20, nbdevup=2, nbdevdn=2, matype=0, no
     # calculate the bb
     bb = pd.DataFrame(columns=column_index_arr, index=closes.index)
     for symbol in closes.columns:
-        bb.loc[:,(symbol, 'upper')], bb.loc[:,(symbol,'middle')], bb.loc[:,(symbol, 'lower')] = talib.BBANDS(closes[symbol], timeperiod, nbdevup, nbdevdn, matype)
+        bb.loc[:, (symbol, 'upper')], bb.loc[:, (symbol, 'middle')], bb.loc[:, (symbol, 'lower')] = talib.BBANDS(closes[symbol], timeperiod, nbdevup, nbdevdn, matype)
         if normalized:
-            bb.loc[:, (symbol, 'upper')], bb.loc[:, (symbol, 'middle')], bb.loc[:, (symbol, 'lower')] = bb[symbol, 'upper'] - closes[symbol], bb[symbol,'middle'] - closes[symbol], bb[symbol, 'lower'] - closes[symbol]
+            bb.loc[:, (symbol, 'upper')], bb.loc[:, (symbol, 'middle')], bb.loc[:, (symbol, 'lower')] = bb[symbol, 'upper'] - closes[symbol], bb[symbol, 'middle'] - closes[symbol], bb[symbol, 'lower'] - closes[symbol]
     return bb
 
-def get_stochastic_oscillator(highs, lows, closes, fastk_period=5, slowk_period=3, slowd_period=3, slowk_matype=0, slowd_matype=0, normalized=True):
+
+# get stochastic oscillator
+def get_sthOsc(highs, lows, closes, fastk_period=5, slowk_period=3, slowd_period=3, slowk_matype=0, slowd_matype=0, normalized=True):
     """
     :param highs: pd.DataFrame
     :param lows: pd.DataFrame
@@ -115,12 +123,14 @@ def get_stochastic_oscillator(highs, lows, closes, fastk_period=5, slowk_period=
     # calculate stochastic oscillator
     stocOsci = pd.DataFrame(columns=column_index_arr, index=closes.index)
     for symbol in closes.columns:
-        stocOsci.loc[:,(symbol,'k')], stocOsci.loc[:,(symbol,'d')] = talib.STOCH(highs[symbol], lows[symbol], closes[symbol], fastk_period, slowk_period, slowk_matype, slowd_period, slowd_matype)
+        stocOsci.loc[:, (symbol, 'k')], stocOsci.loc[:, (symbol, 'd')] = talib.STOCH(highs[symbol], lows[symbol], closes[symbol], fastk_period, slowk_period, slowk_matype, slowd_period, slowd_matype)
         if normalized:
             stocOsci.loc[:, (symbol, 'k')], stocOsci.loc[:, (symbol, 'd')] = stocOsci[symbol, 'k'] / 100, stocOsci[symbol, 'd'] / 100
     return stocOsci
 
-def get_standard_deviation(closes, timeperiod, nbdev=0):
+
+# get standard deviation
+def get_std(closes, timeperiod, nbdev=0):
     """
     :param closes: pd.DataFrame
     :param timeperiod: int
@@ -132,15 +142,17 @@ def get_standard_deviation(closes, timeperiod, nbdev=0):
         std[symbol] = talib.STDDEV(closes[symbol], timeperiod, nbdev)
     return std
 
-def get_EMA_DISCARD(close, timeperiod):
-    """
-    :param close: pd.DataFrame
-    :param timeperiod: int
-    :return: pd.DataFrame
-    """
-    ema = talib.EMA(close, timeperiod=timeperiod)
-    return ema
 
+# def get_EMA_DISCARD(close, timeperiod):
+#     """
+#     :param close: pd.DataFrame
+#     :param timeperiod: int
+#     :return: pd.DataFrame
+#     """
+#     ema = talib.EMA(close, timeperiod=timeperiod)
+#     return ema
+
+# get exponential moving average
 def get_EMA(close, timeperiod, smoothing=2):
     """
     :param close: pd.DataFrame
@@ -152,11 +164,12 @@ def get_EMA(close, timeperiod, smoothing=2):
     emaArr = [np.nan] * (timeperiod - 1)
     ema = [close[:timeperiod].sum().values[0] / timeperiod]
     for row in close[timeperiod:].iterrows():
-        c = row[1].values[0] # get the value
+        c = row[1].values[0]  # get the value
         ema.append((c * (smoothing / (1 + timeperiod))) + ema[-1] * (1 - (smoothing / (1 + timeperiod))))
     # build the full list
     emaArr.extend(ema)
     return pd.DataFrame(emaArr, index=close.index).fillna(0)
+
 
 def get_tech_datas(Prices, params, tech_name):
     """
@@ -168,15 +181,15 @@ def get_tech_datas(Prices, params, tech_name):
     datas = {}
     for param in params:
         if tech_name == 'ma':
-            datas[param] = get_moving_average(Prices.close, param)
+            datas[param] = get_MA(Prices.close, param)
         elif tech_name == 'bb':
-            datas[param] = get_bollinger_band(Prices.close, *param)
+            datas[param] = get_BB(Prices.close, *param)
         elif tech_name == 'std':
-            datas[param] = get_standard_deviation(Prices.close, *param)
+            datas[param] = get_std(Prices.close, *param)
         elif tech_name == 'rsi':
-            datas[param] = get_rsi(Prices.close, param)
+            datas[param] = get_RSI(Prices.close, param)
         elif tech_name == 'stocOsci':
-            datas[param] = get_stochastic_oscillator(Prices.high, Prices.low, Prices.close, *param)
+            datas[param] = get_sthOsc(Prices.high, Prices.low, Prices.close, *param)
         elif tech_name == 'macd':
-            datas[param] = get_macd(Prices.close, *param)
+            datas[param] = get_MACD(Prices.close, *param)
     return datas

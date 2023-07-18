@@ -71,7 +71,7 @@ def get_MACD_signal(close, long_mode=True, fastperiod=12, slowperiod=26, signalp
     :param upper: Boolean
     :return:
     """
-    macd, macdsignal, macdhist = techModel.get_macd(close, fastperiod, slowperiod, signalperiod)
+    macd, macdsignal, macdhist = techModel.get_MACD(close, fastperiod, slowperiod, signalperiod)
     if long_mode:
         signal = macd > 0
     else:
@@ -85,7 +85,7 @@ def get_RSI_signal(close, period, th):
     :param upper: Boolean
     :return:
     """
-    rsi = techModel.get_rsi(close, period)
+    rsi = techModel.get_RSI(close, period)
     if th > 0:
         signal = rsi >= abs(th)
     else:

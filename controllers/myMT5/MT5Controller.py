@@ -10,11 +10,11 @@ from datetime import datetime, timedelta
 class MT5Controller:
     def __init__(self, nodeJsApiController, timezone='Hongkong', deposit_currency='USD', type_filling='ioc'):
         self.connect_server()
-        self.mt5SymbolController = MT5SymbolController()
-        self.mt5TickController = MT5TickController()
-        self.mt5TimeController = MT5TimeController()
-        self.mt5Executor = MT5Executor(type_filling)  # execute the request (buy/sell)
-        self.mt5PricesLoader = MT5PricesLoader(self.mt5TimeController, self.mt5SymbolController, nodeJsApiController, timezone, deposit_currency)  # loading the loader
+        self.symbolController = MT5SymbolController()
+        self.tickController = MT5TickController()
+        self.timeController = MT5TimeController()
+        self.executor = MT5Executor(type_filling)  # execute the request (buy/sell)
+        self.pricesLoader = MT5PricesLoader(self.timeController, self.symbolController, nodeJsApiController, timezone, deposit_currency)  # loading the loader
 
     def print_terminal_info(self):
         # request connection status and parameters
