@@ -152,7 +152,8 @@ class DfController:
         self.pdf.image(name=self.plotController.plotCorrHeatMap(df, "./docs/temp", 'heatmap.png'), h=self.pdf.eph, w=self.pdf.epw)
 
         # output pdf
-        filename = f"{timeModel.get_current_time_string()}_summary.pdf"
+        timeStr = timeModel.getTimeS(outputFormat="%Y%m%d%H%M%S")
+        filename = f"{timeStr}_summary.pdf"
         pdf_fullPath = os.path.join(path, filename)
         print(f"File is output to {pdf_fullPath}")
         self.pdf.output(pdf_fullPath, 'F')

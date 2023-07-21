@@ -22,21 +22,22 @@ def askNum(placeholder="Please enter a number: ", outType=int):
     return usr_input
 
 
-def askDate(placeholder='Please input the date ', defaultDate='', dateFormat="YYYY-MM-DD HH:mm:ss"):
-    """
-    Ask for the date: (2022, 10, 30, 22:21)
-    return: tuple (2022, 1, 20, 5, 45)
-    """
-    print("~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*")
-    usr_input = input(f"{placeholder} (default: {defaultDate}) ({dateFormat})\nInput: ")
-    requiredDate = usr_input
-    # if user input empty, set into default date
-    if not usr_input:
-        now = datetime.now()
-        requiredDate = (now.year, now.month, now.day, now.hour, now.minute)
-        if defaultDate:
-            requiredDate = defaultDate
-    return timeModel.getTimeT(requiredDate, dateFormat, dateFormat, True)
+# def askDate(placeholder='Please input the date: ', defaultDate='', dateFormat="%Y-%m-%d %H:%M:%S"):
+#     """
+#     Ask for the date: (2022, 10, 30, 22:21)
+#     return: tuple (2022, 1, 20, 5, 45)
+#     """
+#     print("~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*")
+#     usr_input = input(f"{placeholder} (default: {defaultDate}) ({dateFormat})\nInput: ")
+#     requiredDate = usr_input
+#     # if user input empty, set into default date
+#     if not usr_input:
+#         now = datetime.now()
+#         requiredDate = (now.year, now.month, now.day, now.hour, now.minute, now.second)
+#         if defaultDate:
+#             requiredDate = defaultDate
+#
+#     return timeModel.getTimeT(requiredDate, dateFormat, dateFormat, True)
 
 
 def askConfirm(question=''):
