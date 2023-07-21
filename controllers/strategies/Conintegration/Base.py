@@ -97,55 +97,55 @@ class Base:
         ret = news / olds
         return ret
 
-    def get_value_of_earning(self, symbols, new_values, old_values, q2d_at, all_symbols_info, modified_coefficient_vector):
-        """
-        :param symbols: [str]
-        :param new_values: np.array
-        :param old_values: np.array
-        :param q2d_at: np.array
-        :param all_symbols_info: nametuple
-        :param modified_coefficient_vector: np.array
-        :return: float
-        """
-        if isinstance(symbols, str): symbols = [symbols]
-        if isinstance(new_values, (float, int)): new_values = np.array([new_values])
-        if isinstance(old_values, (float, int)): old_values = np.array([old_values])
-        if isinstance(q2d_at, (float, int)): q2d_at = np.array([q2d_at])
+    # def get_value_of_earning(self, symbols, new_values, old_values, q2d_at, all_symbols_info, modified_coefficient_vector):
+    #     """
+    #     :param symbols: [str]
+    #     :param new_values: np.array
+    #     :param old_values: np.array
+    #     :param q2d_at: np.array
+    #     :param all_symbols_info: nametuple
+    #     :param modified_coefficient_vector: np.array
+    #     :return: float
+    #     """
+    #     if isinstance(symbols, str): symbols = [symbols]
+    #     if isinstance(new_values, (float, int)): new_values = np.array([new_values])
+    #     if isinstance(old_values, (float, int)): old_values = np.array([old_values])
+    #     if isinstance(q2d_at, (float, int)): q2d_at = np.array([q2d_at])
+    #
+    #     # earning value
+    #     points_dff_values = pointsModel.get_points_dff_values_arr(symbols, new_values, old_values, all_symbols_info)
+    #     weighted_pt_diff = points_dff_values * modified_coefficient_vector.reshape(-1, )
+    #     # calculate the price in required deposit dollar
+    #     earning = np.sum(q2d_at * weighted_pt_diff)
+    #     return earning
 
-        # earning value
-        points_dff_values = pointsModel.get_points_dff_values_arr(symbols, new_values, old_values, all_symbols_info)
-        weighted_pt_diff = points_dff_values * modified_coefficient_vector.reshape(-1, )
-        # calculate the price in required deposit dollar
-        earning = np.sum(q2d_at * weighted_pt_diff)
-        return earning
-
-    def get_value_of_ret_earning(self, symbols, new_values, old_values, q2d_at, all_symbols_info, lot_times, coefficient_vector, long_mode):
-        """
-        This is calculate the return and earning from raw value (instead of from dataframe)
-        :param symbols: [str]
-        :param new_values: np.array (Not dataframe)
-        :param old_values: np.array (Not dataframe)
-        :param q2d_at: np.array, values at brought the assert
-        :param coefficient_vector: np.array
-        :param all_symbols_info: nametuple
-        :param long_mode: Boolean
-        :return: float, float: ret, earning
-        """
-        if not isinstance(symbols, list):
-            symbols = [symbols]
-        if not isinstance(new_values, np.ndarray):
-            new_values = np.array([new_values])
-        if not isinstance(old_values, np.ndarray):
-            old_values = np.array([old_values])
-        if not isinstance(q2d_at, np.ndarray):
-            q2d_at = np.array([q2d_at])
-
-        modified_coefficient_vector = self.get_modified_coefficient_vector(coefficient_vector, long_mode, lot_times)
-
-        # ret value
-        ret = self.get_value_of_ret(new_values, old_values, modified_coefficient_vector)
-
-        # earning value
-        earning = self.get_value_of_earning(symbols, new_values, old_values, q2d_at, all_symbols_info, modified_coefficient_vector)
-
-        return ret, earning
+    # def get_value_of_ret_earning(self, symbols, new_values, old_values, q2d_at, all_symbols_info, lot_times, coefficient_vector, long_mode):
+    #     """
+    #     This is calculate the return and earning from raw value (instead of from dataframe)
+    #     :param symbols: [str]
+    #     :param new_values: np.array (Not dataframe)
+    #     :param old_values: np.array (Not dataframe)
+    #     :param q2d_at: np.array, values at brought the assert
+    #     :param coefficient_vector: np.array
+    #     :param all_symbols_info: nametuple
+    #     :param long_mode: Boolean
+    #     :return: float, float: ret, earning
+    #     """
+    #     if not isinstance(symbols, list):
+    #         symbols = [symbols]
+    #     if not isinstance(new_values, np.ndarray):
+    #         new_values = np.array([new_values])
+    #     if not isinstance(old_values, np.ndarray):
+    #         old_values = np.array([old_values])
+    #     if not isinstance(q2d_at, np.ndarray):
+    #         q2d_at = np.array([q2d_at])
+    #
+    #     modified_coefficient_vector = self.get_modified_coefficient_vector(coefficient_vector, long_mode, lot_times)
+    #
+    #     # ret value
+    #     ret = self.get_value_of_ret(new_values, old_values, modified_coefficient_vector)
+    #
+    #     # earning value
+    #     earning = self.get_value_of_earning(symbols, new_values, old_values, q2d_at, all_symbols_info, modified_coefficient_vector)
+    #
+    #     return ret, earning

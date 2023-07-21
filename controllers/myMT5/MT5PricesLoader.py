@@ -271,7 +271,7 @@ class MT5PricesLoader:  # created note 86a
         change_close_prices = ((close_prices - close_prices.shift(1)) / close_prices.shift(1)).fillna(0.0)
 
         # get point diff values with latest value
-        points_dff_values_df = pointsModel.get_points_dff_values_df(symbols, close_prices, close_prices.shift(periods=1), self.all_symbols_info)
+        points_dff_values_df = pointsModel.get_points_dff_df(close_prices, self.all_symbols_info)
 
         # get quote exchange with values
         exchg_close_prices = self._get_specific_from_prices(prices, q2d_exchg_symbols, ohlcvs='000100')
@@ -302,7 +302,7 @@ class MT5PricesLoader:  # created note 86a
 
         # get point diff values
         # open_prices = _get_specific_from_prices(prices, symbols, ohlcvs='1000')
-        points_dff_values_df = pointsModel.get_points_dff_values_df(symbols, close_prices, close_prices.shift(periods=1), self.all_symbols_info)
+        points_dff_values_df = pointsModel.get_points_dff_df(close_prices, self.all_symbols_info)
 
         # get the quote to deposit exchange rate
         exchg_close_prices = self._get_specific_from_prices(prices, q2d_exchg_symbols, ohlcvs='000100')

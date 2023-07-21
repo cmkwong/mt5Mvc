@@ -48,13 +48,14 @@ class ForexState:
             self._offset = np.random.randint(len(self.Prices.open) - 10)
         self.have_position = False
 
-    def calProfit(self, curr_action_price, open_action_price, q2d_at):
+    def calProfit(self, offset_s, offset_e):
         if self.long_mode:
             modified_coefficient_vector = 1
         else:
             modified_coefficient_vector = -1
-        points_dff_values = pointsModel.get_points_dff_values_arr(self.symbol, curr_action_price, open_action_price, self.all_symbols_info)
-        return np.sum(q2d_at * points_dff_values) * modified_coefficient_vector
+        values = self.Prices.getValueDiff(offset_s, offset_e).values
+        # points_dff_values = pointsModel.get_points_dff_values_arr(self.symbol, curr_action_price, open_action_price, self.all_symbols_info)
+        return np.sum(values) * modified_coefficient_vector
 
     def encode(self):
         """
@@ -64,7 +65,8 @@ class ForexState:
         earning = 0.0
         res.extend(list(self.dependent_datas.iloc[self._offset, :].values))
         if self.have_position:
-            earning = self.calProfit(self.Prices.close.iloc[self._offset, :].values, self._prev_action_price, self.Prices.quote_exchg.iloc[self._offset, :].values)
+            earning = self.calProfit(self._open_offset, self._offset)[self.symbol]
+            # earning = self.calProfit(self.Prices.close.iloc[self._offset, :].values, self._prev_action_price, self.Prices.quote_exchg.iloc[self._offset, :].values)
         res.extend([earning, float(self.have_position)])  # earning, have_position (True = 1.0, False = 0.0)
         return np.array(res, dtype=np.float32)
 
@@ -81,11 +83,13 @@ class ForexState:
 
         if action == self.actions['open'] and not self.have_position:
             reward -= self.Prices.getPointValue(self.spread_pt, self._offset)[self.symbol]  # spread cost
-            self.openPos_price = curr_action_price
+            # self.openPos_price = curr_action_price
+            self._open_offset = self._offset
             self.have_position = True
 
         elif action == self.actions['close'] and self.have_position:
-            reward += self.calProfit(curr_action_price, self._prev_action_price, q2d_at)  # calculate the profit
+            reward += self.calProfit(self._offset - 1, self._offset) # calculate the profit
+            # reward += self.calProfit(curr_action_price, self._prev_action_price, q2d_at)  # calculate the profit
             reward -= self.Prices.getPointValue(self.time_cost_pt, self._offset)[self.symbol]  # time cost
             reward -= self.Prices.getPointValue(self.spread_pt, self._offset)[self.symbol]  # spread cost
             reward -= self.Prices.getPointValue(self.commission_pt, self._offset)[self.symbol]  # commission cost
@@ -94,12 +98,13 @@ class ForexState:
                 done = True
 
         elif action == self.actions['skip'] and self.have_position:
-            reward += self.calProfit(curr_action_price, self._prev_action_price, q2d_at)
+            reward += self.calProfit(self._offset - 1, self._offset)
+            # reward += self.calProfit(curr_action_price, self._prev_action_price, q2d_at)
             reward -= self.Prices.getPointValue(self.time_cost_pt, self._offset)[self.symbol]  # time cost
             self.deal_step += 1
 
         # update status
-        self._prev_action_price = curr_action_price
+        # self._prev_action_price = curr_action_price
         self._offset += 1
         if self._offset >= len(self.Prices.close) - 1:
             done = True
@@ -129,7 +134,8 @@ class AttnForexState(ForexState):
         state = {}
         earning = 0.0
         if self.have_position:
-            earning = self.calProfit(self.Prices.close.iloc[self._offset, :].values, self._prev_action_price, self.Prices.quote_exchg.iloc[self._offset, :].values)
+            earning = self.calProfit(self._offset - 1, self._offset)
+            # earning = self.calProfit(self.Prices.close.iloc[self._offset, :].values, self._prev_action_price, self.Prices.quote_exchg.iloc[self._offset, :].values)
         state['encoderInput'] = self.dependent_datas.iloc[self._offset:self._offset + self.seqLen, :].values  # getting seqLen * 2 len of Data
         state['status'] = np.array([earning, float(self.have_position)])  # earning, have_position (True = 1.0, False = 0.0)
         return state
