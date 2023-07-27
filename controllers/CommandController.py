@@ -58,12 +58,6 @@ class CommandController:
             defaultParam = paramModel.ask_params(strategy.getMaSummaryDf)
             strategy.getMaSummaryDf(**defaultParam)
 
-        # finding the total of earning from different period
-        elif command == '-movingTS':
-            strategy = MovingAverage_Train(self.mainController)
-            defaultParam = paramModel.ask_params(strategy.getCombinedEarning)
-            strategy.getCombinedEarning()
-
         # view the time series into Gramian Angular Field Image
         elif command == '-gaf':
             defaultParam = paramModel.ask_params(self.mainController.mt5Controller.pricesLoader.getPrices)

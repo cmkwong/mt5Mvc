@@ -14,17 +14,6 @@ class Train:
         self.mainPath = "./docs/ma"
         self.maSummaryDf_cols = ['symbol', 'fast', 'slow', 'operation', 'total', 'count', 'start', 'end']
 
-    def getCombinedEarning(self, *, fileName: str = "20230722165021_summary.xlsx"):
-        """
-        :return:
-        """
-        df = pd.read_excel(os.path.join(self.mainPath, fileName), header=0)
-        symbols = list(set(df['symbol']))
-        periodStarts = list(set(df['start']))
-        operations = list(set(df['operation']))
-        for symbol in symbols:
-            print()
-
     def get_ma_data(self, Prices, fast_param, slow_param):
         """
         :param Prices: Prices object

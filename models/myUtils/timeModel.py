@@ -83,6 +83,9 @@ def splitTimePeriod(dateT_start, dateT_end, intervalPeriod: dict, overall: bool=
         period_end = min(period_start + interval, dt_end)
         periods.append((period_start, period_end))
         period_start = period_end
+    # if include the whole period
+    if overall:
+        periods.append((datetime(*dateT_start), datetime(*dateT_end)))
     return periods
 
 
