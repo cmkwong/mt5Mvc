@@ -55,8 +55,14 @@ class CommandController:
         # finding the best index in moving average
         elif command == '-movingT':
             strategy = MovingAverage_Train(self.mainController)
-            defaultParam = paramModel.ask_params(strategy.run)
-            strategy.run(**defaultParam)
+            defaultParam = paramModel.ask_params(strategy.getMaSummaryDf)
+            strategy.getMaSummaryDf(**defaultParam)
+
+        # finding the total of earning from different period
+        elif command == '-movingTS':
+            strategy = MovingAverage_Train(self.mainController)
+            defaultParam = paramModel.ask_params(strategy.getCombinedEarning)
+            strategy.getCombinedEarning()
 
         # view the time series into Gramian Angular Field Image
         elif command == '-gaf':
