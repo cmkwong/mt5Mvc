@@ -3,6 +3,7 @@ from models.myBacktest import techModel
 from models.myUtils import dfModel, timeModel
 
 import pandas as pd
+import numpy as np
 import os
 
 
@@ -13,6 +14,29 @@ class Train:
         self.plotController = mainController.plotController
         self.mainPath = "./docs/ma"
         self.maSummaryDf_cols = ['symbol', 'fast', 'slow', 'operation', 'total', 'count', 'start', 'end']
+
+    def getMaDistribution(self, *,
+                        symbols: SymbolList = 'USDJPY EURUSD',
+                        timeframe: str = '15min',start: DatetimeTuple = (2023, 6, 1, 0 ,0), end: DatetimeTuple = (2023, 6, 30, 23, 59),
+                        fast_param: int = 21, slow_param: int = 22):
+        Prices = self.mt5Controller.pricesLoader.getPrices(symbols=symbols, start=start, end=end, timeframe=timeframe)
+        ma_data = self.get_ma_data(Prices, fast_param, slow_param)
+
+        for symbol in symbols:
+
+            for operation in ['long', 'short']:
+                ma_data[symbol, f'{operation}_group'] = ma_data[symbol, operation]
+                ma_data[symbol, f'{operation}_start'] = (ma_data[symbol, operation] > ma_data[symbol, operation].shift(1))
+                # assign the time-index into first timeframe
+                ma_data.loc[ma_data[symbol, f'{operation}_start'] == True, (symbol, f'{operation}_group')] = ma_data[ma_data[symbol, f'{operation}_start'] == True].index
+                mask = ma_data[symbol, f'{operation}_group'] == True
+                ma_data.loc[mask, (symbol, f'{operation}_group')] = np.nan
+                ma_data[symbol, f'{operation}_group'].fillna(method='ffill', inplace=True)
+
+                changeDist = ma_data[ma_data[symbol, f'{operation}_group'] != False]
+                earnDist = changeDist.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).sum()
+                durationDist = changeDist.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).count()
+        print()
 
     def get_ma_data(self, Prices, fast_param, slow_param):
         """
@@ -40,7 +64,9 @@ class Train:
             ma_data[symbol, 'short'] = ma_data[symbol, 'short'].shift(1).fillna(False)  # signal should delay 1 timeframe
         return ma_data
 
-    def getMaSummaryDf(self, *, symbols: SymbolList = 'USDJPY EURUSD', timeframe: str = '15min', start: DatetimeTuple = (2023, 6, 1, 0, 0), end: DatetimeTuple = (2023, 6, 30, 23, 59)):
+    def getMaSummaryDf(self, *,
+                       symbols: SymbolList = 'USDJPY EURUSD',
+                       timeframe: str = '15min', start: DatetimeTuple = (2023, 6, 1, 0, 0), end: DatetimeTuple = (2023, 6, 30, 23, 59)):
         """
         - loop for each combination (fast vs slow)
         - return the excel: fast, slow, mode, count, meanDuration, pointEarn
@@ -71,3 +97,4 @@ class Train:
         # getting the current time string
         timeStr = timeModel.getTimeS(outputFormat="%Y%m%d%H%M%S")
         MaSummaryDf.to_excel(os.path.join(self.mainPath, f"{timeStr}_summary.xlsx"), index=False)
+        return MaSummaryDf
