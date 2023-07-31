@@ -31,7 +31,7 @@ class PlotController:
         locator = mdates.AutoDateLocator()
         locator.intervald[mdates.YEARLY] = [1, 2, 4, 5, 10]
         locator.intervald[mdates.MONTHLY] = [1, 2, 3, 4, 6]
-        locator.intervald[mdates.DAILY] = [1, 2, 3, 4,7,14]
+        locator.intervald[mdates.DAILY] = [1, 2, 3, 4, 7, 14]
         locator.intervald[mdates.HOURLY] = [1, 2, 3, 6]
         locator.intervald[mdates.MINUTELY] = [1, 5, 10, 15, 30]
         locator.intervald[mdates.SECONDLY] = [1, 5, 10, 15, 30]
@@ -82,7 +82,35 @@ class PlotController:
             minsDiff = 60
         return width, resampleFactor, minsDiff
 
-    def plotHistorgram(self, series, width, yLabel, color, edgecolor, outPath, filename, binUnit='', ylim=False, decimal=1):
+    def plotHist(self, series, outPath, filename, bins=100, quantiles=(0.25, 0.5, 0.75)):
+        """
+        :param series: pd.Series
+        :param outPath: str
+        :param filename: str
+        :param bins: int
+        :param quantiles: set, eg: (0.25, 0.5, 0.75)
+        :return:
+        """
+        # reset axis
+        plt.clf()
+
+        # add sub-plot
+        fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
+
+        ax.hist(series.values, bins=bins)
+
+        # if plotting need to view on quantiles
+        if quantiles:
+            qvs = np.quantile(series.values, quantiles)
+            for i in range(len(quantiles)):
+                plt.axvline(qvs[i], color='k', linestyle='dashed', linewidth=1)
+                plt.text(qvs[i] + (qvs[i] * 0.1), 0, f"{qvs[i]:.2f}", rotation=90, fontsize='x-small')
+
+        imgFullPath = os.path.join(outPath, filename)
+        fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
+        plt.close('all')
+
+    def plotBar(self, series, width, yLabel, color, edgecolor, outPath, filename, binUnit='', ylim=False, decimal=1):
         # reset axis
         plt.clf()
 
@@ -246,7 +274,7 @@ class PlotController:
         ax1.plot(index, series)
         # show image
         c = ax2.imshow(x_gasf, origin='lower', aspect='auto')
-        ax2.text(5,5, 'gasf')
+        ax2.text(5, 5, 'gasf')
         # fig.colorbar(c, ax=ax2, orientation="horizontal")
         c = ax3.imshow(x_gadf, origin='lower', aspect='auto')
         ax3.text(5, 5, 'gadf')
