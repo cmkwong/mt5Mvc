@@ -104,7 +104,7 @@ class PlotController:
             qvs = np.quantile(series.values, quantiles)
             for i in range(len(quantiles)):
                 plt.axvline(qvs[i], color='k', linestyle='dashed', linewidth=1)
-                plt.text(qvs[i] + (qvs[i] * 0.1), 0, f"{qvs[i]:.2f}", rotation=90, fontsize='x-small')
+                plt.text(qvs[i] + (qvs[i] * 0.1), 0, f"{qvs[i]:.3g}", rotation=90, fontsize='x-small')
 
         imgFullPath = os.path.join(outPath, filename)
         fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)

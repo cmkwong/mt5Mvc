@@ -62,9 +62,7 @@ class Train:
                 Dist['deal_changeDist'] = (maskedDf.loc[:, [(symbol, 'return'), (symbol, f'{operation}_group')]]).groupby((symbol, f'{operation}_group')).prod() - 1
                 Dist['deal_durationDist'] = maskedDf.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).count()
 
-                # # saved in dictionary
-                # Dist[symbol]['valueDist'], Dist[symbol]['dealDist'], Dist[symbol]['durationDist'] = valueDist, dealDist, durationDist
-
+                # output image
                 for name, dist in Dist.items():
                     self.plotController.plotHist(dist, distPath, f'{symbol}-{operation}-{startStr}-{endStr}-{name}.jpg')
         print()
@@ -101,7 +99,7 @@ class Train:
 
     def getMaSummaryDf(self, *,
                        symbols: SymbolList = 'USDJPY EURUSD',
-                       timeframe: str = '15min', start: DatetimeTuple = (2023, 6, 1, 0, 0), end: DatetimeTuple = (2023, 6, 30, 23, 59)):
+                       timeframe: str = '15min', start: DatetimeTuple = (2023, 5, 1, 0, 0), end: DatetimeTuple = (2023, 6, 30, 23, 59)):
         """
         - loop for each combination (fast vs slow)
         - return the excel: fast, slow, mode, count, meanDuration, pointEarn
