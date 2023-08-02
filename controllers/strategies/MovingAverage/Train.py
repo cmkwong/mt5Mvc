@@ -49,14 +49,17 @@ class Train(Base):
                 Dist = {}
                 mask = ma_data[symbol, f'{operation}_group'] != False  # getting the rows only need to be groupby
                 maskedDf = ma_data[mask]
-                # values in deposit
+                # values change in deposit
                 Dist['valueDist'] = maskedDf.loc[:, (symbol, 'valueDiff')]
                 # % changes
                 Dist['changeDist'] = maskedDf.loc[:, (symbol, 'cc')]
-                maskedDf.loc[:, (symbol, 'return')] = maskedDf.loc[:, (symbol, 'cc')] + 1
+                # return and accumulated return
+                maskedDf.loc[:, (symbol, f'{operation}_return')] = maskedDf.loc[:, (symbol, 'cc')] + 1
+                maskedDf.loc[:, (symbol, f'{operation}_accumReturn')] = maskedDf.loc[:, [(symbol, f'{operation}_return'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumprod()
+                Dist['accumReturn'] = maskedDf.loc[:, (symbol, f'{operation}_accumReturn')]
                 # group by deal (change, value and duration)
                 Dist['deal_valueDist'] = maskedDf.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).sum()
-                Dist['deal_changeDist'] = (maskedDf.loc[:, [(symbol, 'return'), (symbol, f'{operation}_group')]]).groupby((symbol, f'{operation}_group')).prod() - 1
+                Dist['deal_changeDist'] = (maskedDf.loc[:, [(symbol, f'{operation}_return'), (symbol, f'{operation}_group')]]).groupby((symbol, f'{operation}_group')).prod() - 1
                 Dist['deal_durationDist'] = maskedDf.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).count()
 
                 # output image
