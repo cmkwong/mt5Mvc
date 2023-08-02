@@ -9,6 +9,7 @@ from controllers.strategies.Covariance.Train import Train as Covariance_Train
 from controllers.strategies.Conintegration.Train import Train as Cointegration_Train
 from controllers.strategies.RL_Simple.Train import Train as RL_Simple_Train
 from controllers.strategies.MovingAverage.Train import Train as MovingAverage_Train
+from controllers.strategies.MovingAverage.Live import Live as MovingAverage_Live
 
 from controllers.DfController import DfController
 import paramStorage
@@ -63,6 +64,11 @@ class CommandController:
             strategy = MovingAverage_Train(self.mainController)
             defaultParam = paramModel.ask_params(strategy.getMaDistribution)
             strategy.getMaDistribution(**defaultParam)
+
+        elif command == '-maL':
+            strategy = MovingAverage_Live(self.mainController)
+            defaultParam = paramModel.ask_params(strategy.run)
+            strategy.run(**defaultParam)
 
         # view the time series into Gramian Angular Field Image
         elif command == '-gaf':
