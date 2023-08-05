@@ -38,7 +38,7 @@ class Train:
         # split into train set and test set
         self.Train_Prices, self.Test_Prices = Prices.split_Prices(percentage=config.TRAIN_TEST_SPLIT)
 
-        value = self.Train_Prices.getValueDiff(1, 100)
+        # value = self.Train_Prices.getValueDiff(1, 100)
 
         # build the state
         if net_type == 'simple':

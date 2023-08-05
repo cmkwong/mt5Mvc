@@ -59,11 +59,11 @@ class CommandController:
             defaultParam = paramModel.ask_params(strategy.getMaSummaryDf)
             strategy.getMaSummaryDf(**defaultParam)
 
-        # testing for the specific fast and slow param (the earning distribution)
-        elif command == '-mat':
+        # get the distribution for the specific fast and slow param (the earning distribution)
+        elif command == '-mad':
             strategy = MovingAverage_Train(self.mainController)
-            defaultParam = paramModel.ask_params(strategy.getMaDistribution)
-            strategy.getMaDistribution(**defaultParam)
+            defaultParam = paramModel.ask_params(strategy.getMaDistImg)
+            strategy.getMaDistImg(**defaultParam)
 
         elif command == '-maL':
             strategy = MovingAverage_Live(self.mainController)

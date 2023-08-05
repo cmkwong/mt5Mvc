@@ -46,7 +46,7 @@ class Live(Base):
                 # build request format
                 request = self.mt5Controller.executor.request_format(
                     symbol=symbol,
-                    actionType=actionType,
+                    operation=actionType,
                     sl=float(self.status['sl']),
                     tp=float(self.status['tp']),
                     deviation=5,

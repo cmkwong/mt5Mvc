@@ -44,6 +44,7 @@ def createDir(mainPath, dirName, gitKeep=False, readme=None):
             f.write(readme)
     if gitKeep:
         createFile(os.path.join(mainPath, dirName), '.gitkeep')
+    return fullpath
 
 def createFile(mainPath, fileName, txt=None):
     with open(os.path.join(mainPath, fileName), 'a', encoding='utf-8') as f:

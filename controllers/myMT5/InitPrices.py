@@ -6,18 +6,49 @@ import pandas as pd
 
 @dataclass
 class InitPrices:
-    symbols: list
-    all_symbols_info: dict
-    close: pd.DataFrame
-    cc: pd.DataFrame
-    ptDv: pd.DataFrame
-    quote_exchg: pd.DataFrame
-    base_exchg: pd.DataFrame = pd.DataFrame()
-    open: pd.DataFrame = pd.DataFrame()
-    high: pd.DataFrame = pd.DataFrame()
-    low: pd.DataFrame = pd.DataFrame()
-    volume: pd.DataFrame = pd.DataFrame()
-    spread: pd.DataFrame = pd.DataFrame()
+    # symbols: list
+    # all_symbols_info: dict
+    # close: pd.DataFrame
+    # cc: pd.DataFrame
+    # # ptDv: pd.DataFrame
+    # # ptD: pd.DataFrame
+    # quote_exchg: pd.DataFrame
+    # base_exchg: pd.DataFrame = pd.DataFrame()
+    # open: pd.DataFrame = pd.DataFrame()
+    # high: pd.DataFrame = pd.DataFrame()
+    # low: pd.DataFrame = pd.DataFrame()
+    # volume: pd.DataFrame = pd.DataFrame()
+    # spread: pd.DataFrame = pd.DataFrame()
+    def __init__(self,
+                symbols: list,
+                all_symbols_info: dict,
+                close: pd.DataFrame,
+                cc: pd.DataFrame,
+                # ptDv: pd.DataFrame,
+                # ptD: pd.DataFrame,
+                quote_exchg: pd.DataFrame,
+                base_exchg: pd.DataFrame = pd.DataFrame(),
+                open: pd.DataFrame = pd.DataFrame(),
+                high: pd.DataFrame = pd.DataFrame(),
+                low: pd.DataFrame = pd.DataFrame(),
+                volume: pd.DataFrame = pd.DataFrame(),
+                spread: pd.DataFrame = pd.DataFrame()
+                ):
+        self.symbols = symbols
+        self.all_symbols_info = all_symbols_info
+        self.close = close
+        self.cc = cc
+        # ptDv: pd.DataFrame,
+        # ptD: pd.DataFrame,
+        self.quote_exchg = quote_exchg
+        self.base_exchg = base_exchg
+        self.open = open
+        self.high = high
+        self.low = low
+        self.volume = volume
+        self.spread = spread
+        self.ptD = self.get_points_dff_df(ptValue=False)
+        self.ptDv = self.get_values_dff_df() # in-deposit, eg USD
 
     def getValidCols(self):
         validCol = []
@@ -47,7 +78,7 @@ class InitPrices:
         :return: {pd.DataFrame}
         """
         ohlcsvs = {}
-        nameDict = {'open': 'open', 'high': 'high', 'low': 'low', 'close': 'close', 'volume': 'volume', 'spread': 'spread', 'ptDv': 'ptDv', 'quote_exchg': 'quote_exchg', 'base_exchg': 'base_exchg'}
+        nameDict = {'open': 'open', 'high': 'high', 'low': 'low', 'close': 'close', 'volume': 'volume', 'spread': 'spread', 'quote_exchg': 'quote_exchg', 'base_exchg': 'base_exchg'}
         for si, symbol in enumerate(self.symbols):
             requiredDf = pd.DataFrame()  # create empty df
             for name, field in self.__dataclass_fields__.items():  # name = variable name; field = pd.dataframe/ value
@@ -90,7 +121,7 @@ class InitPrices:
         Getting the difference of close price between these offsets (In deposit exchange rate)
         :param offset_s:
         :param offset_e:
-        :return:
+        :return: {symbol: float}
         """
         pointValueDiffs = {}
         for i, symbol in enumerate(self.symbols):
@@ -109,5 +140,52 @@ class InitPrices:
             # calculate the point value difference
             pointValueDiffs[symbol] = (new - old) * (10 ** digits) * self.all_symbols_info[symbol]['pt_value'] * q2d_at
         return pointValueDiffs
+
+    def get_points_dff_df(self, col_names=None, ptValue=True):
+        """
+        :param col_names: list, set None to use the symbols as column names. Otherwise, rename as fake column name
+        :param ptValue: Boolean, if True, return in point value, eg: 1 pt of USDJPY = 100 YEN
+        :return: pd.Dataframe: points_dff_values_df
+        take the difference from open price
+        """
+        # if isinstance(self.close, pd.Series):
+            # close = pd.DataFrame(self.close, index=self.close.index)  # avoid the error of "too many index" if len(symbols) = 1
+        # default ptValue is 1
+        pt_value = 1
+        # getting the symbols
+        symbols = self.close.columns
+        # define the prices
+        new_prices = self.close
+        old_prices = self.close.shift(periods=1)
+        points_dff_df = pd.DataFrame(index=new_prices.index)
+        for c, symbol in enumerate(symbols):
+            digits = self.all_symbols_info[symbol]['digits']  # (note 44b)
+            # if need to change the point value
+            if ptValue:
+                pt_value = self.all_symbols_info[symbol]['pt_value']
+            points_dff_df[symbol] = (new_prices.iloc[:, c] - old_prices.iloc[:, c]) * (10 ** digits) * pt_value
+        if col_names != None:
+            points_dff_df.columns = col_names
+        elif col_names == None:
+            points_dff_df.columns = symbols
+        return points_dff_df
+
+    def get_values_dff_df(self):
+        """
+        :return: get the values in deposit
+        """
+        # get the digits
+        digits = [10 ** self.all_symbols_info[symbol]['digits'] for symbol in self.symbols]
+
+        # get the point values, eg: 1 pt of USDJPY = 100 YEN
+        pt_values = [self.all_symbols_info[symbol]['pt_value'] for symbol in self.symbols]
+
+        # get values in deposit
+        new_prices = self.close
+        old_prices = self.close.shift(periods=1)
+        values_diff_df = pd.DataFrame((new_prices - old_prices) * digits * pt_values * self.quote_exchg.values, columns=self.symbols)
+
+        return values_diff_df
+
 
 

@@ -101,11 +101,17 @@ class PlotController:
 
         # if plotting need to view on quantiles
         if quantiles:
+            txt = ''
             qvs = np.quantile(series.values, quantiles)
             for i in range(len(quantiles)):
                 plt.axvline(qvs[i], color='k', linestyle='dashed', linewidth=1)
-                plt.text(qvs[i] + (qvs[i] * 0.1), 0, f"{qvs[i]:.3g}", rotation=90, fontsize='x-small')
+                txt += f'{quantiles[i] * 100}%: {qvs[i]:.5g}\n'
+                # plt.text(qvs[i] + (qvs[i] * 0.1), 0, f"{qvs[i]:.3g}", rotation=90, fontsize='x-small')
 
+            # pltting the quantiles details (upper-left corner)
+            tx = plt.xlim()[0] + np.abs(plt.xlim()[1] - plt.xlim()[0]) * 0.05
+            ty = plt.ylim()[1] - np.abs(plt.ylim()[1] - plt.ylim()[0]) * 0.1
+            plt.text(tx, ty, txt, fontsize='x-small')
         imgFullPath = os.path.join(outPath, filename)
         fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
         plt.close('all')
