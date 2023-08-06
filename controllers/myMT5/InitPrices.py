@@ -102,9 +102,9 @@ class InitPrices:
     # calculate the value of point with respect to that time exchage rate
     def getPointValue(self, point, offset, iloc=True):
         """
-        Getting forex point in deposit value
+        Getting forex point in deposit value (usually calculate the trading cost)
         :param point: float
-        :return: [float], depend on how many number of symbol (in-deposit)
+        :return: {symbol: float}, depend on how many number of symbol (in-deposit)
         """
         pointValues = {}
         for i, symbol in enumerate(self.symbols):
@@ -140,6 +140,7 @@ class InitPrices:
             # calculate the point value difference
             pointValueDiffs[symbol] = (new - old) * (10 ** digits) * self.all_symbols_info[symbol]['pt_value'] * q2d_at
         return pointValueDiffs
+
 
     def get_points_dff_df(self, col_names=None, ptValue=True):
         """

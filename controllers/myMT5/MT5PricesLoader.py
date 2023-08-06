@@ -257,12 +257,6 @@ class MT5PricesLoader:  # created note 86a
         # calculate the change of close price (with latest close prices)
         change_close_prices = ((close_prices - close_prices.shift(1)) / close_prices.shift(1)).fillna(0.0)
 
-        # get point diff values with latest value
-        # points_dff_values_df = pointsModel.get_points_dff_df(close_prices, self.all_symbols_info)
-
-        # get point diff
-        # points_diff_df = pointsModel.get_points_dff_df(close_prices, self.all_symbols_info, ptValue=False)
-
         # get quote exchange with values
         exchg_close_prices = self._get_specific_from_prices(prices, q2d_exchg_symbols, ohlcvs='000100')
         q2d_exchange_rate_df = exchgModel.get_exchange_df(symbols, q2d_exchg_symbols, exchg_close_prices, self.deposit_currency, "q2d")
@@ -290,12 +284,6 @@ class MT5PricesLoader:  # created note 86a
         # get the change of close price
         close_prices = self._get_specific_from_prices(prices, symbols, ohlcvs='000100')
         changes = ((close_prices - close_prices.shift(1)) / close_prices.shift(1)).fillna(0.0)
-
-        # get point diff values
-        # points_dff_values_df = pointsModel.get_points_dff_df(close_prices, self.all_symbols_info)
-
-        # get point diff
-        # points_diff_df = pointsModel.get_points_dff_df(close_prices, self.all_symbols_info, ptValue=False)
 
         # get the quote to deposit exchange rate
         exchg_close_prices = self._get_specific_from_prices(prices, q2d_exchg_symbols, ohlcvs='000100')
