@@ -49,10 +49,12 @@ class InitPrices:
         self.spread = spread
         self.ptD = self.get_points_dff_df(ptValue=False)
         self.ptDv = self.get_values_dff_df() # in-deposit, eg USD
+        # get attr
+        self.attrs = [attr for attr in dir(self) if not callable(getattr(self, attr)) and not attr.startswith("__")]
 
     def getValidCols(self):
         validCol = []
-        for name, field in self.__dataclass_fields__.items():
+        for name in self.attrs:
             value = getattr(self, name)
             if not value.empty:
                 validCol.append(value)
@@ -60,7 +62,7 @@ class InitPrices:
 
     def split_Prices(self, percentage):
         trainDict, testDict = {}, {}
-        for name, field in self.__dataclass_fields__.items():
+        for name in self.attrs:
             attr = getattr(self, name)
             if not isinstance(attr, pd.DataFrame):
                 trainDict[name] = attr
@@ -81,7 +83,7 @@ class InitPrices:
         nameDict = {'open': 'open', 'high': 'high', 'low': 'low', 'close': 'close', 'volume': 'volume', 'spread': 'spread', 'quote_exchg': 'quote_exchg', 'base_exchg': 'base_exchg'}
         for si, symbol in enumerate(self.symbols):
             requiredDf = pd.DataFrame()  # create empty df
-            for name, field in self.__dataclass_fields__.items():  # name = variable name; field = pd.dataframe/ value
+            for name in self.attrs:  # name = variable name; field = pd.dataframe/ value
                 # only need the cols in nameDict
                 if name not in nameDict.keys(): continue
                 # get the attr

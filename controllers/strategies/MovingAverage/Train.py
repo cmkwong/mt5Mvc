@@ -43,7 +43,7 @@ class Train(Base):
                     self.plotController.plotHist(dist, distPath, f'{symbol}-{operation}-{startStr}-{endStr}-{distName}.jpg')
 
     def getMaSummaryDf(self, *,
-                       symbols: SymbolList = 'USDJPY EURUSD',
+                       symbols: SymbolList = 'USDJPY',
                        timeframe: str = '15min',
                        start: DatetimeTuple = (2023, 5, 1, 0, 0),
                        end: DatetimeTuple = (2023, 6, 30, 23, 59)):

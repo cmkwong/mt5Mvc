@@ -326,8 +326,8 @@ class MT5PricesLoader:  # created note 86a
 
     def getPrices(self, *,
                   symbols: SymbolList = config.DefaultSymbols,
-                  start: DatetimeTuple = (2023, 5, 1, 0, 0),
-                  end: DatetimeTuple = (2023, 6, 1, 23, 59),
+                  start: DatetimeTuple = (2023, 6, 1, 0, 0),
+                  end: DatetimeTuple = (2023, 6, 30, 23, 59),
                   timeframe: str = '15min',
                   count: int = 0,
                   ohlcvs: str = '111111'):
