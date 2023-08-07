@@ -11,13 +11,20 @@ class Base:
         self.RUNNING = False # means the strategy if running
 
     # prepare for 1-minute data for further analysis (from mySQL database)
-    def prepare1MinData(self, symbol, startTime, endTime):
+    def prepare1MinData(self, symbol, start, end):
         """
-        :param startTime: (2022, 12, 2, 0, 0)
-        :param endTime: (2022, 12, 31, 23, 59)
+        :param start: (2022, 12, 2, 0, 0)
+        :param end: (2022, 12, 31, 23, 59)
         :return: pd.DataFrame(open, high, low, close)
         """
-        self.fetchData_min = self.nodeJsServerController.downloadForexData(symbol, timeframe='1min', startTime=startTime, endTime=endTime)
+        originalSource = self.mt5Controller.pricesLoader.source
+        self.mt5Controller.pricesLoader.switchSource('sql')
+        # getting the Prices
+        # self.fetchData_min = self.nodeJsServerController.downloadForexData(symbol, timeframe='1min', startTime=start, endTime=end)
+        Prices = self.mt5Controller.pricesLoader.getPrices([symbol], start=start, end=end, timeframe='1min')
+        self.fetchData_min = Prices.getOhlcvsFromPrices()[symbol]
+        # switch back to original data source
+        self.mt5Controller.pricesLoader.switchSource(originalSource)
 
     # calculate the win rate
     def getWinRate(self, masterSignal, trendType='rise'):

@@ -99,12 +99,12 @@ class NodeJsApiController(HttpController):
                 forexDataDf[col] = forexDataDf_raw[col].resample(timeframe).sum()
             elif col == 'spread':
                 forexDataDf[col] = forexDataDf_raw[col].resample(timeframe).last()
-            elif col == 'base_exchg':
-                forexDataDf[col] = forexDataDf_raw[col].resample(timeframe).last()
-            elif col == 'quote_exchg':
-                forexDataDf[col] = forexDataDf_raw[col].resample(timeframe).last()
-            elif col == 'ptDv':
-                forexDataDf[col] = forexDataDf_raw[col].resample(timeframe).sum()
+            # elif col == 'base_exchg':
+            #     forexDataDf[col] = forexDataDf_raw[col].resample(timeframe).last()
+            # elif col == 'quote_exchg':
+            #     forexDataDf[col] = forexDataDf_raw[col].resample(timeframe).last()
+            # elif col == 'ptDv':
+            #     forexDataDf[col] = forexDataDf_raw[col].resample(timeframe).sum()
         # drop the nan rows that is holiday
         return forexDataDf.dropna()
 

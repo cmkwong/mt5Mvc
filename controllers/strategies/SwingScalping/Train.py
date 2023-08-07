@@ -41,7 +41,9 @@ class Train(Base):
         r = 0
         # fetch data from database
         self.prepare1MinData(symbol, startTime, endTime)
-        fetchData_cust = self.nodeJsServerController.downloadForexData(symbol, timeframe='5min', startTime=startTime, endTime=endTime)
+        # fetchData_cust = self.nodeJsServerController.downloadForexData(symbol, timeframe='5min', startTime=startTime, endTime=endTime)
+        Prices = self.mt5Controller.pricesLoader.getPrices([symbol], start=startTime, end=endTime, timeframe='5min')
+        fetchData_cust = Prices.getOhlcvsFromPrices()[symbol]
 
         for ratio_sl_sp in np.arange(1.2, 2.2, 0.2):
             for diff_ema_middle_lower in np.arange(20, 80, 10):

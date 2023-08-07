@@ -32,7 +32,7 @@ class MT5PricesLoader:  # created note 86a
         self.source = s
         print(f"The price loader has switched to {self.source}")
 
-    def _get_mt5_historical_data(self, symbol, timeframe, start, end=None):
+    def _get_historical_data(self, symbol, timeframe, start, end=None):
         """
         :param symbol: str
         :param timeframe: str, '1H'
@@ -227,7 +227,7 @@ class MT5PricesLoader:  # created note 86a
                 price = self._get_mt5_current_bars(symbol, timeframe, count).loc[:, required_types]
                 join = 'inner'  # if getting count, need to join=inner to check if loader getting completed
             elif count == 0:  # get loader from start to end
-                price = self._get_mt5_historical_data(symbol, timeframe, start, end).loc[:, required_types]
+                price = self._get_historical_data(symbol, timeframe, start, end).loc[:, required_types]
             else:
                 raise Exception('start-date must be set when end-date is being set.')
             if i == 0:
@@ -275,9 +275,6 @@ class MT5PricesLoader:  # created note 86a
         return Prices
 
     def get_Prices_format(self, symbols, prices, q2d_exchg_symbols, b2d_exchg_symbols, ohlcvs):
-
-        # init to None
-        # open_prices, high_prices, low_prices, close_prices, changes, volume, spread = None, None, None, None, None, None, None
 
         # get the change of close price
         close_prices = self._get_specific_from_prices(prices, symbols, ohlcvs='000100')
