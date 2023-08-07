@@ -7,10 +7,10 @@ import pandas as pd
 class NodeJsApiController(HttpController):
     def __init__(self):
         self.mainUrl = None
-        self.switchEnv()
+        self.switchEnv('prod')
 
-    def switchEnv(self):
-        if self.mainUrl == "http://localhost:3002/":
+    def switchEnv(self, env):
+        if env == 'prod':
             self.mainUrl = "http://192.168.1.165:3002/"
         else:
             self.mainUrl = "http://localhost:3002/"

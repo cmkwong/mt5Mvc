@@ -6,15 +6,16 @@ from controllers.myMT5.MT5TimeController import MT5TimeController
 
 import MetaTrader5 as mt5
 from datetime import datetime, timedelta
+import config
 
 class MT5Controller:
-    def __init__(self, nodeJsApiController, timezone='Hongkong', deposit_currency='USD', type_filling='ioc'):
+    def __init__(self, nodeJsApiController):
         self.connect_server()
         self.symbolController = MT5SymbolController()
         self.tickController = MT5TickController()
         self.timeController = MT5TimeController()
-        self.executor = MT5Executor(type_filling)  # execute the request (buy/sell)
-        self.pricesLoader = MT5PricesLoader(self.timeController, self.symbolController, nodeJsApiController, timezone, deposit_currency)  # loading the loader
+        self.executor = MT5Executor()  # execute the request (buy/sell)
+        self.pricesLoader = MT5PricesLoader(self.timeController, self.symbolController, nodeJsApiController)  # loading the loader
 
     def print_terminal_info(self):
         # request connection status and parameters

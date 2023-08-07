@@ -11,7 +11,10 @@ PROJECT_PATH = sysModel.find_required_path(os.getcwd(), '221227_mt5Mvc')
 GENERAL_DOCS_PATH = os.path.join(PROJECT_PATH, 'docs')
 
 Broker = 'RoboForex'
-Broker_Time_Between_UTC = 2
+Broker_Time_Between_UTC = 0
+TimeZone = 'Etc/UTC'   # Check: set(pytz.all_timezones_set) - (Etc/UTC) # Hongkong
+DepositCurrency = 'USD'
+TypeFilling = 'ioc'
 DefaultSymbols = ['AUDJPY', 'AUDCAD', 'AUDUSD', 'CADJPY', 'EURAUD', 'EURCAD', 'EURGBP', 'EURUSD', 'GBPUSD', 'USDCAD', 'USDJPY']
 
 # ---------------------------------------------------------------------------------------------

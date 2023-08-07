@@ -12,26 +12,24 @@ import pandas as pd
 
 # Mt5f loader price loader
 class MT5PricesLoader:  # created note 86a
-    def __init__(self, mt5TimeController, mt5SymbolController, nodeJsApiController, timezone='Hongkong', deposit_currency='USD'):
+    def __init__(self, mt5TimeController, mt5SymbolController, nodeJsApiController):
         self.nodeJsApiController = nodeJsApiController
         self.mt5SymbolController = mt5SymbolController
         self.mt5TimeController = mt5TimeController
 
         # for Mt5f
         self.all_symbols_info = self.mt5SymbolController.get_all_symbols_info()
-        self.timezone = timezone  # Check: set(pytz.all_timezones_set) - (Etc/UTC)
-        self.deposit_currency = deposit_currency
 
         # prepare
         self._symbols_available = False  # only for usage of _check_if_symbols_available()
 
         self.source = 'mt5'
 
-    def switchSource(self):
-        if self.source == 'mt5':
-            self.source = 'local'
-        else:
-            self.source = 'mt5'
+    def switchSource(self, s='mt5'):
+        if s not in ['mt5', 'sql']:
+            print('The command of switch source is not correct')
+            return False
+        self.source = s
         print(f"The price loader has switched to {self.source}")
 
     def _get_mt5_historical_data(self, symbol, timeframe, start, end=None):
@@ -42,18 +40,18 @@ class MT5PricesLoader:  # created note 86a
         :param end (local time): tuple (year, month, day, hour, mins), if None, then take loader until present
         :return: dataframe
         """
-        if self.source == 'local':
-            utc_from_tuple = timeModel.get_utc_time_with_timezone(start, self.timezone, 1)
-            utc_to_tuple = timeModel.get_utc_time_with_timezone(end, self.timezone, 1)
+        if self.source == 'sql':
+            utc_from_tuple = timeModel.get_utc_time_with_timezone(start, config.TimeZone, 1)
+            utc_to_tuple = timeModel.get_utc_time_with_timezone(end, config.TimeZone, 1)
             rates_frame = self.nodeJsApiController.downloadForexData(symbol, timeframe, utc_from_tuple, utc_to_tuple)
         else:
-            utc_from = self.mt5TimeController.get_utc_time_from_broker(start, self.timezone)
+            utc_from = self.mt5TimeController.get_utc_time_from_broker(start, config.TimeZone)
             if end == None:  # if end is None, get the loader at current time
                 now = datetime.today()
                 now_tuple = (now.year, now.month, now.day, now.hour, now.minute)
-                utc_to = self.mt5TimeController.get_utc_time_from_broker(now_tuple, self.timezone)
+                utc_to = self.mt5TimeController.get_utc_time_from_broker(now_tuple, config.TimeZone)
             else:
-                utc_to = self.mt5TimeController.get_utc_time_from_broker(end, self.timezone)
+                utc_to = self.mt5TimeController.get_utc_time_from_broker(end, config.TimeZone)
             mt5Timeframe = self.mt5TimeController.get_txt2timeframe(timeframe)
             rates = mt5.copy_rates_range(symbol, mt5Timeframe, utc_from, utc_to)
             rates_frame = pd.DataFrame(rates, dtype=float)  # create DataFrame out of the obtained loader
@@ -139,7 +137,7 @@ class MT5PricesLoader:  # created note 86a
         :return: list, eg: ['open', 'close']
         """
         # define the column
-        if self.source == 'local':
+        if self.source == 'sql':
             type_names = ['open', 'high', 'low', 'close', 'volume', 'spread']
         else:
             type_names = ['open', 'high', 'low', 'close', 'tick_volume', 'spread']
@@ -196,9 +194,9 @@ class MT5PricesLoader:  # created note 86a
                 target_symbol = symbol[:3]
             elif exchg_type == 'q2d':
                 target_symbol = symbol[3:]
-            if target_symbol != self.deposit_currency:  # if the symbol not relative to required deposit currency
-                test_symbol_1 = target_symbol + self.deposit_currency
-                test_symbol_2 = self.deposit_currency + target_symbol
+            if target_symbol != config.DepositCurrency:  # if the symbol not relative to required deposit currency
+                test_symbol_1 = target_symbol + config.DepositCurrency
+                test_symbol_2 = config.DepositCurrency + target_symbol
                 if test_symbol_1 in symbol_names:
                     exchange_symbols.append(test_symbol_1)
                     continue
@@ -206,7 +204,7 @@ class MT5PricesLoader:  # created note 86a
                     exchange_symbols.append(test_symbol_2)
                     continue
                 else:  # if not found the relative pair with respect to deposit currency, raise the error
-                    raise Exception("{} has no relative currency with respect to deposit {}.".format(target_symbol, self.deposit_currency))
+                    raise Exception("{} has no relative currency with respect to deposit {}.".format(target_symbol, config.DepositCurrency))
             else:  # if the symbol already relative to deposit currency
                 exchange_symbols.append(symbol)
         return exchange_symbols
@@ -259,7 +257,7 @@ class MT5PricesLoader:  # created note 86a
 
         # get quote exchange with values
         exchg_close_prices = self._get_specific_from_prices(prices, q2d_exchg_symbols, ohlcvs='000100')
-        q2d_exchange_rate_df = exchgModel.get_exchange_df(symbols, q2d_exchg_symbols, exchg_close_prices, self.deposit_currency, "q2d")
+        q2d_exchange_rate_df = exchgModel.get_exchange_df(symbols, q2d_exchg_symbols, exchg_close_prices, config.DepositCurrency, "q2d")
         # if len(q2d_exchange_rate_df_o) or len(q2d_exchange_rate_df_c) == 39, return false and run again
         if len(q2d_exchange_rate_df) != count:  # note 63a
             print("q2d_exchange_rate_df_o or q2d_exchange_rate_df_c length of Data is not equal to count")
@@ -287,11 +285,11 @@ class MT5PricesLoader:  # created note 86a
 
         # get the quote to deposit exchange rate
         exchg_close_prices = self._get_specific_from_prices(prices, q2d_exchg_symbols, ohlcvs='000100')
-        q2d_exchange_rate_df = exchgModel.get_exchange_df(symbols, q2d_exchg_symbols, exchg_close_prices, self.deposit_currency, "q2d")
+        q2d_exchange_rate_df = exchgModel.get_exchange_df(symbols, q2d_exchg_symbols, exchg_close_prices, config.DepositCurrency, "q2d")
 
         # get the base to deposit exchange rate
         exchg_close_prices = self._get_specific_from_prices(prices, b2d_exchg_symbols, ohlcvs='000100')
-        b2d_exchange_rate_df = exchgModel.get_exchange_df(symbols, q2d_exchg_symbols, exchg_close_prices, self.deposit_currency, "b2d")
+        b2d_exchange_rate_df = exchgModel.get_exchange_df(symbols, q2d_exchg_symbols, exchg_close_prices, config.DepositCurrency, "b2d")
 
         # assign the column into each collection tuple
         Prices = InitPrices(symbols=symbols,

@@ -1,3 +1,4 @@
+import config
 import MetaTrader5 as mt5
 
 """
@@ -13,8 +14,8 @@ MetaTrader:
 """
 
 class MT5Executor:
-    def __init__(self, type_filling='ioc'):
-        self.type_filling = type_filling
+    # def __init__(self):
+    #     pass
 
     def request_format(self, symbol, operation, sl, tp, deviation, lot):
         """
@@ -26,11 +27,11 @@ class MT5Executor:
 
         # type of filling
         tf = None
-        if self.type_filling == 'fok':
+        if config.TypeFilling == 'fok':
             tf = mt5.ORDER_FILLING_FOK
-        elif self.type_filling == 'ioc':
+        elif config.TypeFilling == 'ioc':
             tf = mt5.ORDER_FILLING_IOC
-        elif self.type_filling == 'return':
+        elif config.TypeFilling == 'return':
             tf = mt5.ORDER_FILLING_RETURN
 
         # building request format

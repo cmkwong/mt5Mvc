@@ -20,13 +20,13 @@ class CommandController:
         self.mainController = mainController
 
     def run(self, command):
-        # switch the nodeJS server env: dev / prod
-        if command == '-env':
-            self.mainController.nodeJsApiController.switchEnv()
+        # switch the nodeJS server env: prod / dev
+        if command == '-prod' or command == '-dev':
+            self.mainController.nodeJsApiController.switchEnv(command[1:])
 
         # switch the price loader source from mt5 / local
-        elif command == '-source':
-            self.mainController.mt5Controller.pricesLoader.switchSource()
+        elif command == '-mt5' or command == '-sql':
+            self.mainController.mt5Controller.pricesLoader.switchSource(command[1:])
 
         # running SwingScalping_Live with all params
         elif command == '-swL':
@@ -115,6 +115,14 @@ class CommandController:
             sumParam = paramModel.ask_params(DfController.summaryPdf)
             df = dfController.readAsDf(**readParam)
             dfController.summaryPdf(df, **sumParam)
+
+        elif command == '-test':
+            self.mainController.mt5Controller.pricesLoader.getPrices(
+                symbols=['USDJPY'],
+                start=(2023,7,18,0,0),
+                end=(2023,7,20,0,0),
+                timeframe='15min'
+            )
         else:
             print_at('No command detected. Please input again. ')
 
