@@ -121,15 +121,15 @@ class CommandController:
 
         # ----------------------------------------------------------------------------------------
         # testing for getting the data from sql / mt5 by switch the data source
-        elif command == '-test':
+        elif command == '-testPeriod':
             self.mainController.mt5Controller.pricesLoader.getPrices(
                 symbols=['USDJPY'],
-                start=(2023, 7, 18, 0, 0),
+                start=(2023, 2, 18, 0, 0),
                 end=(2023, 7, 20, 0, 0),
-                timeframe='15min'
+                timeframe='1min'
             )
         # testing for getting current data from sql / mt5 by switch the data source
-        elif command == '-testL':
+        elif command == '-testCurrent':
             self.mainController.mt5Controller.pricesLoader.getPrices(
                 symbols=['USDJPY'],
                 count=1000,

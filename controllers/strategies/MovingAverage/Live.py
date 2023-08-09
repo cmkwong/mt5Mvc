@@ -24,8 +24,8 @@ class Live(Base):
         while True:
             # check if current position is closed
             if self.positionId and self.mt5Controller.orderFinished(self.positionId):
-                self.positionId = False
                 print(f'{symbol} close position with position id: {self.positionId}')
+                self.positionId = False
 
             # getting the Prices
             Prices = self.mt5Controller.pricesLoader.getPrices(symbols=[symbol], count=1000, timeframe=timeframe)

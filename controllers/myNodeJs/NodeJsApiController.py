@@ -106,7 +106,7 @@ class NodeJsApiController(HttpController):
             # elif col == 'ptDv':
             #     forexDataDf[col] = forexDataDf_raw[col].resample(timeframe).sum()
         # drop the nan rows that is holiday
-        return forexDataDf.dropna()
+        return forexDataDf.rename(columns={"volume": "tick_volume"}).dropna()
 
     # upload all symbol info
     def uploadAllSymbolInfo(self, *, all_symbol_info: dict, broker: str):

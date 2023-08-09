@@ -1,6 +1,6 @@
 from controllers.myMT5.InitPrices import InitPrices
-from models.myBacktest import exchgModel, pointsModel
-from models.myUtils import timeModel
+from models.myBacktest import exchgModel
+from models.myUtils import timeModel, inputModel
 from models.myUtils.paramModel import SymbolList, DatetimeTuple
 import config
 
@@ -8,6 +8,7 @@ from datetime import datetime
 
 import MetaTrader5 as mt5
 import pandas as pd
+import numpy as np
 
 
 # Mt5f loader price loader
@@ -54,6 +55,8 @@ class MT5PricesLoader:  # created note 86a
                 utc_to = self.mt5TimeController.get_utc_time_from_broker(end, config.TimeZone)
             mt5Timeframe = self.mt5TimeController.get_txt2timeframe(timeframe)
             rates = mt5.copy_rates_range(symbol, mt5Timeframe, utc_from, utc_to)
+            if not isinstance(rates, np.ndarray):
+                return False
             rates_frame = pd.DataFrame(rates, dtype=float)  # create DataFrame out of the obtained loader
             rates_frame['time'] = pd.to_datetime(rates_frame['time'], unit='s')  # convert time in seconds into the datetime format
             rates_frame = rates_frame.set_index('time')
@@ -137,10 +140,7 @@ class MT5PricesLoader:  # created note 86a
         :return: list, eg: ['open', 'close']
         """
         # define the column
-        if self.source == 'sql':
-            type_names = ['open', 'high', 'low', 'close', 'volume', 'spread']
-        else:
-            type_names = ['open', 'high', 'low', 'close', 'tick_volume', 'spread']
+        type_names = ['open', 'high', 'low', 'close', 'tick_volume', 'spread']
         # getting required columns
         required_types = []
         for i, c in enumerate(ohlcvs):
@@ -224,12 +224,19 @@ class MT5PricesLoader:  # created note 86a
         prices_df = None
         for i, symbol in enumerate(symbols):
             if count > 0:  # get the latest units of loader
-                price = self._get_mt5_current_bars(symbol, timeframe, count).loc[:, required_types]
+                price = self._get_mt5_current_bars(symbol, timeframe, count)
                 join = 'inner'  # if getting count, need to join=inner to check if loader getting completed
             elif count == 0:  # get loader from start to end
-                price = self._get_historical_data(symbol, timeframe, start, end).loc[:, required_types]
+                price = self._get_historical_data(symbol, timeframe, start, end)
+                if not isinstance(price, pd.DataFrame):
+                    print("Cannot get data from MT5. Will try to get from SQL ... ")
+                    _originalSource = self.source
+                    self.source = 'sql'
+                    price = self._get_historical_data(symbol, timeframe, start, end)
+                    self.source = _originalSource # resume to original data source
             else:
                 raise Exception('start-date must be set when end-date is being set.')
+            price = price.loc[:, required_types]
             if i == 0:
                 prices_df = price.copy()
             else:
