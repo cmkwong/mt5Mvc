@@ -69,6 +69,6 @@ class MT5Executor:
             return False
         print(
             f"Action: {request['type']}; by {request['symbol']} {result.volume:.2f} lots at {result.price:.5f} ( ptDiff={((request['price'] - result.price) * 10 ** mt5.symbol_info(request['symbol']).digits):.1f} ({request['price']:.5f}(request.price) - {result.price:.5f}(result.price) ))")
-        return True
+        return result
 
 

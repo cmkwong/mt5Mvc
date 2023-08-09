@@ -43,6 +43,19 @@ class MT5Controller:
         historicalOrder = mt5.history_orders_get(fromDate, currentDate)
         return historicalOrder
 
+    def orderFinished(self, positionId):
+        """
+        Check if order finished or not
+        :param positionId: ticket ID, in metatrader position ID is same as ticket ID
+        :return: Boolean
+        """
+        # get all the positions with same position id
+        positions = mt5.history_orders_get(position=positionId)
+        # order finished return True, otherwise, False
+        if len(positions) > 1:
+            return True
+        return False
+
     def connect_server(self):
         # connect to MetaTrader 5
         if not mt5.initialize():

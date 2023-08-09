@@ -7,6 +7,7 @@ import numpy as np
 
 class Base:
     MA_DATA_COLS = ['close', 'cc', 'valueDiff', 'fast', 'slow', 'long', 'short']
+    OPERATIONS = ['long', 'short']
 
     def getMaData(self, Prices, fast_param, slow_param):
         """
@@ -39,17 +40,20 @@ class Base:
             # short signal
             MaData[symbol, 'short'] = MaData[symbol, 'fast'] < MaData[symbol, 'slow']
             MaData[symbol, 'short'] = MaData[symbol, 'short'].shift(1).fillna(False)  # signal should delay 1 timeframe
+
+        # for grouping usage, if Signal=True, ffill the signal start date
+        MaData = self.getOperationGroup(MaData)
+
         return MaData
 
-    def getMaDist(self, MaData):
-        # get the symbols
+    # assigning the first start date to signal==True
+    def getOperationGroup(self, MaData):
+
+        # get the symbol list
         symbols = list(MaData.columns.levels[0])
 
-        # create the distribution
-        Distributions = {}
         for symbol in symbols:
-            Distributions[symbol] = {}
-            for operation in ['long', 'short']:
+            for operation in self.OPERATIONS:
                 # create a column for storage required grouping information (for temporary usage)
                 MaData[symbol, f'{operation}_group'] = MaData.loc[:, (symbol, operation)]
 
@@ -61,7 +65,18 @@ class Base:
                 mask = MaData[symbol, f'{operation}_group'] == True
                 MaData.loc[mask, (symbol, f'{operation}_group')] = np.nan
                 MaData[symbol, f'{operation}_group'].fillna(method='ffill', inplace=True)
+        return MaData
 
+    def getMaDist(self, MaData):
+
+        # get the symbols
+        symbols = list(MaData.columns.levels[0])
+
+        # create the distribution
+        Distributions = {}
+        for symbol in symbols:
+            Distributions[symbol] = {}
+            for operation in self.OPERATIONS:
                 # getting distribution
                 dist = {}
                 mask = MaData[symbol, f'{operation}_group'] != False  # getting the rows only need to be groupby

@@ -17,7 +17,7 @@ class Train(Base):
     def getMaDistImg(self, *,
                      symbols: SymbolList = 'USDJPY EURUSD',
                      timeframe: str = '15min',
-                     start: DatetimeTuple = (2023, 6, 1, 0, 0),
+                     start: DatetimeTuple = (2023, 5, 1, 0, 0),
                      end: DatetimeTuple = (2023, 6, 30, 23, 59),
                      fast_param: int = 14,
                      slow_param: int = 22):
@@ -74,7 +74,10 @@ class Train(Base):
                         MaSummaryDf.loc[len(MaSummaryDf)] = [symbol, f, s, 'short', total_short, count_short, periodStart, periodEnd]
                         # print the results
                         print(f"{symbol}: fast: {f}; slow: {s}; Long Earn: {total_long:.2f}[{count_long}]; Short Earn: {total_short:.2f}[{count_short}]; Period: {periodStartT} - {periodEndT}")
-        # getting the current time string
-        timeStr = timeModel.getTimeS(outputFormat="%Y%m%d%H%M%S")
-        MaSummaryDf.to_excel(os.path.join(self.mainPath, f"{timeStr}_summary.xlsx"), index=False)
+
+        # create folder
+        CUR_TIME = timeModel.getTimeS(outputFormat='%Y-%m-%d %H%M%S')
+
+        # save the summary xlsx
+        MaSummaryDf.to_excel(os.path.join(*[self.mainPath, 'summary', f"{CUR_TIME}_summary.xlsx"]), index=False)
         return MaSummaryDf

@@ -14,6 +14,8 @@ from controllers.strategies.MovingAverage.Live import Live as MovingAverage_Live
 from controllers.DfController import DfController
 import paramStorage
 
+import MetaTrader5 as mt5
+
 
 class CommandController:
     def __init__(self, mainController):
@@ -68,6 +70,7 @@ class CommandController:
         elif command == '-maL':
             strategy = MovingAverage_Live(self.mainController)
             defaultParam = paramModel.ask_params(strategy.run)
+            # self.mainController.strategyController.runThreadFunction(strategy.run, **defaultParam)
             strategy.run(**defaultParam)
 
         # view the time series into Gramian Angular Field Image
@@ -132,6 +135,18 @@ class CommandController:
                 count=1000,
                 timeframe='15min'
             )
+        elif command == '-order':
+            request = self.mainController.mt5Controller.executor.request_format(
+                symbol='USDJPY',
+                operation='long',
+                sl=138.350,
+                tp=143.793,
+                deviation=5,
+                lot=3
+            )
+            requestResult = self.mainController.mt5Controller.executor.request_execute(request)
+            checkResult = self.mainController.mt5Controller.orderFinished(requestResult.order)
+            print()
         else:
             print_at('No command detected. Please input again. ')
 
