@@ -6,7 +6,7 @@ import time
 class Live(Base):
     def __init__(self, mainController):
         self.mt5Controller = mainController.mt5Controller
-        self.executeResult = None
+        self.openResult = None
         self.lastPositionTime = None
         self.LOT = 1
 
@@ -23,9 +23,9 @@ class Live(Base):
         SLTP_FACTOR = 1 if operation == 'long' else -1
         while True:
             # check if current position is closed
-            if self.executeResult and self.mt5Controller.orderClosed(self.executeResult):
-                print(f'{symbol} close position with position id: {self.executeResult.order}')
-                self.executeResult = None
+            if self.openResult and self.mt5Controller.checkOrderClosed(self.openResult):
+                print(f'{symbol} close position with position id: {self.openResult.order}')
+                self.openResult = None
 
             # getting the Prices
             Prices = self.mt5Controller.pricesLoader.getPrices(symbols=[symbol], count=1000, timeframe=timeframe)
@@ -35,7 +35,7 @@ class Live(Base):
             operationGroupTime = MaData.loc[:, (symbol, f"{operation}_group")][-1]
             # get signal by 'long' or 'short'
             signal = MaData[symbol][operation]
-            if not self.executeResult:
+            if not self.openResult:
                 if signal.iloc[-2] and not signal.iloc[-3]:
                     # to avoid open the position at same condition
                     if self.lastPositionTime != operationGroupTime:
@@ -53,20 +53,20 @@ class Live(Base):
                             lot=self.LOT
                         )
                         # execute request
-                        self.executeResult = self.mt5Controller.executor.request_execute(request)
+                        self.openResult = self.mt5Controller.executor.request_execute(request)
                         # if execute successful
-                        if self.mt5Controller.orderSentOk(self.executeResult):
+                        if self.mt5Controller.orderSentOk(self.openResult):
                             self.lastPositionTime = signal.index[-1]
-                            print(f'{symbol} open position with position id: {self.executeResult.order}')
+                            print(f'{symbol} open position with position id: {self.openResult.order}')
                         else:
                             print(f'{symbol} open position failed. ')
             else:
                 # check if signal should be close
                 if not signal.iloc[-2] and signal.iloc[-3]:
-                    request = self.mt5Controller.executor.close_request_format(self.executeResult)
+                    request = self.mt5Controller.executor.close_request_format(self.openResult)
                     result = self.mt5Controller.executor.request_execute(request)
                     print(f'{symbol} close position with position id: {result.request.order}')
-                    self.executeResult = None
+                    self.openResult = None
 
             # delay the operation
             time.sleep(5)

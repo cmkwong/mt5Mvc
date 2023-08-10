@@ -70,8 +70,8 @@ class CommandController:
         elif command == '-maL':
             strategy = MovingAverage_Live(self.mainController)
             defaultParam = paramModel.ask_params(strategy.run)
-            # self.mainController.strategyController.runThreadFunction(strategy.run, **defaultParam)
-            strategy.run(**defaultParam)
+            self.mainController.strategyController.runThreadFunction(strategy.run, **defaultParam)
+            # strategy.run(**defaultParam)
 
         # view the time series into Gramian Angular Field Image
         elif command == '-gaf':
@@ -144,11 +144,13 @@ class CommandController:
                 deviation=5,
                 lot=3
             )
-            executeResult = self.mainController.mt5Controller.executor.request_execute(openRequest)
-            closeRequest = self.mainController.mt5Controller.executor.close_request_format(executeResult)
+            openResult = self.mainController.mt5Controller.executor.request_execute(openRequest)
+            print(f"requestResult: \n{openResult}")
+            closeRequest = self.mainController.mt5Controller.executor.close_request_format(openResult)
             closeResult = self.mainController.mt5Controller.executor.request_execute(closeRequest)
-            print(f"requestResult: \n{executeResult}")
             print(f"closeResult: \n{closeResult}")
+            dealDetail = self.mainController.mt5Controller.get_historical_deal()
+            postionEarn = self.mainController.mt5Controller.getPositionEarn(openResult.order)
         else:
             print_at('No command detected. Please input again. ')
 

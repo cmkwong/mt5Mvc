@@ -3,9 +3,12 @@ from controllers.myMT5.MT5Executor import MT5Executor
 from controllers.myMT5.MT5SymbolController import MT5SymbolController
 from controllers.myMT5.MT5TickController import MT5TickController
 from controllers.myMT5.MT5TimeController import MT5TimeController
+from models.myUtils import timeModel
 
+import pandas as pd
 import MetaTrader5 as mt5
 from datetime import datetime, timedelta
+import pytz
 import config
 
 
@@ -26,16 +29,36 @@ class MT5Controller:
         # get loader on MetaTrader 5 version
         print(mt5.version())
 
-    def get_historical_deal(self, lastDays=10):
+    def get_historical_deal(self, lastDays: int = 365):
         """
-        :return:
+        :lastDays: 1625 = 5 years
+        :return pd.Dataframe of deals
         """
-        currentDate = datetime.today()  # time object
+        cols = ['time', 'order', 'type', 'position_id', 'reason', 'volume', 'price', 'commission', 'swap', 'profit', 'fee', 'symbol']
+        currentDate = datetime.today() + timedelta(hours=8)  # time object
         fromDate = currentDate - timedelta(days=lastDays)
-        historicalDeal = mt5.history_deals_get(fromDate, currentDate)
-        return historicalDeal
+        deals = mt5.history_deals_get(fromDate, currentDate)
+        datas = {}
+        for deal in deals:
+            # time = datetime.fromtimestamp(deal.time)
+            row = []
+            for col in cols:
+                row.append(getattr(deal, col))
+            datas[deal.ticket] = row
+        historicalDeals = pd.DataFrame.from_dict(datas, orient='index', columns=cols)
+        # transfer time
+        historicalDeals['time'] = historicalDeals['time'].apply(datetime.fromtimestamp)
+        historicalDeals['time'] = historicalDeals['time'].apply(lambda t: t + timedelta(hours=-8))
+        return historicalDeals
 
-    def get_historical_order(self, lastDays=10):
+    def getPositionEarn(self, positionId):
+        historicalDeals = self.get_historical_deal(100)
+        profits = historicalDeals.groupby('position_id')['profit'].sum()
+        if positionId not in profits.index:
+            print(f"The required Position Id: {positionId} is not existed. ")
+        return profits[positionId]
+
+    def get_historical_order(self, lastDays: int = 10):
         """
         :return:
         """
@@ -44,14 +67,14 @@ class MT5Controller:
         historicalOrder = mt5.history_orders_get(fromDate, currentDate)
         return historicalOrder
 
-    def orderClosed(self, executeResult):
+    def checkOrderClosed(self, openResult):
         """
         Check if order finished or not
-        :param executeResult: the result after execute the request in mt5
+        :param openResult: the result after execute the request in mt5
         :return: Boolean
         """
         # get all the positions with same position id
-        positionId = executeResult.order  # ticket ID, in metatrader position ID is same as ticket ID
+        positionId = openResult.order  # ticket ID, in metatrader position ID is same as ticket ID
         positions = mt5.history_orders_get(position=positionId)
         # order finished return True, otherwise, False
         if len(positions) > 1:
