@@ -65,11 +65,11 @@ def getTimeT(dateInput=None, inputFormat="%Y-%m-%d %H:%M:%S"):
     return requiredDate
 
 # split the period into different interval
-def splitTimePeriod(dateT_start, dateT_end, intervalPeriod: dict, overall: bool=False):
+def splitTimePeriod(dateT_start, dateT_end, intervalPeriod: dict, whole: bool = False):
     """
     get time period split by time interval
     :param intervalPeriod: minutes, hours, days
-    :param overall: Boolean, if True, then append overall period into list
+    :param whole: Boolean, if True, then append overall period into list
     :return: []
     """
     dt_start = datetime(*dateT_start)
@@ -84,7 +84,7 @@ def splitTimePeriod(dateT_start, dateT_end, intervalPeriod: dict, overall: bool=
         periods.append((period_start, period_end))
         period_start = period_end
     # if include the whole period
-    if overall:
+    if whole:
         periods.append((datetime(*dateT_start), datetime(*dateT_end)))
     return periods
 

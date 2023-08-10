@@ -13,6 +13,7 @@ MetaTrader:
     
 """
 
+
 class MT5Executor:
     # def __init__(self):
     #     pass
@@ -58,17 +59,42 @@ class MT5Executor:
         }
         return request
 
+    def close_request_format(self, executeResult):
+        """
+        return close the position request format
+        """
+        symbol = executeResult.request.symbol
+        positionId = executeResult.order
+        oppositeType = 1 if executeResult.request.type == 0 else 0
+        volume = executeResult.volume
+        request = {
+            'action': mt5.TRADE_ACTION_DEAL,
+            'type': oppositeType,
+            'price': mt5.symbol_info_tick(symbol).bid,
+            'symbol': symbol,
+            'volume': volume,
+            'position': positionId,
+        }
+        return request
+
     def request_execute(self, request):
         """
         :param request: request
         :return: Boolean
         """
-        result = mt5.order_send(request)  # sending the request
+        # sending the request
+        result = mt5.order_send(request)
+
+        # get the basic info
+        symbol = request['symbol']
+        requestPrice = request['price']
+        resultPrice = result.price
+        typeLabel = 'long' if request['type'] == 0 else 'short'
+        digit = mt5.symbol_info(request['symbol']).digits
+
         if result.retcode != mt5.TRADE_RETCODE_DONE:
-            print("order_send failed, symbol={}, retcode={}".format(request['symbol'], result.retcode))
+            print("order_send failed, symbol={}, retcode={}".format(symbol, result.retcode))
             return False
-        print(
-            f"Action: {request['type']}; by {request['symbol']} {result.volume:.2f} lots at {result.price:.5f} ( ptDiff={((request['price'] - result.price) * 10 ** mt5.symbol_info(request['symbol']).digits):.1f} ({request['price']:.5f}(request.price) - {result.price:.5f}(result.price) ))")
+        print(f"Action: {typeLabel}; by {symbol} {result.volume:.2f} lots at {result.price:.5f} ( ptDiff={((requestPrice - resultPrice) * 10 ** digit):.1f} ({requestPrice:.5f}("
+              f"request.price) - {result.price:.5f}(result.price) ))")
         return result
-
-

@@ -8,6 +8,7 @@ import MetaTrader5 as mt5
 from datetime import datetime, timedelta
 import config
 
+
 class MT5Controller:
     def __init__(self, nodeJsApiController):
         self.connect_server()
@@ -29,7 +30,7 @@ class MT5Controller:
         """
         :return:
         """
-        currentDate = datetime.today() # time object
+        currentDate = datetime.today()  # time object
         fromDate = currentDate - timedelta(days=lastDays)
         historicalDeal = mt5.history_deals_get(fromDate, currentDate)
         return historicalDeal
@@ -38,21 +39,30 @@ class MT5Controller:
         """
         :return:
         """
-        currentDate = datetime.today() # time object
+        currentDate = datetime.today()  # time object
         fromDate = currentDate - timedelta(days=lastDays)
         historicalOrder = mt5.history_orders_get(fromDate, currentDate)
         return historicalOrder
 
-    def orderFinished(self, positionId):
+    def orderClosed(self, executeResult):
         """
         Check if order finished or not
-        :param positionId: ticket ID, in metatrader position ID is same as ticket ID
+        :param executeResult: the result after execute the request in mt5
         :return: Boolean
         """
         # get all the positions with same position id
+        positionId = executeResult.order  # ticket ID, in metatrader position ID is same as ticket ID
         positions = mt5.history_orders_get(position=positionId)
         # order finished return True, otherwise, False
         if len(positions) > 1:
+            return True
+        return False
+
+    def orderSentOk(self, result):
+        """
+        :param result: Check if mt5 order sent and return successful code
+        """
+        if result.retcode == mt5.TRADE_RETCODE_DONE:
             return True
         return False
 

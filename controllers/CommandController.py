@@ -136,17 +136,19 @@ class CommandController:
                 timeframe='15min'
             )
         elif command == '-order':
-            request = self.mainController.mt5Controller.executor.request_format(
+            openRequest = self.mainController.mt5Controller.executor.request_format(
                 symbol='USDJPY',
                 operation='long',
-                sl=138.350,
-                tp=143.793,
+                sl=98.350,
+                tp=183.793,
                 deviation=5,
                 lot=3
             )
-            requestResult = self.mainController.mt5Controller.executor.request_execute(request)
-            checkResult = self.mainController.mt5Controller.orderFinished(requestResult.order)
-            print()
+            executeResult = self.mainController.mt5Controller.executor.request_execute(openRequest)
+            closeRequest = self.mainController.mt5Controller.executor.close_request_format(executeResult)
+            closeResult = self.mainController.mt5Controller.executor.request_execute(closeRequest)
+            print(f"requestResult: \n{executeResult}")
+            print(f"closeResult: \n{closeResult}")
         else:
             print_at('No command detected. Please input again. ')
 
