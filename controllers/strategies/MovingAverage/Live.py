@@ -24,7 +24,9 @@ class Live(Base):
         while True:
             # check if current position is closed
             if self.openResult and self.mt5Controller.checkOrderClosed(self.openResult):
-                print(f'{symbol} close position with position id: {self.openResult.order}')
+                # get the profit
+                earn = self.mt5Controller.getPositionEarn(self.openResult.order)
+                print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f}')
                 self.openResult = None
 
             # getting the Prices

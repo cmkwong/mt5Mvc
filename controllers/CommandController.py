@@ -149,8 +149,9 @@ class CommandController:
             closeRequest = self.mainController.mt5Controller.executor.close_request_format(openResult)
             closeResult = self.mainController.mt5Controller.executor.request_execute(closeRequest)
             print(f"closeResult: \n{closeResult}")
-            dealDetail = self.mainController.mt5Controller.get_historical_deal()
+            dealDetail = self.mainController.mt5Controller.getHistoricalDeals()
             postionEarn = self.mainController.mt5Controller.getPositionEarn(openResult.order)
+            print(postionEarn)
         else:
             print_at('No command detected. Please input again. ')
 

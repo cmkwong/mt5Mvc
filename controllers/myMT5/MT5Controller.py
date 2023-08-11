@@ -29,13 +29,14 @@ class MT5Controller:
         # get loader on MetaTrader 5 version
         print(mt5.version())
 
-    def get_historical_deal(self, lastDays: int = 365):
+    def getHistoricalDeals(self, lastDays: int = 365):
         """
         :lastDays: 1625 = 5 years
         :return pd.Dataframe of deals
         """
         cols = ['time', 'order', 'type', 'position_id', 'reason', 'volume', 'price', 'commission', 'swap', 'profit', 'fee', 'symbol']
         currentDate = datetime.today() + timedelta(hours=8)  # time object
+        # currentDate = pytz.timezone('Hongkong').localize(datetime.today())
         fromDate = currentDate - timedelta(days=lastDays)
         deals = mt5.history_deals_get(fromDate, currentDate)
         datas = {}
@@ -46,13 +47,16 @@ class MT5Controller:
                 row.append(getattr(deal, col))
             datas[deal.ticket] = row
         historicalDeals = pd.DataFrame.from_dict(datas, orient='index', columns=cols)
-        # transfer time
+        # transfer seconds into time
         historicalDeals['time'] = historicalDeals['time'].apply(datetime.fromtimestamp)
+        # resume back to UTC time
         historicalDeals['time'] = historicalDeals['time'].apply(lambda t: t + timedelta(hours=-8))
         return historicalDeals
 
     def getPositionEarn(self, positionId):
-        historicalDeals = self.get_historical_deal(100)
+        # get required deal in last 1 year
+        historicalDeals = self.getHistoricalDeals()
+        # sum all of the profit with same position id
         profits = historicalDeals.groupby('position_id')['profit'].sum()
         if positionId not in profits.index:
             print(f"The required Position Id: {positionId} is not existed. ")
