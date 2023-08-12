@@ -10,12 +10,10 @@ from controllers.strategies.Conintegration.Train import Train as Cointegration_T
 from controllers.strategies.RL_Simple.Train import Train as RL_Simple_Train
 from controllers.strategies.MovingAverage.Train import Train as MovingAverage_Train
 from controllers.strategies.MovingAverage.Live import Live as MovingAverage_Live
+from controllers.strategies.MovingAverage.Backtest import Backtest as MovingAverage_Backtest
 
 from controllers.DfController import DfController
 import paramStorage
-
-import MetaTrader5 as mt5
-
 
 class CommandController:
     def __init__(self, mainController):
@@ -63,9 +61,15 @@ class CommandController:
 
         # get the distribution for the specific fast and slow param (the earning distribution)
         elif command == '-mad':
-            strategy = MovingAverage_Train(self.mainController)
+            strategy = MovingAverage_Backtest(self.mainController)
             defaultParam = paramModel.ask_params(strategy.getMaDistImg)
             strategy.getMaDistImg(**defaultParam)
+
+        # get the distribution for the tagged fast and slow params
+        elif command == '-mads':
+            strategy = MovingAverage_Backtest(self.mainController)
+            defaultParam = paramModel.ask_params(strategy.getMaDistImgs)
+            strategy.getMaDistImgs(**defaultParam)
 
         elif command == '-maL':
             strategy = MovingAverage_Live(self.mainController)

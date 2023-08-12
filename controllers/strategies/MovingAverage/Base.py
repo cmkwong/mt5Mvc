@@ -3,9 +3,12 @@ from models.myUtils import dfModel
 
 import pandas as pd
 import numpy as np
-
+import os
 
 class Base:
+    MainPath = "./docs/ma"
+    SummaryPath = os.path.join(MainPath, 'summary')
+    DistributionPath = os.path.join(MainPath, 'dist')
     MA_DATA_COLS = ['close', 'cc', 'valueDiff', 'fast', 'slow', 'long', 'short']
     OPERATIONS = ['long', 'short']
 

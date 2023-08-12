@@ -34,7 +34,9 @@ def clearFiles(pathDir, pattern=None):
 
 def createDir(mainPath, dirName, gitKeep=False, readme=None):
     """
-    Create directory with readme.txt
+    Create the folder if not exist
+    :gitKeep: Create directory with .gitKeep
+    :readme: Create directory with readme.txt
     """
     fullpath = os.path.join(mainPath, dirName)
     if not os.path.isdir(fullpath):

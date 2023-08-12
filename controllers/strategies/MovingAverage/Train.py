@@ -1,4 +1,4 @@
-from models.myUtils.paramModel import SymbolList, DatetimeTuple
+from models.myUtils.paramModel import DatetimeTuple
 from controllers.strategies.MovingAverage.Base import Base
 from models.myUtils import timeModel, fileModel
 import config
@@ -11,38 +11,8 @@ import os
 class Train(Base):
     def __init__(self, mainController):
         self.mt5Controller = mainController.mt5Controller
-        self.nodeJsServerController = mainController.nodeJsApiController
-        self.plotController = mainController.plotController
-        self.mainPath = "./docs/ma"
+        # self.nodeJsServerController = mainController.nodeJsApiController
         self.MA_SUMMARY_COLS = ['symbol', 'fast', 'slow', 'operation', 'total', 'rate', 'count', '25%', '50%', '75%', 'timeframe', 'start', 'end', 'reliable']
-
-    def getMaDistImg(self, *,
-                     symbols: SymbolList = 'USDJPY EURUSD',
-                     timeframe: str = '15min',
-                     start: DatetimeTuple = (2023, 5, 1, 0, 0),
-                     end: DatetimeTuple = (2023, 6, 30, 23, 59),
-                     fast_param: int = 14,
-                     slow_param: int = 22):
-
-        # create folder
-        CUR_TIME = timeModel.getTimeS(outputFormat='%Y-%m-%d %H%M%S')
-        distPath = fileModel.createDir(os.path.join(self.mainPath, 'dist'), CUR_TIME)
-
-        # getting time string
-        startStr = timeModel.getTimeS(start, '%Y%m%d%H%M')
-        endStr = timeModel.getTimeS(end, '%Y%m%d%H%M')
-
-        # getting the ma data
-        Prices = self.mt5Controller.pricesLoader.getPrices(symbols=symbols, start=start, end=end, timeframe=timeframe)
-        MaData = self.getMaData(Prices, fast_param, slow_param)
-
-        Distributions = self.getMaDist(MaData)
-
-        # output image
-        for symbol, operations in Distributions.items():
-            for operation, dists in operations.items():
-                for distName, dist in dists.items():
-                    self.plotController.plotHist(dist, distPath, f'{symbol}-{operation}-{startStr}-{endStr}-{distName}.jpg')
 
     def getMaSummaryDf(self, *,
                        symbols: list = config.DefaultSymbols,
@@ -57,7 +27,7 @@ class Train(Base):
         """
         # create folder
         CUR_TIME = timeModel.getTimeS(outputFormat='%Y-%m-%d %H%M%S')
-        distPath = fileModel.createDir(os.path.join(self.mainPath, 'summary'), CUR_TIME)
+        distPath = fileModel.createDir(os.path.join(self.MainPath, 'summary'), CUR_TIME)
 
         # get the required periods
         periods = timeModel.splitTimePeriod(start, end, {'days': 7}, True)
