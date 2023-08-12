@@ -14,6 +14,10 @@ def decodeParam(input_data, paramSig):
         if len(input_data) == 0: required_input_data = []
     elif paramSig.annotation == tuple:
         required_input_data = eval(input_data)
+    elif paramSig.annotation == bool:
+        required_input_data = False
+        if input_data == 'True':
+            required_input_data = True
     elif type(input_data) != paramSig.annotation:
         required_input_data = paramSig.annotation(input_data)  # __new__, refer: https://www.pythontutorial.net/python-oop/python-__new__/
     else:

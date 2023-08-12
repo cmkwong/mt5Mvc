@@ -1,6 +1,7 @@
 from models.myUtils.paramModel import SymbolList, DatetimeTuple
 from controllers.strategies.MovingAverage.Base import Base
 from models.myUtils import timeModel, fileModel
+import config
 
 import pandas as pd
 import numpy as np
@@ -13,7 +14,7 @@ class Train(Base):
         self.nodeJsServerController = mainController.nodeJsApiController
         self.plotController = mainController.plotController
         self.mainPath = "./docs/ma"
-        self.MA_SUMMARY_COLS = ['symbol', 'fast', 'slow', 'operation', 'total', 'rate', 'count', '25%', '50%', '75%', 'start', 'end']
+        self.MA_SUMMARY_COLS = ['symbol', 'fast', 'slow', 'operation', 'total', 'rate', 'count', '25%', '50%', '75%', 'timeframe', 'start', 'end', 'reliable']
 
     def getMaDistImg(self, *,
                      symbols: SymbolList = 'USDJPY EURUSD',
@@ -44,23 +45,36 @@ class Train(Base):
                     self.plotController.plotHist(dist, distPath, f'{symbol}-{operation}-{startStr}-{endStr}-{distName}.jpg')
 
     def getMaSummaryDf(self, *,
-                       symbols: SymbolList = 'USDJPY',
+                       symbols: list = config.DefaultSymbols,
                        timeframe: str = '15min',
                        start: DatetimeTuple = (2023, 5, 1, 0, 0),
-                       end: DatetimeTuple = (2023, 6, 30, 23, 59)):
+                       end: DatetimeTuple = (2023, 6, 30, 23, 59),
+                       subtest: bool = False):
         """
         - loop for each combination (fast vs slow)
+        :subtest: if True, will split the whole period into subset for testing
         - return the excel: fast, slow, mode, count, meanDuration, pointEarn
         """
+        # create folder
+        CUR_TIME = timeModel.getTimeS(outputFormat='%Y-%m-%d %H%M%S')
+        distPath = fileModel.createDir(os.path.join(self.mainPath, 'summary'), CUR_TIME)
+
+        # get the required periods
         periods = timeModel.splitTimePeriod(start, end, {'days': 7}, True)
-        MaSummaryDf = pd.DataFrame(columns=self.MA_SUMMARY_COLS)
+        # only need the whole period
+        if not subtest:
+            periods = [periods[-1]]
         maIndex = 250
         for (periodStart, periodEnd) in periods:
             periodStartT = timeModel.getTimeT(periodStart, "%Y-%m-%d %H:%M")
             periodEndT = timeModel.getTimeT(periodEnd, "%Y-%m-%d %H:%M")
             Prices = self.mt5Controller.pricesLoader.getPrices(symbols=symbols, start=periodStartT, end=periodEndT, timeframe=timeframe)
+
+            # define the dataframe
+            MaSummaryDf = pd.DataFrame(columns=self.MA_SUMMARY_COLS)
             for f in range(1, maIndex - 1):
                 for s in range(f + 1, maIndex):
+                    # MaData including long and short operation data
                     MaData = self.getMaData(Prices, f, s)
                     # calculate for each symbol
                     for symbol in symbols:
@@ -83,14 +97,13 @@ class Train(Base):
                             qvs = np.quantile(accum_value.values, (0.25, 0.5, 0.75)) if len(accum_value.values) > 0 else [0, 0, 0]
 
                             # append the result
-                            MaSummaryDf.loc[len(MaSummaryDf)] = [symbol, f, s, operation, total_value, rate, counts, *qvs, periodStart, periodEnd]
+                            MaSummaryDf.loc[len(MaSummaryDf)] = [symbol, f, s, operation, total_value, rate, counts, *qvs, timeframe, periodStart, periodEnd, 0]
 
                             # print the results
                             print(f"{symbol}: fast: {f}; slow: {s}; {operation} Earn: {total_value:.2f}[{counts}]; Period: {periodStartT} - {periodEndT}")
 
-        # create folder
-        CUR_TIME = timeModel.getTimeS(outputFormat='%Y-%m-%d %H%M%S')
-
-        # save the summary xlsx
-        MaSummaryDf.to_excel(os.path.join(*[self.mainPath, 'summary', f"{CUR_TIME}_summary.xlsx"]), index=False)
-        return MaSummaryDf
+            print("Output the excel ... ")
+            for symbol in symbols:
+                # save the summary xlsx
+                MaSummaryDf[MaSummaryDf['symbol'] == symbol].to_excel(os.path.join(distPath, f"{symbol}_summary.xlsx"), index=False)
+        return True

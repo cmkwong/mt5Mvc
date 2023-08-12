@@ -138,9 +138,9 @@ class CommandController:
         elif command == '-order':
             openRequest = self.mainController.mt5Controller.executor.request_format(
                 symbol='USDJPY',
-                operation='long',
-                sl=98.350,
-                tp=183.793,
+                operation='short',
+                sl=183.793,
+                tp=98.350,
                 deviation=5,
                 lot=3
             )
