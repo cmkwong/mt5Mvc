@@ -37,8 +37,12 @@ class Backtest(Base):
         # output image
         for symbol, operations in Distributions.items():
             for operation, dists in operations.items():
-                for distName, dist in dists.items():
-                    self.plotController.plotHist(dist, distPath, f'{symbol}-{operation}-{startStr}-{endStr}-{distName}.jpg')
+                # create the axs
+                axs = self.plotController.getAxes(8, 1, (20, 60))
+                for i, (distName, dist) in enumerate(dists.items()):
+                    self.plotController.plotHist(axs[i], dist)
+                    # distPath, f'{symbol}-{operation}-{startStr}-{endStr}-{distName}.jpg'
+                self.plotController.saveImg(distPath, f'{symbol}-{operation}.jpg')
 
     def getMaDistImgs(self, *, versionNum: str = '2023-08-12 094616'):
         # get the cur time

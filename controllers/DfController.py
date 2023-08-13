@@ -149,7 +149,7 @@ class DfController:
 
         # get the correlation heat map
         self.pdf.add_page()
-        self.pdf.image(name=self.plotController.plotCorrHeatMap(df, "./docs/temp", 'heatmap.png'), h=self.pdf.eph, w=self.pdf.epw)
+        self.pdf.image(name=self.plotController.getCorrHeatmapImg(df, "./docs/temp", 'heatmap.png'), h=self.pdf.eph, w=self.pdf.epw)
 
         # output pdf
         timeStr = timeModel.getTimeS(outputFormat="%Y%m%d%H%M%S")

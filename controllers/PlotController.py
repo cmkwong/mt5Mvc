@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import matplotlib.dates as mdates
 from pandas.plotting import table
 import os
@@ -82,21 +83,45 @@ class PlotController:
             minsDiff = 60
         return width, resampleFactor, minsDiff
 
-    def plotHist(self, series, outPath, filename, bins=100, quantiles=(0.25, 0.5, 0.75)):
+    def getAxes(self, nrows=1, ncols=1, figsize=(60, 36), dpi=300):
         """
-        :param series: pd.Series
+        :return: the axes
+        """
+        plt.clf()
+
+        self.fig = plt.figure(figsize=figsize, dpi=dpi)
+        self.fig.tight_layout()
+        gax = gridspec.GridSpec(nrows, ncols)
+        # get the axes
+        axs = []
+        for i in range(nrows * ncols):
+            axs.append(self.fig.add_subplot(gax[i]))
+        return axs
+
+    def saveImg(self, outPath, filename):
+        """
+        save the plot img
         :param outPath: str
         :param filename: str
+        :return:
+        """
+        imgFullPath = os.path.join(outPath, filename)
+
+        self.fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
+        plt.close('all')
+
+    def plotHist(self, ax, series, bins=100, quantiles=(0.25, 0.5, 0.75)):
+        """
+        :param series: pd.Series
         :param bins: int
         :param quantiles: set, eg: (0.25, 0.5, 0.75)
         :return:
         """
         # reset axis
-        plt.clf()
+        # plt.clf()
 
         # add sub-plot
-        fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
-
+        # fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
         ax.hist(series.values, bins=bins)
 
         # if plotting need to view on quantiles
@@ -104,24 +129,24 @@ class PlotController:
             txt = ''
             qvs = np.quantile(series.values, quantiles)
             for i in range(len(quantiles)):
-                plt.axvline(qvs[i], color='k', linestyle='dashed', linewidth=1)
+                ax.axvline(qvs[i], color='k', linestyle='dashed', linewidth=1)
                 txt += f'{quantiles[i] * 100}%: {qvs[i]:.5g}\n'
                 # plt.text(qvs[i] + (qvs[i] * 0.1), 0, f"{qvs[i]:.3g}", rotation=90, fontsize='x-small')
 
-            # pltting the quantiles details (upper-left corner)
-            tx = plt.xlim()[0] + np.abs(plt.xlim()[1] - plt.xlim()[0]) * 0.05
-            ty = plt.ylim()[1] - np.abs(plt.ylim()[1] - plt.ylim()[0]) * 0.1
-            plt.text(tx, ty, txt, fontsize='x-small')
-        imgFullPath = os.path.join(outPath, filename)
-        fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
-        plt.close('all')
+            # plotting the quantiles details (upper-left corner)
+            tx = ax.get_xlim()[0] + np.abs(ax.get_xlim()[1] - ax.get_xlim()[0]) * 0.05
+            ty = ax.get_ylim()[1] - np.abs(ax.get_ylim()[1] - ax.get_ylim()[0]) * 0.1
+            ax.text(tx, ty, txt, fontsize='small')
+        # imgFullPath = os.path.join(outPath, filename)
+        # fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
+        # plt.close('all')
 
-    def plotBar(self, series, width, yLabel, color, edgecolor, outPath, filename, binUnit='', ylim=False, decimal=1):
+    def plotBar(self, ax, series, width, yLabel, color, edgecolor, binUnit='', ylim=False, decimal=1):
         # reset axis
-        plt.clf()
+        # plt.clf()
 
         # add sub-plot
-        fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
+        # fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
         ax.bar(series.index, series, width=width, color=color, edgecolor=edgecolor)
 
         # rotate the x-axis
@@ -159,16 +184,16 @@ class PlotController:
                     rotation=90,
                     color=txtColor,
                 )
-        fig.tight_layout()
-        imgFullPath = os.path.join(outPath, filename)
-        fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
-        plt.close('all')
-        return imgFullPath
+        # fig.tight_layout()
+        # imgFullPath = os.path.join(outPath, filename)
+        # fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
+        # plt.close('all')
+        # return imgFullPath
 
-    def plotMultiHistogramWithSum(self, df, yLabel, outPath, filename):
+    def plotMultiHistogramWithSum(self, ax, df, yLabel):
         # reset axis
-        plt.clf()
-        fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
+        # plt.clf()
+        # fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
 
         # define the bar width
         width = 0.3
@@ -193,19 +218,19 @@ class PlotController:
         ax.legend(loc='upper left')
 
         # set layout
-        fig.tight_layout()
+        # fig.tight_layout()
         plt.autoscale(enable=True, axis='x', tight=True)
-        imgFullPath = os.path.join(outPath, filename)
-        fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
-        plt.close('all')
-        return imgFullPath
+        # imgFullPath = os.path.join(outPath, filename)
+        # fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
+        # plt.close('all')
+        # return imgFullPath
 
-    def plotSimpleLine(self, series, yLabel, outPath, filename):
+    def plotSimpleLine(self, ax, series, yLabel):
         # reset axis
         # plt.cla()
 
         # add sub-plot
-        fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
+        # fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
         ax.plot(series.index, series)
         ax.xaxis.set_major_formatter(self.formatter)
 
@@ -216,16 +241,16 @@ class PlotController:
         # set ylabel
         ax.set_ylabel(yLabel)
 
-        fig.tight_layout()
-        imgFullPath = os.path.join(outPath, filename)
-        fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
-        plt.close('all')
-        return imgFullPath
+        # fig.tight_layout()
+        # imgFullPath = os.path.join(outPath, filename)
+        # fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
+        # plt.close('all')
+        # return imgFullPath
 
-    def plotMultiLine(self, df, yLabel, outPath, filename):
+    def plotMultiLine(self, ax, df, yLabel):
         # reset axis
-        plt.clf()
-        fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
+        # plt.clf()
+        # fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
 
         # plot graph
         for colName in df:
@@ -235,14 +260,14 @@ class PlotController:
         ax.xaxis.set_major_locator(self.locator)
         ax.set_ylabel(yLabel)
         ax.legend(loc='upper left')
-        fig.tight_layout()
-        imgFullPath = os.path.join(outPath, filename)
-        fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
-        plt.close('all')
-        return imgFullPath
+        # fig.tight_layout()
+        # imgFullPath = os.path.join(outPath, filename)
+        # fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
+        # plt.close('all')
+        # return imgFullPath
 
     # plot head-map
-    def plotCorrHeatMap(self, df, outPath, filename):
+    def getCorrHeatmapImg(self, df, outPath, filename):
         sns.heatmap(df.corr(), annot=True, cmap='coolwarm')
         plt.tight_layout()
         imgFullPath = os.path.join(outPath, filename)
@@ -251,7 +276,7 @@ class PlotController:
         return imgFullPath
 
     # save df into img
-    def df2Img(self, df, path, filename):
+    def getDfImg(self, df, path, filename):
         plt.clf()
         fig, ax = plt.subplots(111, figsize=self.figsize, dpi=self.dpi, frame_on=False)  # no visible frame
         ax.xaxis.set_visible(False)  # hide the x axis
