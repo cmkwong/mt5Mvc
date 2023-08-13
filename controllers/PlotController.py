@@ -110,7 +110,29 @@ class PlotController:
         self.fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
         plt.close('all')
 
-    def plotHist(self, ax, series, bins=100, quantiles=(0.25, 0.5, 0.75)):
+    def plotTxt(self, ax, txt, position=(0, 0), bboxColor='red', fontsize='small'):
+        """
+        :param ax:
+        :param txt: str
+        :param position: tuple, (0,0): top-left; (0,1): top-right; (1,0): bottom-left; (1,1): bottom-right;
+        :return: x, y
+        """
+        # x-axis
+        if position[1] == 0:
+            tx = ax.get_xlim()[0] + np.abs(ax.get_xlim()[1] - ax.get_xlim()[0]) * 0.05  # left
+        else:
+            tx = ax.get_xlim()[1] - np.abs(ax.get_xlim()[1] - ax.get_xlim()[0]) * 0.30  # right
+        # y-axis
+        if position[0] == 0:
+            ty = ax.get_ylim()[1] - np.abs(ax.get_ylim()[1] - ax.get_ylim()[0]) * 0.05  # top
+        else:
+            ty = ax.get_ylim()[0] + np.abs(ax.get_ylim()[1] - ax.get_ylim()[0]) * 0.25  # bottom
+        # plot the text on axis
+        ax.text(tx, ty, txt, fontsize=fontsize, bbox=dict(facecolor=bboxColor, alpha=0.5),
+                horizontalalignment='left', verticalalignment='top') # https://stackoverflow.com/questions/8482588/putting-text-in-top-left-corner-of-matplotlib-plot
+        return tx, ty
+
+    def plotHist(self, ax, series, title='', custTexts=None, bins=100, quantiles=(0.25, 0.5, 0.75)):
         """
         :param series: pd.Series
         :param bins: int
@@ -134,9 +156,15 @@ class PlotController:
                 # plt.text(qvs[i] + (qvs[i] * 0.1), 0, f"{qvs[i]:.3g}", rotation=90, fontsize='x-small')
 
             # plotting the quantiles details (upper-left corner)
-            tx = ax.get_xlim()[0] + np.abs(ax.get_xlim()[1] - ax.get_xlim()[0]) * 0.05
-            ty = ax.get_ylim()[1] - np.abs(ax.get_ylim()[1] - ax.get_ylim()[0]) * 0.1
-            ax.text(tx, ty, txt, fontsize='small')
+            self.plotTxt(ax, txt)
+
+        if isinstance(custTexts, dict):
+            txt = ''
+            for k, v in custTexts.items():
+                txt += f"{k}: {v}\n"
+            self.plotTxt(ax, txt, (0, 1), 'blue')
+
+        ax.set_title(title)
         # imgFullPath = os.path.join(outPath, filename)
         # fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
         # plt.close('all')

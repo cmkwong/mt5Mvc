@@ -16,8 +16,9 @@ class Backtest(Base):
                      timeframe: str = '15min',
                      start: DatetimeTuple = (2023, 5, 1, 0, 0),
                      end: DatetimeTuple = (2023, 6, 30, 23, 59),
-                     fast_param: int = 14,
-                     slow_param: int = 22):
+                     fast: int = 14,
+                     slow: int = 22,
+                     operation: str = 'long'):
 
         # create folder
         if not curTime:
@@ -25,24 +26,25 @@ class Backtest(Base):
         distPath = fileModel.createDir(self.DistributionPath, curTime)
 
         # getting time string
-        startStr = timeModel.getTimeS(start, '%Y%m%d%H%M')
-        endStr = timeModel.getTimeS(end, '%Y%m%d%H%M')
+        startStr = timeModel.getTimeS(start, '%Y-%m-%d %H:%M')
+        endStr = timeModel.getTimeS(end, '%Y-%m-%d %H:%M')
 
         # getting the ma data
         Prices = self.mt5Controller.pricesLoader.getPrices(symbols=symbols, start=start, end=end, timeframe=timeframe)
-        MaData = self.getMaData(Prices, fast_param, slow_param)
+        MaData = self.getMaData(Prices, fast, slow)
 
         Distributions = self.getMaDist(MaData)
 
         # output image
         for symbol, operations in Distributions.items():
-            for operation, dists in operations.items():
+            for op, dists in operations.items():
+                if op != operation: continue
                 # create the axs
                 axs = self.plotController.getAxes(8, 1, (20, 60))
                 for i, (distName, dist) in enumerate(dists.items()):
-                    self.plotController.plotHist(axs[i], dist)
+                    self.plotController.plotHist(axs[i], dist, distName, custTexts={'start': startStr, 'end': endStr, 'timeframe': timeframe, 'fast': fast, 'slow': slow, 'operation': op})
                     # distPath, f'{symbol}-{operation}-{startStr}-{endStr}-{distName}.jpg'
-                self.plotController.saveImg(distPath, f'{symbol}-{operation}.jpg')
+                self.plotController.saveImg(distPath, f'{symbol}-{op}.jpg')
 
     def getMaDistImgs(self, *, versionNum: str = '2023-08-12 094616'):
         # get the cur time
@@ -61,4 +63,5 @@ class Backtest(Base):
                 end = timeModel.getTimeT(requiredParam['end'], '%Y-%m-%d %H:%M')
                 fast = requiredParam['fast']
                 slow = requiredParam['slow']
-                self.getMaDistImg(curTime=curTime, symbols=[symbol], timeframe=timeframe, start=start, end=end, fast_param=fast, slow_param=slow)
+                operation = requiredParam['operation']
+                self.getMaDistImg(curTime=curTime, symbols=[symbol], timeframe=timeframe, start=start, end=end, fast=fast, slow=slow, operation=operation)
