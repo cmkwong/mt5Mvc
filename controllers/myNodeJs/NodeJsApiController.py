@@ -138,8 +138,20 @@ class NodeJsApiController(HttpController):
         print(f"Local Symbol Info is fetched from database. {len(all_symbols_info)}")
         return all_symbols_info
 
+    # get the live strategy parameter
     def getLiveStrategyParam(self, *, strategyName: str = 'ma', live: int = 1):
+        """
+        :param strategyName: str
+        :param live: int, index of live
+        :return:
+        """
         url = self.liveStrategyParamUrl.format(strategyName, live)
+        df = self.getDataframe(url)
+        return df
+
+    # get the backtest strategy parameter
+    def getBacktestStrategyParam(self, *, strategyName: str = 'ma', backtest: int = 1):
+        url = self.liveStrategyParamUrl.format(strategyName, backtest)
         df = self.getDataframe(url)
         return df
 

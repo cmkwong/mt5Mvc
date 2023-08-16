@@ -1,7 +1,7 @@
 from pyts.image import GramianAngularField
 
 from models.myUtils.printModel import print_at
-from models.myUtils import dicModel, paramModel
+from models.myUtils import dicModel, paramModel, timeModel
 
 # Strategy
 from controllers.strategies.SwingScalping.Live import Live as SwingScalping_Live
@@ -68,10 +68,13 @@ class CommandController:
 
         # Moving Average distribution (from SQL)
         elif command == '-mads':
+            curTime = timeModel.getTimeS(outputFormat='%Y-%m-%d %H%M%S')
+            # get strategy param from
+            defaultParam = paramModel.ask_params(self.mainController.nodeJsApiController.getLiveStrategyParam)
+            params = self.mainController.nodeJsApiController.getLiveStrategyParam(**defaultParam)
             strategy = MovingAverage_Backtest(self.mainController)
             defaultParam = paramModel.ask_params(strategy.getMaDistImgs)
             strategy.getMaDistImgs(**defaultParam)
-
 
         # Moving Average Live
         elif command == '-maL':
@@ -82,7 +85,7 @@ class CommandController:
 
         # Moving Average Live (from SQL)
         elif command == '-maLs':
-            # get which of strategy param
+            # get strategy param from SQL
             defaultParam = paramModel.ask_params(self.mainController.nodeJsApiController.getLiveStrategyParam)
             params = self.mainController.nodeJsApiController.getLiveStrategyParam(**defaultParam)
             # define require strategy

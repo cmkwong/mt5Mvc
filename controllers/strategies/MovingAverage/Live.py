@@ -6,7 +6,6 @@ import time
 class Live(Base):
     def __init__(self, mainController):
         self.mt5Controller = mainController.mt5Controller
-        self.nodeJsApiController = mainController.nodeJsApiController
         self.openResult = None
         self.lastPositionTime = None
         self.LOT = 1
@@ -52,7 +51,7 @@ class Live(Base):
             # get signal by 'long' or 'short'
             signal = MaData[symbol][operation]
             if not self.openResult:
-                if signal.iloc[-2] and not signal.iloc[-3]:
+                if signal.iloc[-1] and not signal.iloc[-2]:
                     # to avoid open the position at same condition
                     if self.lastPositionTime != operationGroupTime:
                         # calculate the stop loss and take profit
@@ -78,10 +77,13 @@ class Live(Base):
                             print(f'{symbol} open position failed. ')
             else:
                 # check if signal should be close
-                if not signal.iloc[-2] and signal.iloc[-3]:
+                if not signal.iloc[-1] and signal.iloc[-2]:
                     request = self.mt5Controller.executor.close_request_format(self.openResult)
                     result = self.mt5Controller.executor.request_execute(request)
-                    print(f'{symbol} close position with position id: {result.request.order}')
+                    # get the profit
+                    earn = self.mt5Controller.getPositionEarn(self.openResult.order)
+                    # print(f'{symbol} close position with position id: {result.request.order}')
+                    print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f}')
                     self.openResult = None
 
             # delay the operation
