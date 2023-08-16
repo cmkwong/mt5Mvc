@@ -53,7 +53,8 @@ class MT5Controller:
         historicalDeals['time'] = historicalDeals['time'].apply(lambda t: t + timedelta(hours=-8))
         return historicalDeals
 
-    def getPositionEarn(self, positionId):
+    def getPositionEarn(self, openResult):
+        positionId = openResult.order
         # get required deal in last 1 year
         historicalDeals = self.getHistoricalDeals()
         # sum all of the profit with same position id

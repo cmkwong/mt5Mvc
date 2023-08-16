@@ -59,14 +59,14 @@ class MT5Executor:
         }
         return request
 
-    def close_request_format(self, executeResult):
+    def close_request_format(self, openResult, percent=1.0):
         """
         return close the position request format
         """
-        symbol = executeResult.request.symbol
-        positionId = executeResult.order
-        oppositeType = 1 if executeResult.request.type == 0 else 0
-        volume = executeResult.volume
+        symbol = openResult.request.symbol
+        positionId = openResult.order
+        oppositeType = 1 if openResult.request.type == 0 else 0
+        volume = openResult.volume * percent
         request = {
             'action': mt5.TRADE_ACTION_DEAL,
             'type': oppositeType,

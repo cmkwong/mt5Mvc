@@ -172,15 +172,15 @@ class CommandController:
                 sl=183.793,
                 tp=98.350,
                 deviation=5,
-                lot=3
+                lot=5
             )
             openResult = self.mainController.mt5Controller.executor.request_execute(openRequest)
             print(f"requestResult: \n{openResult}")
-            closeRequest = self.mainController.mt5Controller.executor.close_request_format(openResult)
+            closeRequest = self.mainController.mt5Controller.executor.close_request_format(openResult, 0.2)
             closeResult = self.mainController.mt5Controller.executor.request_execute(closeRequest)
             print(f"closeResult: \n{closeResult}")
             dealDetail = self.mainController.mt5Controller.getHistoricalDeals()
-            postionEarn = self.mainController.mt5Controller.getPositionEarn(openResult.order)
+            postionEarn = self.mainController.mt5Controller.getPositionEarn(openResult)
             print(postionEarn)
         else:
             print_at('No command detected. Please input again. ')

@@ -38,7 +38,7 @@ class Live(Base):
             # check if current position is closed
             if self.openResult and self.mt5Controller.checkOrderClosed(self.openResult):
                 # get the profit
-                earn = self.mt5Controller.getPositionEarn(self.openResult.order)
+                earn = self.mt5Controller.getPositionEarn(self.openResult)
                 print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f}')
                 self.openResult = None
 
@@ -81,7 +81,7 @@ class Live(Base):
                     request = self.mt5Controller.executor.close_request_format(self.openResult)
                     result = self.mt5Controller.executor.request_execute(request)
                     # get the profit
-                    earn = self.mt5Controller.getPositionEarn(self.openResult.order)
+                    earn = self.mt5Controller.getPositionEarn(self.openResult)
                     # print(f'{symbol} close position with position id: {result.request.order}')
                     print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f}')
                     self.openResult = None
