@@ -89,8 +89,9 @@ class MT5Controller:
         """
         :param result: Check if mt5 order sent and return successful code
         """
-        if result.retcode == mt5.TRADE_RETCODE_DONE:
+        if result and (result.retcode == mt5.TRADE_RETCODE_DONE):
             return True
+        print(f"Order Not OK: \n{result}")
         return False
 
     def connect_server(self):

@@ -9,6 +9,7 @@ import os
 class Backtest(Base):
     def __init__(self, mainController):
         self.mt5Controller = mainController.mt5Controller
+        self.nodeJsApiController = mainController.nodeJsApiController
         self.plotController = mainController.plotController
 
     def getMaDistImg(self, curTime = None, *,
@@ -38,9 +39,10 @@ class Backtest(Base):
         # output image
         for symbol, operations in Distributions.items():
             for op, dists in operations.items():
+                # only need the operation specific from argument
                 if op != operation: continue
                 # create the axs
-                axs = self.plotController.getAxes(8, 1, (20, 60))
+                axs = self.plotController.getAxes(len(dists), 1, (20, 70))
                 for i, (distName, dist) in enumerate(dists.items()):
                     self.plotController.plotHist(axs[i], dist, distName, custTexts={'start': startStr, 'end': endStr, 'timeframe': timeframe, 'fast': fast, 'slow': slow, 'operation': op})
                     # distPath, f'{symbol}-{operation}-{startStr}-{endStr}-{distName}.jpg'
@@ -52,6 +54,7 @@ class Backtest(Base):
         # read the file list in folder
         folderPath = os.path.join(self.SummaryPath, versionNum)
         summaryFiles = fileModel.getFileList(folderPath)
+
         # loop for each summary
         for summaryFile in summaryFiles:
             summaryDf = pd.read_excel(os.path.join(folderPath, summaryFile))

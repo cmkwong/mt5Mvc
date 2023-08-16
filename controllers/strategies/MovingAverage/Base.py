@@ -92,11 +92,13 @@ class Base:
                 dist['pointDist'] = masked_MaData.loc[:, (symbol, 'ptDiff')]
                 # return
                 masked_MaData.loc[:, (symbol, f'{operation}_return')] = masked_MaData.loc[:, (symbol, 'cc')] + 1
+                # accumulated value
+                dist['accumValue'] = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumsum()
                 # accumulated return
                 masked_MaData.loc[:, (symbol, f'{operation}_accumReturn')] = masked_MaData.loc[:, [(symbol, f'{operation}_return'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumprod()
                 dist['accumReturn'] = masked_MaData.loc[:, (symbol, f'{operation}_accumReturn')]
-                # accumulated value
-                dist['accumValue'] = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumsum()
+                # accumulated points
+                dist['accumPoint'] = masked_MaData.loc[:, [(symbol, 'ptDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumsum()
                 # group by deal (change, value and duration)
                 dist['deal_valueDist'] = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).sum()
                 dist['deal_changeDist'] = (masked_MaData.loc[:, [(symbol, f'{operation}_return'), (symbol, f'{operation}_group')]]).groupby((symbol, f'{operation}_group')).prod() - 1

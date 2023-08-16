@@ -1,6 +1,7 @@
 import requests
 import pandas as pd
 
+
 # upload the forex loader
 class HttpController:
 
@@ -19,7 +20,7 @@ class HttpController:
             return False
         return True
 
-    def getDataframe(self, url: str, body: dict):
+    def getDataframe(self, url: str, body: dict = None):
         """
         download forex ohlcvs from server
         :param url: str

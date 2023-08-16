@@ -20,7 +20,10 @@ class NodeJsApiController(HttpController):
         self.downloadForexDataUrl = self.mainUrl + "api/v1/query/forexTable/download?tableName={}"
         self.createTableUrl = self.mainUrl + "api/v1/query/forexTable/create?tableName={}"
         self.allSymbolInfoUrl = self.mainUrl + "api/v1/query/forexTable/symbolInfo"
+        # get strategy param
+        self.liveStrategyParamUrl = self.mainUrl + "api/v1/query/forex/strategy/param?name={}&live={}"
 
+    # create the forex 1min table
     def createForex1MinTable(self, tableName):
         schemaObj = {
             "columns": {
@@ -134,4 +137,10 @@ class NodeJsApiController(HttpController):
                 all_symbols_info[symbol_name]['pt_value'] = 1  # 1 dollar for quote per each point  (See note Stock Market - Knowledge - note 3)
         print(f"Local Symbol Info is fetched from database. {len(all_symbols_info)}")
         return all_symbols_info
+
+    def getLiveStrategyParam(self, *, strategyName: str = 'ma', live: int = 1):
+        url = self.liveStrategyParamUrl.format(strategyName, live)
+        df = self.getDataframe(url)
+        return df
+
 

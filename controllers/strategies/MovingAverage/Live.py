@@ -6,9 +6,23 @@ import time
 class Live(Base):
     def __init__(self, mainController):
         self.mt5Controller = mainController.mt5Controller
+        self.nodeJsApiController = mainController.nodeJsApiController
         self.openResult = None
         self.lastPositionTime = None
         self.LOT = 1
+
+    # def runs(self, *, live: int = 1):
+    #     params = self.nodeJsApiController.getLiveStrategyParam('ma', live)
+    #     for i, param in params.iterrows():
+    #         self.run(
+    #             symbol=param.symbol,
+    #             timeframe=param.timeframe,
+    #             fast_param=param.fast,
+    #             slow_parm=param.slow,
+    #             pt_sl=param.pt_sl,
+    #             pt_tp=param.pt_tp,
+    #             operation=param.operation)
+    #         print(i, param)
 
     def run(self, *,
             symbol: str = 'USDJPY',

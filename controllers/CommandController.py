@@ -15,6 +15,7 @@ from controllers.strategies.MovingAverage.Backtest import Backtest as MovingAver
 from controllers.DfController import DfController
 import paramStorage
 
+
 class CommandController:
     def __init__(self, mainController):
         self.mainController = mainController
@@ -65,17 +66,39 @@ class CommandController:
             defaultParam = paramModel.ask_params(strategy.getMaDistImg)
             strategy.getMaDistImg(**defaultParam)
 
-        # get the distribution for the tagged fast and slow params
+        # Moving Average distribution (from SQL)
         elif command == '-mads':
             strategy = MovingAverage_Backtest(self.mainController)
             defaultParam = paramModel.ask_params(strategy.getMaDistImgs)
             strategy.getMaDistImgs(**defaultParam)
 
+
+        # Moving Average Live
         elif command == '-maL':
             strategy = MovingAverage_Live(self.mainController)
             defaultParam = paramModel.ask_params(strategy.run)
             self.mainController.strategyController.runThreadFunction(strategy.run, **defaultParam)
             # strategy.run(**defaultParam)
+
+        # Moving Average Live (from SQL)
+        elif command == '-maLs':
+            # get which of strategy param
+            defaultParam = paramModel.ask_params(self.mainController.nodeJsApiController.getLiveStrategyParam)
+            params = self.mainController.nodeJsApiController.getLiveStrategyParam(**defaultParam)
+            # define require strategy
+            strategy = MovingAverage_Live(self.mainController)
+            # run for each param
+            for i, p in params.iterrows():
+                param = {
+                    "symbol": p.symbol,
+                    "timeframe": p.timeframe,
+                    "fast_param": p.fast,
+                    "slow_parm": p.slow,
+                    "pt_sl": p.pt_sl,
+                    "pt_tp": p.pt_tp,
+                    "operation": p.operation
+                }
+                self.mainController.strategyController.runThreadFunction(strategy.run, **param)
 
         # view the time series into Gramian Angular Field Image
         elif command == '-gaf':
