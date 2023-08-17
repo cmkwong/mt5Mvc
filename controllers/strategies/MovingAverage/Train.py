@@ -12,13 +12,16 @@ class Train(Base):
     def __init__(self, mainController):
         self.mt5Controller = mainController.mt5Controller
         # self.nodeJsServerController = mainController.nodeJsApiController
-        self.MA_SUMMARY_COLS = ['symbol', 'fast', 'slow', 'operation', 'total', 'rate', 'count', '25%', '50%', '75%', 'timeframe', 'start', 'end', 'reliable']
+        self.MA_SUMMARY_COLS = ['symbol', 'fast', 'slow', 'operation', 'total', 'rate', 'count', 'mean_duration', 'timeframe', 'start', 'end',
+                                '0%', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%',
+                                'reliable'
+                                ]
 
     def getMaSummaryDf(self, *,
                        symbols: list = config.DefaultSymbols,
                        timeframe: str = '15min',
-                       start: DatetimeTuple = (2023, 5, 1, 0, 0),
-                       end: DatetimeTuple = (2023, 6, 30, 23, 59),
+                       start: DatetimeTuple = (2023, 6, 1, 0, 0),
+                       end: DatetimeTuple = (2023, 7, 30, 23, 59),
                        subtest: bool = False):
         """
         - loop for each combination (fast vs slow)
@@ -56,18 +59,24 @@ class Train(Base):
                             # calculate the deal total
                             counts = (MaData[symbol, operation] > MaData[symbol, operation].shift(1)).sum()
 
-                            # calculate the win rate
+                            # getting the masked MaData
                             mask = MaData[symbol, f'{operation}_group'] != False  # getting the rows only need to be groupby
                             masked_MaData = MaData[mask].copy()
+
+                            # calculate the win rate
                             deal_value = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).sum()
                             rate = deal_value[deal_value > 0].count()[0] / counts if counts > 0 else 0
 
                             # calculate the distribution
+                            qvs_range = np.arange(0, 1.1, 0.1)
                             accum_value = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumsum()
-                            qvs = np.quantile(accum_value.values, (0.25, 0.5, 0.75)) if len(accum_value.values) > 0 else [0, 0, 0]
+                            qvs = np.quantile(accum_value.values, qvs_range) if len(accum_value.values) > 0 else [0] * len(qvs_range)
+
+                            # calculate the mean duration
+                            mean_duration = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).count().mean()
 
                             # append the result
-                            MaSummaryDf.loc[len(MaSummaryDf)] = [symbol, f, s, operation, total_value, rate, counts, *qvs, timeframe, periodStart, periodEnd, 0]
+                            MaSummaryDf.loc[len(MaSummaryDf)] = [symbol, f, s, operation, total_value, rate, counts, mean_duration, timeframe, periodStart, periodEnd, *qvs, 0]
 
                             # print the results
                             print(f"{symbol}: fast: {f}; slow: {s}; {operation} Earn: {total_value:.2f}[{counts}]; Period: {periodStartT} - {periodEndT}")

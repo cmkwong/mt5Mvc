@@ -6,7 +6,7 @@ import time
 class Live(Base):
     def __init__(self, mainController):
         self.mt5Controller = mainController.mt5Controller
-        self.openResult = None
+        self.openResult = False
         self.lastPositionTime = None
         self.LOT = 1
 
@@ -35,12 +35,12 @@ class Live(Base):
         # for calculating the sltp
         SLTP_FACTOR = 1 if operation == 'long' else -1
         while True:
-            # check if current position is closed
+            # check if current position is closed by sl or tp
             if self.openResult and self.mt5Controller.checkOrderClosed(self.openResult):
                 # get the profit
                 earn = self.mt5Controller.getPositionEarn(self.openResult)
                 print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f}')
-                self.openResult = None
+                self.openResult = False
 
             # getting the Prices
             Prices = self.mt5Controller.pricesLoader.getPrices(symbols=[symbol], count=1000, timeframe=timeframe)
@@ -48,7 +48,7 @@ class Live(Base):
             MaData = self.getOperationGroup(MaData)
             # get the operation group value, either False / datetime
             operationGroupTime = MaData.loc[:, (symbol, f"{operation}_group")][-1]
-            # get signal by 'long' or 'short'
+            # get signal by 'long' or 'short' 1300
             signal = MaData[symbol][operation]
             if not self.openResult:
                 if signal.iloc[-1] and not signal.iloc[-2]:
@@ -83,8 +83,8 @@ class Live(Base):
                     # get the profit
                     earn = self.mt5Controller.getPositionEarn(self.openResult)
                     # print(f'{symbol} close position with position id: {result.request.order}')
-                    print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f}')
-                    self.openResult = None
+                    print(f'{symbol} position not finishedclosed with position id: {self.openResult.order} and earn: {earn:2f}')
+                    self.openResult = False
 
             # delay the operation
             time.sleep(5)

@@ -88,8 +88,6 @@ class CommandController:
             # get strategy param from SQL
             defaultParam = paramModel.ask_params(self.mainController.nodeJsApiController.getLiveStrategyParam)
             params = self.mainController.nodeJsApiController.getLiveStrategyParam(**defaultParam)
-            # define require strategy
-            strategy = MovingAverage_Live(self.mainController)
             # run for each param
             for i, p in params.iterrows():
                 param = {
@@ -101,6 +99,8 @@ class CommandController:
                     "pt_tp": p.pt_tp,
                     "operation": p.operation
                 }
+                # define require strategy
+                strategy = MovingAverage_Live(self.mainController)
                 self.mainController.strategyController.runThreadFunction(strategy.run, **param)
 
         # view the time series into Gramian Angular Field Image
