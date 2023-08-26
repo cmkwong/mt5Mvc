@@ -27,8 +27,8 @@ class Backtest(Base):
         distPath = fileModel.createDir(self.DistributionPath, curTime)
 
         # getting time string
-        startStr = timeModel.getTimeS(start, '%Y-%m-%d %H:%M')
-        endStr = timeModel.getTimeS(end, '%Y-%m-%d %H:%M')
+        startStr = timeModel.getTimeS(start, '%Y-%m-%d %H-%M')
+        endStr = timeModel.getTimeS(end, '%Y-%m-%d %H-%M')
 
         # getting the ma data
         Prices = self.mt5Controller.pricesLoader.getPrices(symbols=symbols, start=start, end=end, timeframe=timeframe)
@@ -46,25 +46,25 @@ class Backtest(Base):
                 for i, (distName, dist) in enumerate(dists.items()):
                     self.plotController.plotHist(axs[i], dist, distName, custTexts={'start': startStr, 'end': endStr, 'timeframe': timeframe, 'fast': fast, 'slow': slow, 'operation': op})
                     # distPath, f'{symbol}-{operation}-{startStr}-{endStr}-{distName}.jpg'
-                self.plotController.saveImg(distPath, f'{symbol}-{op}.jpg')
-
-    def getMaDistImgs(self, *, versionNum: str = '2023-08-12 094616'):
-        # get the cur time
-        curTime = timeModel.getTimeS(outputFormat='%Y-%m-%d %H%M%S')
-        # read the file list in folder
-        folderPath = os.path.join(self.SummaryPath, versionNum)
-        summaryFiles = fileModel.getFileList(folderPath)
-
-        # loop for each summary
-        for summaryFile in summaryFiles:
-            summaryDf = pd.read_excel(os.path.join(folderPath, summaryFile))
-            requiredParams = summaryDf[summaryDf['reliable'] == 1]
-            for i, requiredParam in requiredParams.iterrows():
-                symbol = requiredParam['symbol']
-                timeframe = requiredParam['timeframe']
-                start = timeModel.getTimeT(requiredParam['start'], '%Y-%m-%d %H:%M')
-                end = timeModel.getTimeT(requiredParam['end'], '%Y-%m-%d %H:%M')
-                fast = requiredParam['fast']
-                slow = requiredParam['slow']
-                operation = requiredParam['operation']
-                self.getMaDistImg(curTime=curTime, symbols=[symbol], timeframe=timeframe, start=start, end=end, fast=fast, slow=slow, operation=operation)
+                self.plotController.saveImg(distPath, f'{symbol}-{op}-{fast}-{slow}-{timeframe}-{startStr}-{endStr}.jpg')
+    #
+    # def getMaDistImgs(self, *, versionNum: str = '2023-08-12 094616'):
+    #     # get the cur time
+    #     curTime = timeModel.getTimeS(outputFormat='%Y-%m-%d %H%M%S')
+    #     # read the file list in folder
+    #     folderPath = os.path.join(self.SummaryPath, versionNum)
+    #     summaryFiles = fileModel.getFileList(folderPath)
+    #
+    #     # loop for each summary
+    #     for summaryFile in summaryFiles:
+    #         summaryDf = pd.read_excel(os.path.join(folderPath, summaryFile))
+    #         requiredParams = summaryDf[summaryDf['reliable'] == 1]
+    #         for i, requiredParam in requiredParams.iterrows():
+    #             symbol = requiredParam['symbol']
+    #             timeframe = requiredParam['timeframe']
+    #             start = timeModel.getTimeT(requiredParam['start'], '%Y-%m-%d %H:%M')
+    #             end = timeModel.getTimeT(requiredParam['end'], '%Y-%m-%d %H:%M')
+    #             fast = requiredParam['fast']
+    #             slow = requiredParam['slow']
+    #             operation = requiredParam['operation']
+    #             self.getMaDistImg(curTime=curTime, symbols=[symbol], timeframe=timeframe, start=start, end=end, fast=fast, slow=slow, operation=operation)

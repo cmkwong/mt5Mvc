@@ -4,6 +4,7 @@ import config
 
 import pandas as pd
 
+
 class NodeJsApiController(HttpController):
     def __init__(self):
         self.mainUrl = None
@@ -21,7 +22,8 @@ class NodeJsApiController(HttpController):
         self.createTableUrl = self.mainUrl + "api/v1/query/forexTable/create?tableName={}"
         self.allSymbolInfoUrl = self.mainUrl + "api/v1/query/forexTable/symbolInfo"
         # get strategy param
-        self.liveStrategyParamUrl = self.mainUrl + "api/v1/query/forex/strategy/param?name={}&live={}"
+        self.strategyParamUrl = self.mainUrl + "api/v1/query/forex/strategy/param?{}"
+        # self.backtestStrategyParamUrl = self.mainUrl + "api/v1/query/forex/strategy/param?name={}&live={}"
 
     # create the forex 1min table
     def createForex1MinTable(self, tableName):
@@ -115,7 +117,7 @@ class NodeJsApiController(HttpController):
     def uploadAllSymbolInfo(self, *, all_symbol_info: dict, broker: str):
         all_symbol_info_df = pd.DataFrame.from_dict(all_symbol_info).transpose()
         all_symbol_info_df['symbol'] = all_symbol_info_df.index
-        all_symbol_info_df.reset_index(inplace=True, drop=True) # drop the index
+        all_symbol_info_df.reset_index(inplace=True, drop=True)  # drop the index
         all_symbol_info_df['broker'] = broker
         self.postDataframe(self.allSymbolInfoUrl, all_symbol_info_df)
 
@@ -139,20 +141,23 @@ class NodeJsApiController(HttpController):
         return all_symbols_info
 
     # get the live strategy parameter
-    def getLiveStrategyParam(self, *, strategyName: str = 'ma', live: int = 1):
+    def getStrategyParam(self, *, strategyName: str = 'ma', live: int = 1, backtest: int = 1):
         """
         :param strategyName: str
         :param live: int, index of live
         :return:
         """
-        url = self.liveStrategyParamUrl.format(strategyName, live)
+        argStrs = [f'name={strategyName}']
+        if live:
+            argStrs.append(f'live={live}')
+        if backtest:
+            argStrs.append(f'backtest={backtest}')
+        url = self.strategyParamUrl.format("&".join(argStrs))
         df = self.getDataframe(url)
         return df
 
     # get the backtest strategy parameter
-    def getBacktestStrategyParam(self, *, strategyName: str = 'ma', backtest: int = 1):
-        url = self.liveStrategyParamUrl.format(strategyName, backtest)
-        df = self.getDataframe(url)
-        return df
-
-
+    # def getBacktestStrategyParam(self, *, strategyName: str = 'ma', backtest: int = 1):
+    #     url = self.strategyParamUrl.format(strategyName, backtest)
+    #     df = self.getDataframe(url)
+    #     return df

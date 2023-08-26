@@ -132,7 +132,7 @@ class PlotController:
                 horizontalalignment='left', verticalalignment='top') # https://stackoverflow.com/questions/8482588/putting-text-in-top-left-corner-of-matplotlib-plot
         return tx, ty
 
-    def plotHist(self, ax, series, title='', custTexts=None, bins=100, quantiles=(0.10, 0.25, 0.4, 0.5, 0.6, 0.75, 0.90)):
+    def plotHist(self, ax, series, title='', custTexts=None, bins=100, quantiles=(0.0, 0.10, 0.25, 0.4, 0.5, 0.6, 0.75, 0.90, 1.0)):
         """
         :param series: pd.Series
         :param bins: int

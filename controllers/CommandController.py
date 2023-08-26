@@ -66,15 +66,25 @@ class CommandController:
             defaultParam = paramModel.ask_params(strategy.getMaDistImg)
             strategy.getMaDistImg(**defaultParam)
 
-        # Moving Average distribution (from SQL)
+        # Moving Average distribution (get params from SQL)
         elif command == '-mads':
             curTime = timeModel.getTimeS(outputFormat='%Y-%m-%d %H%M%S')
             # get strategy param from
-            defaultParam = paramModel.ask_params(self.mainController.nodeJsApiController.getLiveStrategyParam)
-            params = self.mainController.nodeJsApiController.getLiveStrategyParam(**defaultParam)
-            strategy = MovingAverage_Backtest(self.mainController)
-            defaultParam = paramModel.ask_params(strategy.getMaDistImgs)
-            strategy.getMaDistImgs(**defaultParam)
+            defaultParam = paramModel.ask_params(self.mainController.nodeJsApiController.getStrategyParam)
+            params = self.mainController.nodeJsApiController.getStrategyParam(**defaultParam)
+            for i, p in params.iterrows():
+                param = {
+                    'curTime': curTime,
+                    'symbols': [p.symbol],
+                    'timeframe': p.timeframe,
+                    'start': timeModel.getTimeT(p.start, "%Y-%m-%d %H:%M"),
+                    'end': timeModel.getTimeT(p.end, "%Y-%m-%d %H:%M"),
+                    'fast': p.fast,
+                    'slow': p.slow,
+                    'operation': p.operation
+                }
+                strategy = MovingAverage_Backtest(self.mainController)
+                strategy.getMaDistImg(**param)
 
         # Moving Average Live
         elif command == '-maL':
@@ -83,25 +93,26 @@ class CommandController:
             self.mainController.strategyController.runThreadFunction(strategy.run, **defaultParam)
             # strategy.run(**defaultParam)
 
-        # Moving Average Live (from SQL)
+        # Moving Average Live (get params from SQL)
         elif command == '-maLs':
-            # get strategy param from SQL
-            defaultParam = paramModel.ask_params(self.mainController.nodeJsApiController.getLiveStrategyParam)
-            params = self.mainController.nodeJsApiController.getLiveStrategyParam(**defaultParam)
-            # run for each param
-            for i, p in params.iterrows():
-                param = {
-                    "symbol": p.symbol,
-                    "timeframe": p.timeframe,
-                    "fast_param": p.fast,
-                    "slow_parm": p.slow,
-                    "pt_sl": p.pt_sl,
-                    "pt_tp": p.pt_tp,
-                    "operation": p.operation
-                }
+            # get the parameter from SQL
+            paramDf = self.mainController.nodeJsApiController.getStrategyParam(strategyName='ma', live=1, backtest=0)
+            params = MovingAverage_Live.decodeParams(paramDf)
+            # loop for each param
+            for i, p in params.items():
+                # param = {
+                #     "symbol": p.symbol,
+                #     "timeframe": p.timeframe,
+                #     "fast_param": p.fast,
+                #     "slow_parm": p.slow,
+                #     "pt_sl": p.pt_sl,
+                #     "pt_tp": p.pt_tp,
+                #     "operation": p.operation
+                # }
                 # define require strategy
                 strategy = MovingAverage_Live(self.mainController)
-                self.mainController.strategyController.runThreadFunction(strategy.run, **param)
+                strategy.run(**p)
+                # self.mainController.strategyController.runThreadFunction(strategy.run, **p.to_dict())
 
         # view the time series into Gramian Angular Field Image
         elif command == '-gaf':

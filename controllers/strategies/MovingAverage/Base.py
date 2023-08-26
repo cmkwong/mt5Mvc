@@ -80,27 +80,28 @@ class Base:
         for symbol in symbols:
             Distributions[symbol] = {}
             for operation in self.OPERATIONS:
+                earningFactor = 1 if operation == 'long' else -1
                 # getting distribution
                 dist = {}
                 mask = MaData[symbol, f'{operation}_group'] != False  # getting the rows only need to be groupby
                 masked_MaData = MaData[mask]
                 # deposit change
-                dist['valueDist'] = masked_MaData.loc[:, (symbol, 'valueDiff')]
+                dist['valueDist'] = masked_MaData.loc[:, (symbol, 'valueDiff')] * earningFactor
                 # % changes
-                dist['changeDist'] = masked_MaData.loc[:, (symbol, 'cc')]
+                dist['changeDist'] = masked_MaData.loc[:, (symbol, 'cc')] * earningFactor
                 # point change
-                dist['pointDist'] = masked_MaData.loc[:, (symbol, 'ptDiff')]
+                dist['pointDist'] = masked_MaData.loc[:, (symbol, 'ptDiff')] * earningFactor
                 # return
-                masked_MaData.loc[:, (symbol, f'{operation}_return')] = masked_MaData.loc[:, (symbol, 'cc')] + 1
+                masked_MaData.loc[:, (symbol, f'{operation}_return')] = dist['changeDist'] + 1
                 # accumulated value
-                dist['accumValue'] = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumsum()
+                dist['accumValue'] = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumsum() * earningFactor
                 # accumulated return
                 masked_MaData.loc[:, (symbol, f'{operation}_accumReturn')] = masked_MaData.loc[:, [(symbol, f'{operation}_return'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumprod()
                 dist['accumReturn'] = masked_MaData.loc[:, (symbol, f'{operation}_accumReturn')]
                 # accumulated points
-                dist['accumPoint'] = masked_MaData.loc[:, [(symbol, 'ptDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumsum()
+                dist['accumPoint'] = masked_MaData.loc[:, [(symbol, 'ptDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumsum() * earningFactor
                 # group by deal (change, value and duration)
-                dist['deal_valueDist'] = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).sum()
+                dist['deal_valueDist'] = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).sum() * earningFactor
                 dist['deal_changeDist'] = (masked_MaData.loc[:, [(symbol, f'{operation}_return'), (symbol, f'{operation}_group')]]).groupby((symbol, f'{operation}_group')).prod() - 1
                 dist['deal_durationDist'] = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).count()
                 # save the distribution

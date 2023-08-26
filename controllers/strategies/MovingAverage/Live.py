@@ -5,33 +5,53 @@ import time
 
 class Live(Base):
     def __init__(self, mainController):
+        self.nodeJsApiController = mainController.nodeJsApiController
         self.mt5Controller = mainController.mt5Controller
-        self.openResult = False
+        self.openResult = None
         self.lastPositionTime = None
         self.LOT = 1
 
-    # def runs(self, *, live: int = 1):
-    #     params = self.nodeJsApiController.getLiveStrategyParam('ma', live)
-    #     for i, param in params.iterrows():
-    #         self.run(
-    #             symbol=param.symbol,
-    #             timeframe=param.timeframe,
-    #             fast_param=param.fast,
-    #             slow_parm=param.slow,
-    #             pt_sl=param.pt_sl,
-    #             pt_tp=param.pt_tp,
-    #             operation=param.operation)
-    #         print(i, param)
+    @staticmethod
+    def decodeParams(paramDf):
+
+        # create the dict for positions
+        param_positions = {}
+        positionDf = paramDf.loc[:, ('paramid', 'pt', 'size')]
+        for i, row in positionDf.iterrows():
+            paramid = row['paramid']
+            if paramid not in param_positions.keys():
+                param_positions[paramid] = {float(row['pt']): float(row['size'])}
+            else:
+                param_positions[paramid][float(row['pt'])] = float(row['size'])
+        # building the params
+        params = {}
+        for i, row in paramDf.iterrows():
+            paramid = row['id']
+            param = row.to_dict()
+            if paramid in param_positions.keys():
+                param['positions'] = param_positions[paramid]
+            params[paramid] = param
+
+        return params
+
 
     def run(self, *,
             symbol: str = 'USDJPY',
             timeframe: str = '15min',
-            fast_param: int = 5,
-            slow_parm: int = 22,
+            fast: int = 5,
+            slow: int = 22,
             pt_sl: int = 100,
             pt_tp: int = 210,
-            operation: str = 'long'
+            operation: str = 'long',
+            lot: int = 1,
+            positions: dict = None,
+            **kwargs,
             ):
+        # getting the partially close position
+        # partiallyClosePositions = {}
+        # for k, v in kwargs.items():
+        #     if k[0:2] == 'pt' and v:
+        #         partiallyClosePositions[float(k[2:]) / 100] = v
         # for calculating the sltp
         SLTP_FACTOR = 1 if operation == 'long' else -1
         while True:
@@ -39,17 +59,19 @@ class Live(Base):
             if self.openResult and self.mt5Controller.checkOrderClosed(self.openResult):
                 # get the profit
                 earn = self.mt5Controller.getPositionEarn(self.openResult)
-                print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f}')
-                self.openResult = False
+                print(f'{symbol} position closed with position id: {self.openResult.order} and earn(sltp): {earn:2f}')
+                self.openResult = None
 
-            # getting the Prices
+            # getting the Prices and MaData
             Prices = self.mt5Controller.pricesLoader.getPrices(symbols=[symbol], count=1000, timeframe=timeframe)
-            MaData = self.getMaData(Prices, fast_param, slow_parm)
+            MaData = self.getMaData(Prices, fast, slow)
             MaData = self.getOperationGroup(MaData)
+
             # get the operation group value, either False / datetime
             operationGroupTime = MaData.loc[:, (symbol, f"{operation}_group")][-1]
             # get signal by 'long' or 'short' 1300
             signal = MaData[symbol][operation]
+
             if not self.openResult:
                 if signal.iloc[-1] and not signal.iloc[-2]:
                     # to avoid open the position at same condition
@@ -65,7 +87,7 @@ class Live(Base):
                             sl=float(sl),
                             tp=float(tp),
                             deviation=5,
-                            lot=self.LOT
+                            lot=lot
                         )
                         # execute request
                         self.openResult = self.mt5Controller.executor.request_execute(request)
@@ -83,8 +105,8 @@ class Live(Base):
                     # get the profit
                     earn = self.mt5Controller.getPositionEarn(self.openResult)
                     # print(f'{symbol} close position with position id: {result.request.order}')
-                    print(f'{symbol} position not finishedclosed with position id: {self.openResult.order} and earn: {earn:2f}')
-                    self.openResult = False
+                    print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f}')
+                    self.openResult = None
 
             # delay the operation
             time.sleep(5)

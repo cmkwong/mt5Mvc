@@ -52,9 +52,10 @@ class Train(Base):
                     # calculate for each symbol
                     for symbol in symbols:
                         for operation in self.OPERATIONS:
+                            # if not (symbol == 'CADJPY' and operation == 'short' and f == 1 and s == 247): continue
                             # calculate the earning
                             earningFactor = 1 if operation == 'long' else -1
-                            total_value = (MaData[symbol, operation] * MaData[symbol, 'valueDiff'] * earningFactor).sum()
+                            total_value = (MaData[symbol, operation] * MaData[symbol, 'valueDiff']).sum() * earningFactor
 
                             # calculate the deal total
                             counts = (MaData[symbol, operation] > MaData[symbol, operation].shift(1)).sum()
@@ -64,16 +65,16 @@ class Train(Base):
                             masked_MaData = MaData[mask].copy()
 
                             # calculate the win rate
-                            deal_value = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).sum()
+                            deal_value = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).sum() * earningFactor
                             rate = deal_value[deal_value > 0].count()[0] / counts if counts > 0 else 0
 
                             # calculate the distribution
                             qvs_range = np.arange(0, 1.1, 0.1)
-                            accum_value = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumsum()
+                            accum_value = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumsum() * earningFactor
                             qvs = np.quantile(accum_value.values, qvs_range) if len(accum_value.values) > 0 else [0] * len(qvs_range)
 
                             # calculate the mean duration
-                            mean_duration = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).count().mean()
+                            mean_duration = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).count().mean().values[0]
 
                             # append the result
                             MaSummaryDf.loc[len(MaSummaryDf)] = [symbol, f, s, operation, total_value, rate, counts, mean_duration, timeframe, periodStart, periodEnd, *qvs, 0]
