@@ -9,6 +9,8 @@ class Live(Base):
         self.mt5Controller = mainController.mt5Controller
         self.openResult = None
         self.lastPositionTime = None
+        self.positionsTp = None # for partially close the position (take profit)
+        self.digit = None
         self.LOT = 1
 
     @staticmethod
@@ -34,6 +36,18 @@ class Live(Base):
 
         return params
 
+    def getPositionsTp(self, close, positions):
+        """
+        get the same form of position but price as key: {price: size}
+        if no position, return empty dictionary
+        """
+        if not positions:
+            return {}
+        positionsTp = {}
+        for pt, size in positions.items():
+            tp = close + (pt * (10 ** (-self.digit)))
+            positionsTp[tp] = size
+        return positionsTp
 
     def run(self, *,
             symbol: str = 'USDJPY',
@@ -44,14 +58,9 @@ class Live(Base):
             pt_tp: int = 210,
             operation: str = 'long',
             lot: int = 1,
-            positions: dict = None,
+            positions: dict = None, # {pt: size}
             **kwargs,
             ):
-        # getting the partially close position
-        # partiallyClosePositions = {}
-        # for k, v in kwargs.items():
-        #     if k[0:2] == 'pt' and v:
-        #         partiallyClosePositions[float(k[2:]) / 100] = v
         # for calculating the sltp
         SLTP_FACTOR = 1 if operation == 'long' else -1
         while True:
@@ -59,13 +68,16 @@ class Live(Base):
             if self.openResult and self.mt5Controller.checkOrderClosed(self.openResult):
                 # get the profit
                 earn = self.mt5Controller.getPositionEarn(self.openResult)
-                print(f'{symbol} position closed with position id: {self.openResult.order} and earn(sltp): {earn:2f}')
+                print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f} (sltp)')
                 self.openResult = None
 
             # getting the Prices and MaData
             Prices = self.mt5Controller.pricesLoader.getPrices(symbols=[symbol], count=1000, timeframe=timeframe)
             MaData = self.getMaData(Prices, fast, slow)
             MaData = self.getOperationGroup(MaData)
+            # getting curClose and its digit
+            curClose = Prices.close[symbol][-1]
+            self.digit = Prices.all_symbols_info[symbol]['digits']  # set the digit
 
             # get the operation group value, either False / datetime
             operationGroupTime = MaData.loc[:, (symbol, f"{operation}_group")][-1]
@@ -77,9 +89,10 @@ class Live(Base):
                     # to avoid open the position at same condition
                     if self.lastPositionTime != operationGroupTime:
                         # calculate the stop loss and take profit
-                        digit = Prices.all_symbols_info[symbol]['digits']
-                        sl = Prices.close[symbol][-1] - SLTP_FACTOR * (pt_sl * (10 ** (-digit)))
-                        tp = Prices.close[symbol][-1] + SLTP_FACTOR * (pt_tp * (10 ** (-digit)))
+                        sl = curClose - SLTP_FACTOR * (pt_sl * (10 ** (-self.digit)))
+                        tp = curClose + SLTP_FACTOR * (pt_tp * (10 ** (-self.digit)))
+                        # get the partially position
+                        self.positionsTp = self.getPositionsTp(curClose, positions)
                         # execute the open position
                         request = self.mt5Controller.executor.request_format(
                             symbol=symbol,
@@ -105,8 +118,23 @@ class Live(Base):
                     # get the profit
                     earn = self.mt5Controller.getPositionEarn(self.openResult)
                     # print(f'{symbol} close position with position id: {result.request.order}')
-                    print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f}')
+                    print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f} (By Signal Close)')
                     self.openResult = None
+
+                # check if the partially position being reached
+                for position, size in self.positionsTp.items():
+                    # check if available size left
+                    if size > 0:
+                        # calculate the stop loss and take profit
+                        if curClose >= position:
+                            request = self.mt5Controller.executor.close_request_format(self.openResult, size)
+                            result = self.mt5Controller.executor.request_execute(request)
+                            # get the profit
+                            earn = self.mt5Controller.getPositionEarn(self.openResult)
+                            # print(f'{symbol} close position with position id: {result.request.order}')
+                            print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f} (Partial)')
+                            # reset the position
+                            self.positionsTp[position] = 0
 
             # delay the operation
             time.sleep(5)

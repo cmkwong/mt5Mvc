@@ -111,8 +111,8 @@ class CommandController:
                 # }
                 # define require strategy
                 strategy = MovingAverage_Live(self.mainController)
-                strategy.run(**p)
-                # self.mainController.strategyController.runThreadFunction(strategy.run, **p.to_dict())
+                # strategy.run(**p)
+                self.mainController.strategyController.runThreadFunction(strategy.run, **p)
 
         # view the time series into Gramian Angular Field Image
         elif command == '-gaf':
