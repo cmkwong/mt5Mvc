@@ -15,17 +15,16 @@ MetaTrader:
 
 
 class MT5Executor:
-    # def __init__(self):
-    #     pass
+    def __init__(self, all_symbols_info):
+        self.all_symbols_info = all_symbols_info
 
-    def request_format(self, symbol, operation, sl, tp, deviation, lot):
+    def request_format(self, symbol, operation, deviation, lot, sltp=(), pt_sltp=()):
         """
         :param strategy_id: str, belong to specific strategy
         :param lots: [float]
         :param close_pos: Boolean, if it is for closing position, it will need to store the position id for reference
         :return: requests, [dict], a list of request
         """
-
         # type of filling
         tf = None
         if config.TypeFilling == 'fok':
@@ -51,13 +50,36 @@ class MT5Executor:
             'volume': float(lot),
             'type': action_type,
             'price': price,
-            'sl': sl,
-            'tp': tp,
             'deviation': deviation,  # indeed, the deviation is useless when it is marketing order, note 73d
             "type_time": mt5.ORDER_TIME_GTC,
             "type_filling": tf,
         }
+        # transfer into sltp from pt if needed
+        if pt_sltp:
+            sltp = self.transfer_sltp_from_pt(symbol, price, pt_sltp, operation)
+        # get the sltp
+        if sltp and sltp[0] > 0:
+            request['sl'] = sltp[0]
+        if sltp and sltp[1] > 0:
+            request['tp'] = sltp[1]
+
         return request
+
+    def transfer_sltp_from_pt(self, symbol: str, price: float, pt_sltp: tuple, operation: str):
+        """
+        sltp change into price value if passed into point
+        calculate the stop loss and take profit
+        """
+        sltp = [0, 0]
+        # get factor +1 or -1
+        SLTP_FACTOR = 1 if operation == 'long' else -1
+        # get digit by symbol
+        digit = self.all_symbols_info[symbol]['digits']  # set the digit
+        if pt_sltp and pt_sltp[0] > 0:
+            sltp[0] = price - SLTP_FACTOR * (pt_sltp[0] * (10 ** (-digit)))
+        if pt_sltp and pt_sltp[1] > 0:
+            sltp[1] = price + SLTP_FACTOR * (pt_sltp[1] * (10 ** (-digit)))
+        return tuple(sltp)
 
     def close_request_format(self, openResult, percent=1.0):
         """

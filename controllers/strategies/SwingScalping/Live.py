@@ -44,14 +44,7 @@ class Live(Base):
                 else:
                     actionType = 'short'
                 # build request format
-                request = self.mt5Controller.executor.request_format(
-                    symbol=symbol,
-                    operation=actionType,
-                    sl=float(self.status['sl']),
-                    tp=float(self.status['tp']),
-                    deviation=5,
-                    lot=self.lot
-                )
+                request = self.mt5Controller.executor.request_format(symbol=symbol, operation=actionType, deviation=5, lot=self.lot, sltp=(float(self.status['sl']), float(self.status['tp'])))
                 # execute request
                 self.mt5Controller.executor.request_execute(request)
                 self.breakThroughTime = masterSignal.index[-1]  # save the last toke action time

@@ -21,6 +21,7 @@ class CommandController:
         self.mainController = mainController
 
     def run(self, command):
+        # ----------------------- Control -----------------------
         # switch the nodeJS server env: prod / dev
         if command == '-prod' or command == '-dev':
             self.mainController.nodeJsApiController.switchEnv(command[1:])
@@ -29,6 +30,29 @@ class CommandController:
         elif command == '-mt5' or command == '-sql':
             self.mainController.mt5Controller.pricesLoader.switchSource(command[1:])
 
+        # upload the data into mySql server
+        elif command == '-upload':
+            # setup the source into mt5
+            originalSource = self.mainController.mt5Controller.pricesLoader.source
+            self.mainController.mt5Controller.pricesLoader.source = 'mt5'
+            # upload Prices
+            param = paramStorage.METHOD_PARAMS['upload_mt5_getPrices'][0]
+            param = paramModel.ask_params(self.mainController.mt5Controller.pricesLoader.getPrices, param)
+            Prices = self.mainController.mt5Controller.pricesLoader.getPrices(**param)
+            self.mainController.nodeJsApiController.uploadOneMinuteForexData(Prices)
+            # resume to original source
+            self.mainController.mt5Controller.pricesLoader.source = originalSource
+
+        # all symbol info upload
+        elif command == '-symbol':
+            # upload all_symbol_info
+            all_symbol_info = self.mainController.mt5Controller.pricesLoader.all_symbols_info
+            param = paramStorage.METHOD_PARAMS['upload_all_symbol_info'][0]
+            param = paramModel.ask_params(self.mainController.nodeJsController.apiController.uploadAllSymbolInfo, param)
+            param['all_symbol_info'] = all_symbol_info
+            self.mainController.nodeJsController.apiController.uploadAllSymbolInfo(**param)
+
+        # ----------------------- Strategy -----------------------
         # running SwingScalping_Live with all params
         elif command == '-swL':
             defaultParams = paramStorage.METHOD_PARAMS['SwingScalping_Live']
@@ -100,15 +124,6 @@ class CommandController:
             params = MovingAverage_Live.decodeParams(paramDf)
             # loop for each param
             for i, p in params.items():
-                # param = {
-                #     "symbol": p.symbol,
-                #     "timeframe": p.timeframe,
-                #     "fast_param": p.fast,
-                #     "slow_parm": p.slow,
-                #     "pt_sl": p.pt_sl,
-                #     "pt_tp": p.pt_tp,
-                #     "operation": p.operation
-                # }
                 # define require strategy
                 strategy = MovingAverage_Live(self.mainController)
                 # strategy.run(**p)
@@ -127,28 +142,6 @@ class CommandController:
                 self.mainController.plotController.getGafImg(X_gasf[0, :, :], X_gadf[0, :, :], df['close'], f"{symbol}_gaf.jpg")
                 print(f"{symbol} gaf generated. ")
 
-        # upload the data into mySql server
-        elif command == '-upload':
-            # setup the source into mt5
-            originalSource = self.mainController.mt5Controller.pricesLoader.source
-            self.mainController.mt5Controller.pricesLoader.source = 'mt5'
-            # upload Prices
-            param = paramStorage.METHOD_PARAMS['upload_mt5_getPrices'][0]
-            param = paramModel.ask_params(self.mainController.mt5Controller.pricesLoader.getPrices, param)
-            Prices = self.mainController.mt5Controller.pricesLoader.getPrices(**param)
-            self.mainController.nodeJsApiController.uploadOneMinuteForexData(Prices)
-            # resume to original source
-            self.mainController.mt5Controller.pricesLoader.source = originalSource
-
-        # all symbol info upload
-        elif command == '-symbol':
-            # upload all_symbol_info
-            all_symbol_info = self.mainController.mt5Controller.pricesLoader.all_symbols_info
-            param = paramStorage.METHOD_PARAMS['upload_all_symbol_info'][0]
-            param = paramModel.ask_params(self.mainController.nodeJsController.apiController.uploadAllSymbolInfo, param)
-            param['all_symbol_info'] = all_symbol_info
-            self.mainController.nodeJsController.apiController.uploadAllSymbolInfo(**param)
-
         # get the summary of df
         elif command == '-dfsumr':
             dfController = DfController()
@@ -160,7 +153,7 @@ class CommandController:
             df = dfController.readAsDf(**readParam)
             dfController.summaryPdf(df, **sumParam)
 
-        # ----------------------------------------------------------------------------------------
+        # ----------------------- Testing -----------------------
         # testing for getting the data from sql / mt5 by switch the data source
         elif command == '-testPeriod':
             self.mainController.mt5Controller.pricesLoader.getPrices(
@@ -176,20 +169,14 @@ class CommandController:
                 count=1000,
                 timeframe='15min'
             )
-        elif command == '-order':
-            openRequest = self.mainController.mt5Controller.executor.request_format(
-                symbol='USDJPY',
-                operation='short',
-                sl=183.793,
-                tp=98.350,
-                deviation=5,
-                lot=5
-            )
+        elif command == '-testOrder':
+            openRequest = self.mainController.mt5Controller.executor.request_format(symbol='USDJPY', operation='short', deviation=5, lot=5, sltp=(183.793, 98.350))
             openResult = self.mainController.mt5Controller.executor.request_execute(openRequest)
             print(f"requestResult: \n{openResult}")
             closeRequest = self.mainController.mt5Controller.executor.close_request_format(openResult, 0.2)
             closeResult = self.mainController.mt5Controller.executor.request_execute(closeRequest)
-            print(f"closeResult: \n{closeResult}")
+            balance = self.mainController.mt5Controller.checkOrderClosed(openResult)
+            print(f"closeResult: \n{closeResult} and balance: {balance}")
             dealDetail = self.mainController.mt5Controller.getHistoricalDeals()
             postionEarn = self.mainController.mt5Controller.getPositionEarn(openResult)
             print(postionEarn)

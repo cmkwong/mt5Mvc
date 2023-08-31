@@ -36,7 +36,7 @@ class Live(Base):
 
         return params
 
-    def getPositionsTp(self, close, positions):
+    def getPositionsTp(self, symbol, actionPrice, operation, positions):
         """
         get the same form of position but price as key: {price: size}
         if no position, return empty dictionary
@@ -45,7 +45,7 @@ class Live(Base):
             return {}
         positionsTp = {}
         for pt, size in positions.items():
-            tp = close + (pt * (10 ** (-self.digit)))
+            _, tp = self.mt5Controller.executor.transfer_sltp_from_pt(symbol, actionPrice, (0, pt), operation)
             positionsTp[tp] = size
         return positionsTp
 
@@ -61,11 +61,10 @@ class Live(Base):
             positions: dict = None, # {pt: size}
             **kwargs,
             ):
-        # for calculating the sltp
-        SLTP_FACTOR = 1 if operation == 'long' else -1
+
         while True:
             # check if current position is closed by sl or tp
-            if self.openResult and self.mt5Controller.checkOrderClosed(self.openResult):
+            if self.openResult and self.mt5Controller.checkOrderClosed(self.openResult) == 0:
                 # get the profit
                 earn = self.mt5Controller.getPositionEarn(self.openResult)
                 print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f} (sltp)')
@@ -88,20 +87,10 @@ class Live(Base):
                 if signal.iloc[-1] and not signal.iloc[-2]:
                     # to avoid open the position at same condition
                     if self.lastPositionTime != operationGroupTime:
-                        # calculate the stop loss and take profit
-                        sl = curClose - SLTP_FACTOR * (pt_sl * (10 ** (-self.digit)))
-                        tp = curClose + SLTP_FACTOR * (pt_tp * (10 ** (-self.digit)))
                         # get the partially position
-                        self.positionsTp = self.getPositionsTp(curClose, positions)
+                        self.positionsTp = self.getPositionsTp(symbol, curClose, operation, positions)
                         # execute the open position
-                        request = self.mt5Controller.executor.request_format(
-                            symbol=symbol,
-                            operation=operation,
-                            sl=float(sl),
-                            tp=float(tp),
-                            deviation=5,
-                            lot=lot
-                        )
+                        request = self.mt5Controller.executor.request_format(symbol=symbol, operation=operation, deviation=5, lot=lot, pt_sltp=(pt_sl, pt_tp))
                         # execute request
                         self.openResult = self.mt5Controller.executor.request_execute(request)
                         # if execute successful

@@ -18,8 +18,8 @@ class MT5Controller:
         self.symbolController = MT5SymbolController()
         self.tickController = MT5TickController()
         self.timeController = MT5TimeController()
-        self.executor = MT5Executor()  # execute the request (buy/sell)
         self.pricesLoader = MT5PricesLoader(self.timeController, self.symbolController, nodeJsApiController)  # loading the loader
+        self.executor = MT5Executor(self.pricesLoader.all_symbols_info)  # execute the request (buy/sell)
 
     def print_terminal_info(self):
         # request connection status and parameters
@@ -82,9 +82,11 @@ class MT5Controller:
         positionId = openResult.order  # ticket ID, in metatrader position ID is same as ticket ID
         positions = mt5.history_orders_get(position=positionId)
         # order finished return True, otherwise, False
-        if len(positions) > 1:
-            return True
-        return False
+        balance = 0.0
+        for position in positions:
+            factor = 1 if position.type == 1 else -1
+            balance += factor * position.volume_initial
+        return balance
 
     def orderSentOk(self, result):
         """
