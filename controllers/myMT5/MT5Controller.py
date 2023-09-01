@@ -3,11 +3,11 @@ from controllers.myMT5.MT5Executor import MT5Executor
 from controllers.myMT5.MT5SymbolController import MT5SymbolController
 from controllers.myMT5.MT5TickController import MT5TickController
 from controllers.myMT5.MT5TimeController import MT5TimeController
-from models.myUtils import timeModel
+from models.myUtils import dfModel
 
 import pandas as pd
 import MetaTrader5 as mt5
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 import pytz
 import config
 
@@ -29,7 +29,36 @@ class MT5Controller:
         # get loader on MetaTrader 5 version
         print(mt5.version())
 
-    def getHistoricalDeals(self, lastDays: int = 365):
+    def print_active_positions(self):
+        """
+        :return: print all of the active order situation
+        """
+        cols = ['ticket', 'time', 'volume', 'type', 'profit', 'price_open', 'price_current']
+        postions = mt5.positions_get()
+        datas = {}
+        for i, position in enumerate(postions):
+            datas[i+1] = []
+            for col in cols:
+                v = getattr(position, col)
+                if col == 'time':
+                    v = datetime.fromtimestamp(v) + timedelta(hours=-8)
+                datas[i + 1].append(v)
+            # print(f'----------------- ({i+1}) -----------------')
+            # print(f"Ticket: {position.ticket}")
+            # print(f"Time: {datetime.fromtimestamp(position.time)}")
+            # print(f"Volume: {position.volume}")
+            # print(f"Type: {'long' if position.type == 0 else 'short'}")
+            # print(f"Profit: {position.profit}")
+            # print(f"Open Price: {position.price_open}")
+            # print(f"Current Price: {position.price_current}")
+        positionsDf = pd.DataFrame.from_dict(datas, orient='index', columns=cols)
+        dfModel.display(positionsDf)
+
+    def print_historical_deals(self, *, lastDays: int = 1):
+        deals = self.getHistoricalDeals(lastDays=lastDays)
+        dfModel.display(deals)
+
+    def getHistoricalDeals(self, *, lastDays: int = 365):
         """
         :lastDays: 1625 = 5 years
         :return pd.Dataframe of deals
@@ -72,6 +101,22 @@ class MT5Controller:
         historicalOrder = mt5.history_orders_get(fromDate, currentDate)
         return historicalOrder
 
+    def getPositionDuration(self, openResult):
+        """
+        get the duration in time format (00: 00: 00)
+        """
+        # get all the positions with same position id
+        positionId = openResult.order  # ticket ID, in metatrader position ID is same as ticket ID
+        positions = mt5.history_orders_get(position=positionId)
+        durations = []
+        for position in positions:
+            # append the duration
+            durations.append(position.time_done)
+        # calculate the duration taken
+        seconds = max(durations) - min(durations)
+        duration = time(hour=seconds // 3600, minute=seconds // 60, second=seconds % 60)
+        return duration
+
     def checkOrderClosed(self, openResult):
         """
         Check if order finished or not
@@ -82,11 +127,11 @@ class MT5Controller:
         positionId = openResult.order  # ticket ID, in metatrader position ID is same as ticket ID
         positions = mt5.history_orders_get(position=positionId)
         # order finished return True, otherwise, False
-        balance = 0.0
+        volumeBalance = 0.0
         for position in positions:
             factor = 1 if position.type == 1 else -1
-            balance += factor * position.volume_initial
-        return balance
+            volumeBalance += factor * position.volume_initial
+        return volumeBalance
 
     def orderSentOk(self, result):
         """
@@ -110,10 +155,3 @@ class MT5Controller:
         mt5.shutdown()
         print("MetaTrader Shutdown.")
 
-    # def __enter__(self):
-    #     self.connect_server()
-    #     print("MetaTrader 5 is connected. ")
-    #
-    # def __exit__(self, *args):
-    #     self.disconnect_server()
-    #     print("MetaTrader 5 is disconnected. ")

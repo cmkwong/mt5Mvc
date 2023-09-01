@@ -52,6 +52,13 @@ class CommandController:
             param['all_symbol_info'] = all_symbol_info
             self.mainController.nodeJsController.apiController.uploadAllSymbolInfo(**param)
 
+        # ----------------------- Interface / Display -----------------------
+        elif command == '-positions':
+            self.mainController.mt5Controller.print_active_positions()
+
+        elif command == '-deals':
+            self.mainController.mt5Controller.print_historical_deals(lastDays=1)
+
         # ----------------------- Strategy -----------------------
         # running SwingScalping_Live with all params
         elif command == '-swL':
@@ -170,16 +177,18 @@ class CommandController:
                 timeframe='15min'
             )
         elif command == '-testOrder':
-            openRequest = self.mainController.mt5Controller.executor.request_format(symbol='USDJPY', operation='short', deviation=5, lot=5, sltp=(183.793, 98.350))
+            openRequest = self.mainController.mt5Controller.executor.request_format(symbol='USDJPY', operation='short', deviation=5, lot=2, sltp=(183.793, 0))
             openResult = self.mainController.mt5Controller.executor.request_execute(openRequest)
             print(f"requestResult: \n{openResult}")
             closeRequest = self.mainController.mt5Controller.executor.close_request_format(openResult, 0.2)
             closeResult = self.mainController.mt5Controller.executor.request_execute(closeRequest)
             balance = self.mainController.mt5Controller.checkOrderClosed(openResult)
-            print(f"closeResult: \n{closeResult} and balance: {balance}")
+            duration = self.mainController.mt5Controller.getPositionDuration(openResult)
+            print(f"closeResult: \n{closeResult} and balance: {balance} and taken time {duration}")
             dealDetail = self.mainController.mt5Controller.getHistoricalDeals()
             postionEarn = self.mainController.mt5Controller.getPositionEarn(openResult)
-            print(postionEarn)
+            print(f"Position Earn: {postionEarn}")
+            self.mainController.mt5Controller.get_active_order()
         else:
             print_at('No command detected. Please input again. ')
 

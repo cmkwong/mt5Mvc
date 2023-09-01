@@ -65,9 +65,11 @@ class Live(Base):
         while True:
             # check if current position is closed by sl or tp
             if self.openResult and self.mt5Controller.checkOrderClosed(self.openResult) == 0:
+                # get duration
+                duration = self.mt5Controller.getPositionDuration(self.openResult)
                 # get the profit
                 earn = self.mt5Controller.getPositionEarn(self.openResult)
-                print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f} (sltp)')
+                print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f} (sltp) and time taken {duration}')
                 self.openResult = None
 
             # getting the Prices and MaData
@@ -96,7 +98,7 @@ class Live(Base):
                         # if execute successful
                         if self.mt5Controller.orderSentOk(self.openResult):
                             self.lastPositionTime = signal.index[-1]
-                            print(f'{symbol} open position with position id: {self.openResult.order}')
+                            print(f"{symbol} open position with position id: {self.openResult.order}; {fast}/{slow} sl: {self.openResult.request.sl} tp: {self.openResult.request.tp}")
                         else:
                             print(f'{symbol} open position failed. ')
             else:
@@ -106,8 +108,10 @@ class Live(Base):
                     result = self.mt5Controller.executor.request_execute(request)
                     # get the profit
                     earn = self.mt5Controller.getPositionEarn(self.openResult)
+                    # get duration
+                    duration = self.mt5Controller.getPositionDuration(self.openResult)
                     # print(f'{symbol} close position with position id: {result.request.order}')
-                    print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f} (By Signal Close)')
+                    print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f} (By Signal Close) and time taken {duration}')
                     self.openResult = None
 
                 # check if the partially position being reached
@@ -120,8 +124,10 @@ class Live(Base):
                             result = self.mt5Controller.executor.request_execute(request)
                             # get the profit
                             earn = self.mt5Controller.getPositionEarn(self.openResult)
+                            # get duration
+                            duration = self.mt5Controller.getPositionDuration(self.openResult)
                             # print(f'{symbol} close position with position id: {result.request.order}')
-                            print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f} (Partial)')
+                            print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f} (Partial) and time taken {duration}')
                             # reset the position
                             self.positionsTp[position] = 0
 

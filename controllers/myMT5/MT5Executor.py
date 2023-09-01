@@ -117,8 +117,6 @@ class MT5Executor:
         if result.retcode != mt5.TRADE_RETCODE_DONE:
             print("order_send failed, symbol={}, retcode={}".format(symbol, result.retcode))
             return False
-        print('--------------------------------')
         print(f"Action: {typeLabel}; by {symbol} {result.volume:.2f} lots at {result.price:.5f} ( ptDiff={((requestPrice - resultPrice) * 10 ** digit):.1f} ({requestPrice:.5f}("
               f"request.price) - {result.price:.5f}(result.price) ))")
-        print('--------------------------------')
         return result

@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from tabulate import tabulate
 
 def concatDfs(df_dict):
     """
@@ -73,3 +74,6 @@ def getLevelColumnIndex(**kwargs):
     levelArrs.reverse()
     return levelArrs
 
+# display the dataframe into table
+def display(df):
+    print(tabulate(df, headers='keys', tablefmt='psql'))
