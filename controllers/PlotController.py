@@ -6,6 +6,8 @@ import os
 import seaborn as sns
 import numpy as np
 
+from models.myUtils import timeModel
+import config
 
 # def testing(f):
 #     def wrapper(*args):
@@ -18,8 +20,8 @@ import numpy as np
 
 class PlotController:
     def __init__(self, adjustTimeResolution=False, figsize=(10, 6), dpi=150, preview=False):
-        self.locator = self.getLocator()
-        self.formatter = self.getFormatter(self.locator)
+        # self.locator = self.getLocator()
+        # self.formatter = self.getFormatter(self.locator)
         self.adjustTimeResolution = adjustTimeResolution
         self.figsize = figsize
         self.dpi = dpi
@@ -98,13 +100,16 @@ class PlotController:
             axs.append(self.fig.add_subplot(gax[i]))
         return axs
 
-    def saveImg(self, outPath, filename):
+    def saveImg(self, outPath: str = config.TEMP_PATH, filename: str = None):
         """
         save the plot img
         :param outPath: str
         :param filename: str
         :return:
         """
+        if not filename:
+            curTime = timeModel.getTimeS(outputFormat="%Y-%m-%d %H%M%S")
+            filename = f"{curTime}.jpg"
         imgFullPath = os.path.join(outPath, filename)
 
         self.fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
@@ -180,7 +185,7 @@ class PlotController:
         # rotate the x-axis
         plt.xticks(rotation=90)
 
-        ax.xaxis.set_major_locator(self.locator)
+        # ax.xaxis.set_major_locator(self.locator)
         # ax.xaxis.set_major_formatter(self.formatter)
         ax.set_ylabel(yLabel)
         ax.set_facecolor("whitesmoke")
@@ -241,7 +246,7 @@ class PlotController:
         plt.xticks(rotation=90)
 
         # set axis
-        ax.xaxis.set_major_locator(self.locator)
+        # ax.xaxis.set_major_locator(self.locator)
         ax.set_ylabel(yLabel)
         ax.legend(loc='upper left')
 
@@ -253,18 +258,18 @@ class PlotController:
         # plt.close('all')
         # return imgFullPath
 
-    def plotSimpleLine(self, ax, series, yLabel):
+    def plotSimpleLine(self, ax, series, yLabel='y-axis'):
         # reset axis
         # plt.cla()
 
         # add sub-plot
         # fig, ax = plt.subplots(figsize=self.figsize, dpi=self.dpi)
         ax.plot(series.index, series)
-        ax.xaxis.set_major_formatter(self.formatter)
+        # ax.xaxis.set_major_formatter(self.formatter)
 
         # rotate the x-axis
         plt.xticks(rotation=90)
-        ax.xaxis.set_major_locator(self.locator)
+        # ax.xaxis.set_major_locator(self.locator)
 
         # set ylabel
         ax.set_ylabel(yLabel)
@@ -285,7 +290,7 @@ class PlotController:
             ax.plot(df.index, df[colName], label=colName)
 
         plt.xticks(rotation=90)
-        ax.xaxis.set_major_locator(self.locator)
+        # ax.xaxis.set_major_locator(self.locator)
         ax.set_ylabel(yLabel)
         ax.legend(loc='upper left')
         # fig.tight_layout()

@@ -5,6 +5,7 @@ DT_STRING = timeModel.getTimeS(False, "%Y%m%d%H%M%S")
 
 PARAM_PATH = './'
 PARAM_FILE = 'param.txt'
+TEMP_PATH = '../../docs/temp'
 
 # relative path for different computer
 PROJECT_PATH = sysModel.find_required_path(os.getcwd(), '221227_mt5Mvc')

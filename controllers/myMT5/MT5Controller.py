@@ -43,14 +43,6 @@ class MT5Controller:
                 if col == 'time':
                     v = datetime.fromtimestamp(v) + timedelta(hours=-8)
                 datas[i + 1].append(v)
-            # print(f'----------------- ({i+1}) -----------------')
-            # print(f"Ticket: {position.ticket}")
-            # print(f"Time: {datetime.fromtimestamp(position.time)}")
-            # print(f"Volume: {position.volume}")
-            # print(f"Type: {'long' if position.type == 0 else 'short'}")
-            # print(f"Profit: {position.profit}")
-            # print(f"Open Price: {position.price_open}")
-            # print(f"Current Price: {position.price_current}")
         positionsDf = pd.DataFrame.from_dict(datas, orient='index', columns=cols)
         dfModel.display(positionsDf)
 
@@ -114,7 +106,7 @@ class MT5Controller:
             durations.append(position.time_done)
         # calculate the duration taken
         seconds = max(durations) - min(durations)
-        duration = time(hour=seconds // 3600, minute=seconds // 60, second=seconds % 60)
+        duration = time(hour=seconds // 3600, minute=(seconds  - (seconds % 60)) // 60 % 60, second=seconds % 60)
         return duration
 
     def checkOrderClosed(self, openResult):

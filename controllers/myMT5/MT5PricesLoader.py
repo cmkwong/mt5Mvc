@@ -348,7 +348,7 @@ class MT5PricesLoader:  # created note 86a
         return Prices
 
 # @dataclass
-# class get_data_TKPARAM(TkWidgetLabel):
+# class get_data_TKPARAM    (TkWidgetLabel):
 #     symbols: dataclass = TkInitWidget(cat='get_data', id='1', type=TkWidgetLabel.DROPDOWN, value=['EURUSD', 'GBPUSD', 'USDJPY'])
 #     start: Tuple[int] = field(default_factory=lambda: (2010, 1, 1))
 #     end: Tuple[int] = field(default_factory=lambda: (2022, 1, 1))
