@@ -70,7 +70,10 @@ class Base:
                 MaData[symbol, f'{operation}_group'].fillna(method='ffill', inplace=True)
         return MaData
 
-    def getMaDist(self, MaData):
+    def getMaDist(self, Prices, fast, slow):
+
+        # get the Ma Data
+        MaData = self.getMaData(Prices, fast, slow)
 
         # get the symbols
         symbols = list(MaData.columns.levels[0])

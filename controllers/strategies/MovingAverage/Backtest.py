@@ -32,19 +32,18 @@ class Backtest(Base):
 
         # getting the ma data
         Prices = self.mt5Controller.pricesLoader.getPrices(symbols=symbols, start=start, end=end, timeframe=timeframe)
-        MaData = self.getMaData(Prices, fast, slow)
 
-        Distributions = self.getMaDist(MaData)
+        MaDist = self.getMaDist(Prices, fast, slow)
 
         # output image
-        for symbol, operations in Distributions.items():
+        for symbol, operations in MaDist.items():
             for op, dists in operations.items():
                 # only need the operation specific from argument
                 if op != operation: continue
                 # create the axs
                 axs = self.plotController.getAxes(len(dists), 1, (20, 70))
                 for i, (distName, dist) in enumerate(dists.items()):
-                    self.plotController.plotHist(axs[i], dist, distName, custTexts={'start': startStr, 'end': endStr, 'timeframe': timeframe, 'fast': fast, 'slow': slow, 'operation': op})
+                    self.plotController.plotHist(axs[i], dist, distName, custTexts={'start': startStr, 'end': endStr, 'timeframe': timeframe, 'fast': fast, 'slow': slow, 'operation': op}, mean=True)
                     # distPath, f'{symbol}-{operation}-{startStr}-{endStr}-{distName}.jpg'
                 self.plotController.saveImg(distPath, f'{symbol}-{op}-{fast}-{slow}-{timeframe}-{startStr}-{endStr}.jpg')
     #

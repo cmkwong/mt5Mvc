@@ -115,7 +115,7 @@ class PlotController:
         self.fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
         plt.close('all')
 
-    def plotTxt(self, ax, txt, position=(0, 0), bboxColor='red', fontsize='small'):
+    def plotTxtBox(self, ax, txt, position=(0, 0), bboxColor='red', fontsize='small'):
         """
         :param ax:
         :param txt: str
@@ -137,7 +137,7 @@ class PlotController:
                 horizontalalignment='left', verticalalignment='top') # https://stackoverflow.com/questions/8482588/putting-text-in-top-left-corner-of-matplotlib-plot
         return tx, ty
 
-    def plotHist(self, ax, series, title='', custTexts=None, bins=100, quantiles=(0.0, 0.10, 0.25, 0.4, 0.5, 0.6, 0.75, 0.90, 1.0)):
+    def plotHist(self, ax, series, title='', custTexts=None, bins=100, quantiles=(0.0, 0.10, 0.25, 0.4, 0.5, 0.6, 0.75, 0.90, 1.0), mean=False):
         """
         :param series: pd.Series
         :param bins: int
@@ -153,21 +153,35 @@ class PlotController:
 
         # if plotting need to view on quantiles
         if quantiles:
-            txt = ''
+            leastY = ax.get_ylim()[0]
+            txts = []
             qvs = np.quantile(series.values, quantiles)
             for i in range(len(quantiles)):
-                ax.axvline(qvs[i], color='k', linestyle='dashed', linewidth=1)
-                txt += f'{quantiles[i] * 100}%: {qvs[i]:.5g}\n'
+                t = f'{quantiles[i] * 100}%: {qvs[i]:.5g}'
+                ax.axvline(qvs[i], color='k', linestyle='--', linewidth=1)
+                ax.text(qvs[i], leastY, t, fontsize='x-small',
+                        horizontalalignment='right', verticalalignment='bottom',
+                        rotation='vertical')
+                txts.append(t)
                 # plt.text(qvs[i] + (qvs[i] * 0.1), 0, f"{qvs[i]:.3g}", rotation=90, fontsize='x-small')
 
             # plotting the quantiles details (upper-left corner)
-            self.plotTxt(ax, txt)
+            self.plotTxtBox(ax, "\n".join(txts))
+
+        if mean:
+            ty = ax.get_ylim()[1]
+            meanValue = np.mean(series.values)
+            t = f'{meanValue:.5g}'
+            ax.axvline(meanValue, color='red', linestyle='-', linewidth=1.5)
+            ax.text(meanValue, ty, t, fontsize='small',
+                    horizontalalignment='right', verticalalignment='top',
+                    rotation='vertical')
 
         if isinstance(custTexts, dict):
-            txt = ''
+            txts = []
             for k, v in custTexts.items():
-                txt += f"{k}: {v}\n"
-            self.plotTxt(ax, txt, (0, 1), 'blue')
+                txts.append(f"{k}: {v}")
+            self.plotTxtBox(ax, "\n".join(txts), (0, 1), 'blue')
 
         ax.set_title(title)
         # imgFullPath = os.path.join(outPath, filename)
