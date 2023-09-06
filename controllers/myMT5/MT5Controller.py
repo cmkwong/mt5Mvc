@@ -44,11 +44,11 @@ class MT5Controller:
                     v = datetime.fromtimestamp(v) + timedelta(hours=-8)
                 datas[i + 1].append(v)
         positionsDf = pd.DataFrame.from_dict(datas, orient='index', columns=cols)
-        dfModel.display(positionsDf)
+        dfModel.printDf(positionsDf)
 
     def print_historical_deals(self, *, lastDays: int = 1):
         deals = self.getHistoricalDeals(lastDays=lastDays)
-        dfModel.display(deals)
+        dfModel.printDf(deals)
 
     def getHistoricalDeals(self, *, lastDays: int = 365):
         """

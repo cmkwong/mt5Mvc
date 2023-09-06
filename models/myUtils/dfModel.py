@@ -75,5 +75,5 @@ def getLevelColumnIndex(**kwargs):
     return levelArrs
 
 # display the dataframe into table
-def display(df):
+def printDf(df):
     print(tabulate(df, headers='keys', tablefmt='psql'))
