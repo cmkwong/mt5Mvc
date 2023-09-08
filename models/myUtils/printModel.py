@@ -16,7 +16,7 @@ def print_dict(data_dict: dict, tableFormat: bool = False):
             tableDict[key] = [value]
     # print the table
     if tableFormat:
-        dfModel.printDf(pd.DataFrame.from_dict(tableDict))
+        dfModel.printDf(pd.DataFrame.from_dict(tableDict, orient='index'))
 
 
 def print_list(data_list):
