@@ -10,39 +10,10 @@ class NodeJsApiController(HttpController):
         self.mainUrl = None
         self.switchEnv('prod')
 
-    def switchEnv(self, env):
-        if env == 'prod':
-            self.mainUrl = "http://192.168.1.165:3002/"
-        else:
-            self.mainUrl = "http://localhost:3002/"
-        print(f"Connecting to {self.mainUrl} ... ")
-        # define the url
-        self.uploadForexDataUrl = self.mainUrl + "api/v1/query/forexTable/upload?tableName={}"
-        self.downloadForexDataUrl = self.mainUrl + "api/v1/query/forexTable/download?tableName={}"
-        self.createTableUrl = self.mainUrl + "api/v1/query/forexTable/create?tableName={}"
-        self.allSymbolInfoUrl = self.mainUrl + "api/v1/query/forexTable/symbolInfo"
-        # get strategy param
-        self.strategyParamUrl = self.mainUrl + "api/v1/query/forex/strategy/param?{}"
-        # self.backtestStrategyParamUrl = self.mainUrl + "api/v1/query/forex/strategy/param?name={}&live={}"
-
     # create the forex 1min table
-    def createForex1MinTable(self, tableName):
-        schemaObj = {
-            "columns": {
-                "datetime": ["DATETIME", "NOT NULL"],
-                "open": ["FLOAT"],
-                "high": ["FLOAT"],
-                "low": ["FLOAT"],
-                "close": ["FLOAT"],
-                "volume": ["FLOAT"],
-                "spread": ["FLOAT"],
-                "base_exchg": ["FLOAT"],
-                "quote_exchg": ["FLOAT"]
-            },
-            "keys": ["datetime"]
-
-        }
-        created = self.createTable(self.createTableUrl.format(tableName), schemaObj)
+    def createForex1MinTable(self, tableName, schemaType):
+        url = self.createTableUrl.format(tableName, schemaType)
+        created = self.getRequest(url)
         if created:
             print(f"The table is created.")
 
