@@ -2,12 +2,12 @@ from models.myUtils.printModel import print_at
 
 import threading
 
-class StrategyController:
-    def __init__(self):
-        self.RUNNINGS = {}
-
-    def appendRunning(self, name, object):
-        self.RUNNINGS[name] = object
+class ThreadController:
+    # def __init__(self):
+    #     self.RUNNINGS = {}
+    #
+    # def appendRunning(self, name, object):
+    #     self.RUNNINGS[name] = object
 
     def runThreadFunction(self, fn, **kwargs):
         """
@@ -18,8 +18,10 @@ class StrategyController:
         # thread = threading.Thread(target=strategyInventory['instance'].run, args=(*kwargs.values(), ))
         thread = threading.Thread(target=fn, kwargs=kwargs)
         thread.start()
-        print_at(f"{fn} running ... with params: \n{kwargs}")
-
+        if not kwargs:
+            print_at(f"{fn} running ...")
+        else:
+            print_at(f"{fn} running ... with params: \n{kwargs}")
 # class StrategyController_DISCARD:
 #     def __init__(self, mt5Controller, nodeJsServerController, defaultSymbols, tg=None):
 #         self.mt5Controller = mt5Controller

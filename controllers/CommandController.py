@@ -65,21 +65,21 @@ class CommandController:
             defaultParams = paramStorage.METHOD_PARAMS['SwingScalping_Live']
             for defaultParam in defaultParams:
                 strategy = SwingScalping_Live(self.mainController, auto=True)
-                self.mainController.strategyController.runThreadFunction(strategy.run, **defaultParam)
-                self.mainController.strategyController.appendRunning(dicModel.dic2Txt_k(defaultParam), strategy)
+                self.mainController.threadController.runThreadFunction(strategy.run, **defaultParam)
+                # self.mainController.strategyController.appendRunning(dicModel.dic2Txt_k(defaultParam), strategy)
 
         # running Covariance_Live with all params
         elif command == '-cov':
             strategy = Covariance_Train(self.mainController)
             defaultParam = paramStorage.METHOD_PARAMS['Covariance_Live'][0]
             defaultParam = paramModel.ask_params(strategy.run, defaultParam)
-            self.mainController.strategyController.runThreadFunction(strategy.run, **defaultParam)
+            self.mainController.threadController.runThreadFunction(strategy.run, **defaultParam)
 
         elif command == '-coinT':
             strategy = Cointegration_Train(self.mainController)
             defaultParam = paramStorage.METHOD_PARAMS['Cointegration_Train'][0]
             defaultParam = paramModel.ask_params(strategy.simpleCheck, defaultParam)
-            self.mainController.strategyController.runThreadFunction(strategy.simpleCheck, **defaultParam)
+            self.mainController.threadController.runThreadFunction(strategy.simpleCheck, **defaultParam)
 
         elif command == '-rlT':
             strategy = RL_Simple_Train(self.mainController)
@@ -121,7 +121,7 @@ class CommandController:
         elif command == '-maL':
             strategy = MovingAverage_Live(self.mainController)
             defaultParam = paramModel.ask_params(strategy.run)
-            self.mainController.strategyController.runThreadFunction(strategy.run, **defaultParam)
+            self.mainController.threadController.runThreadFunction(strategy.run, **defaultParam)
             # strategy.run(**defaultParam)
 
         # Moving Average Live (get params from SQL)
@@ -132,9 +132,9 @@ class CommandController:
             # loop for each param
             for i, p in params.items():
                 # define require strategy
-                strategy = MovingAverage_Live(self.mainController)
+                strategy = MovingAverage_Live(self.mainController, **p)
                 # strategy.run(**p)
-                self.mainController.strategyController.runThreadFunction(strategy.run, **p)
+                self.mainController.threadController.runThreadFunction(strategy.run)
 
         # view the time series into Gramian Angular Field Image
         elif command == '-gaf':

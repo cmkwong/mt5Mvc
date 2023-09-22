@@ -18,7 +18,7 @@ class HttpController:
         self.allSymbolInfoUrl = self.mainUrl + "/forex/symbol/info"
         # get strategy param
         self.strategyParamUrl = self.mainUrl + "/forex/strategy/param?{}"
-        # self.backtestStrategyParamUrl = self.mainUrl + "/forex/strategy/param?name={}&live={}"
+        # update the strategy running records
 
     def postDataframe(self, url: str, df: pd.DataFrame):
         """
