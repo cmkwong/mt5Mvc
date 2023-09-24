@@ -96,7 +96,6 @@ class MT5Controller:
     def getPositionDuration(self, openResult):
         """
         get the duration in time format (00: 00: 00)
-        :param strin
         """
         # get all the positions with same position id
         positionId = openResult.order  # ticket ID, in metatrader position ID is same as ticket ID
@@ -107,7 +106,6 @@ class MT5Controller:
             durations.append(position.time_done)
         # calculate the duration taken
         seconds = max(durations) - min(durations)
-        # duration = time(hour=seconds // 3600, minute=(seconds  - (seconds % 60)) // 60 % 60, second=seconds % 60)
         duration = timedelta(seconds=seconds)
         return duration
 

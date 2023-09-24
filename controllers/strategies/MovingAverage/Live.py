@@ -6,23 +6,13 @@ import time
 
 
 class Live(Base, Dealer):
-    def __init__(self, mainController, *,
-                 symbol: str = 'USDJPY',
-                 timeframe: str = '15min',
-                 fast: int = 5,
-                 slow: int = 22,
-                 pt_sl: int = 100,
-                 pt_tp: int = 210,
-                 operation: str = 'long',
-                 lot: int = 1,
-                 positions: dict = None,  # {pt: size}
-                 **kwargs, ):
-        super(Live, self).__init__(mainController, strategy_name='Simple MA', strategy_detail=f'{fast}/{slow}', symbol=symbol, timeframe=timeframe, operation=operation, lot=lot, pt_sl=pt_sl, pt_tp=pt_tp)
+    def __init__(self, mainController, *, symbol: str = 'USDJPY', timeframe: str = '15min', fast: int = 5, slow: int = 22, pt_sl: int = 100, pt_tp: int = 210, operation: str = 'long', lot: int = 1, exitPoints: dict = None, **kwargs):
+        super(Live, self).__init__(mainController, strategy_name='Simple MA', strategy_detail=f'{fast}/{slow}', symbol=symbol, timeframe=timeframe, operation=operation, lot=lot, pt_sl=pt_sl, pt_tp=pt_tp, exitPoints=exitPoints)
         self.nodeJsApiController = mainController.nodeJsApiController
         self.mt5Controller = mainController.mt5Controller
         self.openResult = None
         self.lastPositionTime = None
-        self.positionsTp = None  # for partially close the position (take profit)
+        self.exitPrices = None  # for partially close the position (take profit)
         self.digit = None
 
         # for records
@@ -30,15 +20,15 @@ class Live(Base, Dealer):
         self.strategy_detail = f'{fast}/{slow}'
 
         # run parameters
-        # self.symbol = symbol
-        # self.timeframe = timeframe
         self.fast = fast
         self.slow = slow
+        # self.symbol = symbol
+        # self.timeframe = timeframe
         # self.pt_sl = pt_sl
         # self.pt_tp = pt_tp
         # self.operation = operation
         # self.lot = lot
-        self.positions = positions  # {pt: size}
+        # self.positions = positions  # {pt: size}
 
     @staticmethod
     def decodeParams(paramDf):
@@ -61,23 +51,10 @@ class Live(Base, Dealer):
             # change dataframe row into dictionary
             param = row.to_dict()
             if paramid in param_positions.keys():
-                param['positions'] = param_positions[paramid]
+                param['exitPoints'] = param_positions[paramid]
             params[paramid] = param
 
         return params
-
-    def getPositionsTp(self, symbol, actionPrice, operation, positions):
-        """
-        get the same form of position but price as key: {price: size}
-        if no position, return empty dictionary
-        """
-        if not positions:
-            return {}
-        positionsTp = {}
-        for pt, size in positions.items():
-            _, tp = self.mt5Controller.executor.transfer_sltp_from_pt(symbol, actionPrice, (0, pt), operation)
-            positionsTp[tp] = size
-        return positionsTp
 
     def run(self):
 
@@ -120,7 +97,7 @@ class Live(Base, Dealer):
                     # to avoid open the position at same condition
                     if self.lastPositionTime != operationGroupTime:
                         # get the partially position
-                        self.positionsTp = self.getPositionsTp(self.symbol, curClose, self.operation, self.positions)
+                        self.exitPrices = self.getExitPrices_tp(curClose)
                         # execute the open position
                         request = self.mt5Controller.executor.request_format(symbol=self.symbol, operation=self.operation, deviation=5, lot=self.lot, pt_sltp=(self.pt_sl, self.pt_tp))
                         # execute request
@@ -164,11 +141,13 @@ class Live(Base, Dealer):
                     self.openResult = None
 
                 # check if the partially position being reached
-                for position, size in self.positionsTp.items():
+                for exitPrice, data in self.exitPrices.items():
+                    size = data['size']
+                    point = data['point']
                     # check if available size left
                     if size > 0:
                         # calculate the stop loss and take profit
-                        if curClose >= position:
+                        if curClose >= exitPrice:
                             request = self.mt5Controller.executor.close_request_format(self.openResult, size)
                             result = self.mt5Controller.executor.request_execute(request)
                             # get the profit
@@ -187,7 +166,7 @@ class Live(Base, Dealer):
                             }, True)
                             # print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f} (Partial) and time taken {duration}')
                             # reset the position
-                            self.positionsTp[position] = 0
+                            self.exitPrices[exitPrice] = 0
 
             # delay the operation
             time.sleep(5)

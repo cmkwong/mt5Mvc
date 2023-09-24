@@ -12,8 +12,7 @@ class NodeJsApiController(HttpController):
 
     # create the forex 1min table
     def createForex1MinTable(self, tableName, schemaType):
-        url = self.createTableUrl.format(tableName, schemaType)
-        created = self.getRequest(url)
+        created = self.restRequest(self.createTableUrl, {'tableName': tableName, 'schemaType': schemaType})
         if created:
             print(f"The table is created.")
 
@@ -32,7 +31,7 @@ class NodeJsApiController(HttpController):
             df['datetime'] = df.index
             # change to UTC + 0
             df['datetime'] = (df['datetime'] + pd.Timedelta(hours=-config.Broker_Time_Between_UTC)).dt.strftime('%Y-%m-%d %H:%M:%S')
-            if (self.postDataframe(self.uploadForexDataUrl.format(symbol.lower() + '_1m'), df)):
+            if (self.postDataframe(self.uploadForexDataUrl, df, {'tableName': f'{symbol.lower()}_1m'})):
                 print(f"{symbol}: {len(dfs[symbol])} data being uploaded. ")
 
     # get data
@@ -47,12 +46,11 @@ class NodeJsApiController(HttpController):
         forexDataDf = pd.DataFrame()
         # define the table name
         tableName = symbol.lower() + '_1m'
-        url = self.downloadForexDataUrl.format(tableName)
         body = {
             'from': timeModel.getTimeS(startTime, outputFormat='%Y-%m-%d %H:%M:%S'),
             'to': timeModel.getTimeS(endTime, outputFormat='%Y-%m-%d %H:%M:%S')
         }
-        forexDataDf_raw = self.getDataframe(url, body)
+        forexDataDf_raw = self.getDataframe(self.downloadForexDataUrl, {'tableName': tableName}, body)
         if (len(forexDataDf_raw) == 0):
             print('No data being fetched. ')
             return False
@@ -93,7 +91,7 @@ class NodeJsApiController(HttpController):
         self.postDataframe(self.allSymbolInfoUrl, all_symbol_info_df)
 
     def get_all_symbols_info(self):
-        df = self.getDataframe(self.allSymbolInfoUrl, {})
+        df = self.getDataframe(self.allSymbolInfoUrl)
         rawDict = df.transpose().to_dict()
         all_symbols_info = {}
         for info in rawDict.values():
@@ -118,13 +116,17 @@ class NodeJsApiController(HttpController):
         :param live: int, index of live
         :return:
         """
-        argStrs = [f'name={strategyName}']
+        # argStrs = [f'name={strategyName}']
+        param = {}
+        param['name'] = strategyName
         if live:
-            argStrs.append(f'live={live}')
+            # argStrs.append(f'live={live}')
+            param['live'] = live
         if backtest:
-            argStrs.append(f'backtest={backtest}')
-        url = self.strategyParamUrl.format("&".join(argStrs))
-        df = self.getDataframe(url)
+            # argStrs.append(f'backtest={backtest}')
+            param['backtest'] = backtest
+        # url = self.strategyParamUrl.format("&".join(argStrs))
+        df = self.getDataframe(self.strategyParamUrl, param)
         return df
 
     # get the backtest strategy parameter
