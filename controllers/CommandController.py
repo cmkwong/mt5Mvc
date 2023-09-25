@@ -1,7 +1,8 @@
 from pyts.image import GramianAngularField
 
 from models.myUtils.printModel import print_at
-from models.myUtils import dicModel, paramModel, timeModel
+from models.myUtils import paramModel, timeModel
+from controllers.strategies.Dealer import Dealer
 
 # Strategy
 from controllers.strategies.SwingScalping.Live import Live as SwingScalping_Live
@@ -177,18 +178,37 @@ class CommandController:
                 timeframe='15min'
             )
         elif command == '-testOrder':
-            openRequest = self.mainController.mt5Controller.executor.request_format(symbol='USDJPY', operation='short', deviation=5, lot=2, sltp=(183.793, 0))
-            openResult = self.mainController.mt5Controller.executor.request_execute(openRequest)
-            print(f"requestResult: \n{openResult}")
-            closeRequest = self.mainController.mt5Controller.executor.close_request_format(openResult, 0.2)
-            closeResult = self.mainController.mt5Controller.executor.request_execute(closeRequest)
-            balance = self.mainController.mt5Controller.checkOrderClosed(openResult)
-            duration = self.mainController.mt5Controller.getPositionDuration(openResult)
-            print(f"closeResult: \n{closeResult} and balance: {balance} and taken time {duration}")
-            dealDetail = self.mainController.mt5Controller.getHistoricalDeals()
-            postionEarn = self.mainController.mt5Controller.getPositionEarn(openResult)
-            print(f"Position Earn: {postionEarn}")
-            self.mainController.mt5Controller.get_active_order()
+            pass
+            # openRequest = self.mainController.mt5Controller.executor.request_format(symbol='USDJPY', operation='short', deviation=5, lot=2, sltp=(183.793, 0))
+            # openResult = self.mainController.mt5Controller.executor.request_execute(openRequest)
+            # print(f"requestResult: \n{openResult}")
+            # closeRequest = self.mainController.mt5Controller.executor.close_request_format(openResult, 0.2)
+            # closeResult = self.mainController.mt5Controller.executor.request_execute(closeRequest)
+            # balance = self.mainController.mt5Controller.check_order_closed(openResult.order)
+            # duration = self.mainController.mt5Controller.get_position_duration(openResult.order)
+            # print(f"closeResult: \n{closeResult} and balance: {balance} and taken time {duration}")
+            # dealDetail = self.mainController.mt5Controller.get_historical_deals()
+            # postionEarn = self.mainController.mt5Controller.get_position_earn(openResult.order)
+            # print(f"Position Earn: {postionEarn}")
+            # self.mainController.mt5Controller.get_active_order()
+        elif command == '-testDeal':
+            # define the dealer
+            dealer = Dealer(self.mainController,
+                            strategy_name='Test',
+                            strategy_detail='Test_detail',
+                            symbol='USDJPY',
+                            timeframe='15min',
+                            operation='long',
+                            lot=5,
+                            pt_sl=500,
+                            exitPoints={900: 0.75, 1200: 0.2, 1500: 0.05}
+                            )
+            dealer.openDeal()
+            print()
+        elif command == '-testMt5':
+            historicalOrder = self.mainController.mt5Controller.get_historical_order(lastDays=3, position_id=338232986)
+            historicalDeals = self.mainController.mt5Controller.get_historical_deals(lastDays=3, position_id=338232986)
+            print()
         else:
             print_at('No command detected. Please input again. ')
 

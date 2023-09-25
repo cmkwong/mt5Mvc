@@ -13,7 +13,6 @@ MetaTrader:
     
 """
 
-
 class MT5Executor:
     def __init__(self, all_symbols_info):
         self.all_symbols_info = all_symbols_info
@@ -75,9 +74,9 @@ class MT5Executor:
         SLTP_FACTOR = 1 if operation == 'long' else -1
         # get digit by symbol
         digit = self.all_symbols_info[symbol]['digits']  # set the digit
-        if pt_sltp and pt_sltp[0] > 0:
+        if pt_sltp and pt_sltp[0] and pt_sltp[0] > 0:
             sltp[0] = price - SLTP_FACTOR * (pt_sltp[0] * (10 ** (-digit)))
-        if pt_sltp and pt_sltp[1] > 0:
+        if pt_sltp and pt_sltp[1] and pt_sltp[1] > 0:
             sltp[1] = price + SLTP_FACTOR * (pt_sltp[1] * (10 ** (-digit)))
         return tuple(sltp)
 
@@ -115,7 +114,10 @@ class MT5Executor:
         digit = mt5.symbol_info(request['symbol']).digits
 
         if result.retcode != mt5.TRADE_RETCODE_DONE:
-            print("order_send failed, symbol={}, retcode={}".format(symbol, result.retcode))
+            msg = f"order_send failed, symbol={symbol}, retcode={result.retcode}"
+            if (result.retcode in config.MT5_ERROR_CODE.keys()):
+                msg += f" - {config.MT5_ERROR_CODE[result.retcode]['description']}"
+            print(msg)
             return False
         print(f"Action: {typeLabel}; by {symbol} {result.volume:.2f} lots at {result.price:.5f} ( ptDiff={((requestPrice - resultPrice) * 10 ** digit):.1f} ({requestPrice:.5f}("
               f"request.price) - {result.price:.5f}(result.price) ))")

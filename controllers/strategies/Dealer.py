@@ -44,6 +44,10 @@ class Dealer:
                                                              pt_sltp=(self.pt_sl, self.pt_tp))
         # execute request
         self.openResult = self.mt5Controller.executor.request_execute(request)
+        if not self.openResult:
+            print(f'{self.symbol} open position failed. ')
+            self.openResult = None
+            return False
         # build the record dictionary
         record = {
             'position_id': self.openResult.order,
@@ -68,17 +72,20 @@ class Dealer:
     def closeDeal(self):
         request = self.mt5Controller.executor.close_request_format(self.openResult)
         result = self.mt5Controller.executor.request_execute(request)
+        # get the position performance
+        profit, swap, commission, duration = self.mt5Controller.get_position_performace(self.openResult.order)
         # get the profit
-        earn = self.mt5Controller.getPositionEarn(self.openResult)
+        # earn = self.mt5Controller.get_position_earn(self.openResult.order)
         # get duration
-        duration = self.mt5Controller.getPositionDuration(self.openResult)
+        # duration = self.mt5Controller.get_position_duration(self.openResult.order)
         record = {
             'position_id': self.openResult.order,
             'close_price': '',
-            'swap': '',
-            'profit': earn,
+            'swap': swap,
+            'commission': commission,
+            'profit': profit,
+            'duration': duration,
             'finished': 1,
-            'duration': duration
         }
         # save the records into database
         url = self.nodeJsApiController.dealRecordUrl
@@ -92,18 +99,24 @@ class Dealer:
     def closeDeal_partial(self, point, size):
         request = self.mt5Controller.executor.close_request_format(self.openResult, size)
         result = self.mt5Controller.executor.request_execute(request)
+        # get the position performance
+        profit, swap, commission, duration = self.mt5Controller.get_position_performace(self.openResult.order)
         # get the profit
-        earn = self.mt5Controller.getPositionEarn(self.openResult)
+        # earn = self.mt5Controller.get_position_earn(self.openResult.order)
         # get duration
-        duration = self.mt5Controller.getPositionDuration(self.openResult)
+        # duration = self.mt5Controller.get_position_duration(self.openResult.order)
         record = {
             'position_id': self.openResult.order,
+            'swap': swap,
+            'commission': commission,
+            'profit': profit,
+            'duration': duration,
             'exit_points': [
                 {
                     'tp_position_point': point,
                     'tp_position_size': size,
-                    'profit': earn,
-                    'duration': duration,
+                    'profit': '', # should be ticket
+                    'duration': '', # should be ticket
                     'finished': 1
                 }
             ]
@@ -116,16 +129,20 @@ class Dealer:
         printModel.print_dict(dealDetail)
 
     def checkDeal(self):
+        # get the position performance
+        profit, swap, commission, duration = self.mt5Controller.get_position_performace(self.openResult.order)
         # get duration
-        duration = self.mt5Controller.getPositionDuration(self.openResult)
+        # duration = self.mt5Controller.get_position_duration(self.openResult.order)
         # get the profit
-        earn = self.mt5Controller.getPositionEarn(self.openResult)
+        # earn = self.mt5Controller.get_position_earn(self.openResult.order)
         # build the record dictionary
         record = {
             'position_id': self.openResult.order,
-            'profit': earn,
-            'finished': 1,
-            'duration': duration
+            'profit': profit,
+            'swap': swap,
+            'commission': commission,
+            'duration': duration,
+            'finished': 1
         }
         # save the records into database
         url = self.nodeJsApiController.dealRecordUrl

@@ -47,19 +47,25 @@ class MT5Controller:
         dfModel.printDf(positionsDf)
 
     def print_historical_deals(self, *, lastDays: int = 1):
-        deals = self.getHistoricalDeals(lastDays=lastDays)
+        deals = self.get_historical_deals(lastDays=lastDays)
         dfModel.printDf(deals)
 
-    def getHistoricalDeals(self, *, lastDays: int = 365):
+    def get_historical_deals(self, *, position_id: int = None, lastDays: int = 365):
         """
-        :lastDays: 1625 = 5 years
+        :param lastDays: 1625 = 5 years
+        :param position_id: if specify, then ignore the date range
         :return pd.Dataframe of deals
         """
-        cols = ['time', 'order', 'type', 'position_id', 'reason', 'volume', 'price', 'commission', 'swap', 'profit', 'fee', 'symbol']
-        currentDate = datetime.today() + timedelta(hours=8)  # time object
-        # currentDate = pytz.timezone('Hongkong').localize(datetime.today())
-        fromDate = currentDate - timedelta(days=lastDays)
-        deals = mt5.history_deals_get(fromDate, currentDate)
+        cols = ['time', 'order', 'type', 'entry', 'magic', 'position_id', 'reason', 'volume', 'price', 'commission', 'swap', 'profit', 'fee', 'symbol', 'comment', 'external_id']
+        if position_id:
+            deals = mt5.history_deals_get(position=position_id)
+            if not deals:
+                return None
+        else:
+            currentDate = datetime.today() + timedelta(hours=8)  # time object
+            # currentDate = pytz.timezone('Hongkong').localize(datetime.today())
+            fromDate = currentDate - timedelta(days=lastDays)
+            deals = mt5.history_deals_get(fromDate, currentDate)
         datas = {}
         for deal in deals:
             # time = datetime.fromtimestamp(deal.time)
@@ -74,55 +80,77 @@ class MT5Controller:
         historicalDeals['time'] = historicalDeals['time'].apply(lambda t: t + timedelta(hours=-8))
         return historicalDeals
 
-    def getPositionEarn(self, openResult):
-        positionId = openResult.order
+    def get_position_performace(self, position_id):
         # get required deal in last 1 year
-        historicalDeals = self.getHistoricalDeals()
+        deals = self.get_historical_deals(position_id=position_id)
+        if not deals:
+            return None
         # sum all of the profit with same position id
-        profits = historicalDeals.groupby('position_id')['profit'].sum()
-        if positionId not in profits.index:
-            print(f"The required Position Id: {positionId} is not existed. ")
-        return profits[positionId]
+        profits = deals['profit'].sum()
+        swap = deals['swap'].sum()
+        commission = deals['commission'].sum()
+        duration = self.get_position_duration(position_id)
+        return profits, swap, commission, duration
 
-    def get_historical_order(self, lastDays: int = 10):
-        """
-        :return:
-        """
-        currentDate = datetime.today()  # time object
-        fromDate = currentDate - timedelta(days=lastDays)
-        historicalOrder = mt5.history_orders_get(fromDate, currentDate)
-        return historicalOrder
+    def get_position_earn(self, position_id):
+        # get required deal in last 1 year
+        deals = self.get_historical_deals(position_id=position_id)
+        if not deals:
+            return None
+        # sum all of the profit with same position id
+        profits = deals.groupby('position_id')['profit'].sum()
+        # if position_id not in profits.index:
+        #     print(f"The required Position Id: {position_id} is not existed. ")
+        return profits[position_id]
 
-    def getPositionDuration(self, openResult):
+    def get_position_duration(self, position_id):
         """
         get the duration in time format (00: 00: 00)
         """
         # get all the positions with same position id
-        positionId = openResult.order  # ticket ID, in metatrader position ID is same as ticket ID
-        positions = mt5.history_orders_get(position=positionId)
+        orders = mt5.history_orders_get(position=position_id)
         durations = []
-        for position in positions:
+        for order in orders:
             # append the duration
-            durations.append(position.time_done)
+            durations.append(order.time_done)
         # calculate the duration taken
         seconds = max(durations) - min(durations)
         duration = timedelta(seconds=seconds)
         return duration
 
-    def checkOrderClosed(self, openResult):
+    def get_position_cost(self, position_id):
+        deals = self.get_historical_deals(position_id=position_id)
+        swap = deals.groupby('position_id')['swap'].sum()
+        commission = deals.groupby('position_id')['commission'].sum()
+        return swap, commission
+
+    def get_historical_order(self, *, position_id: int = None, lastDays: int = 10):
+        """
+        Rare to use
+        """
+        if position_id:
+            orders = mt5.history_orders_get(position=position_id)
+            if not orders:
+                return None
+        else:
+            currentDate = datetime.today()  # time object
+            fromDate = currentDate - timedelta(days=lastDays)
+            orders = mt5.history_orders_get(fromDate, currentDate)
+        return orders
+
+    def check_order_closed(self, position_id):
         """
         Check if order finished or not
-        :param openResult: the result after execute the request in mt5
+        :param position_id: ticket ID, in metatrader position ID is same as ticket ID
         :return: Boolean
         """
         # get all the positions with same position id
-        positionId = openResult.order  # ticket ID, in metatrader position ID is same as ticket ID
-        positions = mt5.history_orders_get(position=positionId)
+        positions = mt5.history_deals_get(position=position_id)
         # order finished return True, otherwise, False
         volumeBalance = 0.0
         for position in positions:
-            factor = 1 if position.type == 1 else -1
-            volumeBalance += factor * position.volume_initial
+            factor = 1 if position.type == 0 else -1
+            volumeBalance += factor * position.volume
         return volumeBalance
 
     def orderSentOk(self, result):
