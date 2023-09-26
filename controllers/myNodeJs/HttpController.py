@@ -19,7 +19,7 @@ class HttpController:
         # get strategy param
         self.strategyParamUrl = self.mainUrl + "/forex/strategy/param"
         # update the strategy running records
-        self.dealRecordUrl = self.mainUrl + "/forex/strategy/deal/record"
+        self.strategyRecordUrl = self.mainUrl + "/forex/strategy/record"
 
     # restful API format: GET / POST
     def restRequest(self, url: str, param: dict = None, body: dict = None, restType='GET'):

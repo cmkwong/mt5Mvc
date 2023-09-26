@@ -75,9 +75,12 @@ class MT5Controller:
             datas[deal.ticket] = row
         historicalDeals = pd.DataFrame.from_dict(datas, orient='index', columns=cols)
         # transfer seconds into time
-        historicalDeals['time'] = historicalDeals['time'].apply(datetime.fromtimestamp)
+        raw_datetime = historicalDeals['time'].apply(datetime.fromtimestamp)
         # resume back to UTC time
-        historicalDeals['time'] = historicalDeals['time'].apply(lambda t: t + timedelta(hours=-8))
+        raw_datetime = raw_datetime.apply(lambda t: t + timedelta(hours=-8))
+        # set into date and time
+        historicalDeals['date'] = raw_datetime.apply(lambda x: x.date())
+        historicalDeals['time'] = raw_datetime.apply(lambda x: x.time())
         return historicalDeals
 
     def get_position_performace(self, position_id):

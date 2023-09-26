@@ -63,21 +63,18 @@ class Dealer:
             'open_time': timeModel.getTimeS(outputFormat='%H:%M:%S'),
             'exit_points': self._getRecordExitPoints()
         }
-        url = self.nodeJsApiController.dealRecordUrl
+        url = self.nodeJsApiController.strategyRecordUrl
         self.nodeJsApiController.restRequest(url, {'action': 'open'}, record, 'POST')
         # get and print deal detail
-        dealDetail = self.nodeJsApiController.restRequest(url, {'position_id': self.openResult.order})
-        printModel.print_dict(dealDetail)
+        res = self.nodeJsApiController.restRequest(url, {'position_id': self.openResult.order})
+        printModel.print_dict(res['data'], True, 'index')
 
     def closeDeal(self):
         request = self.mt5Controller.executor.close_request_format(self.openResult)
         result = self.mt5Controller.executor.request_execute(request)
         # get the position performance
         profit, swap, commission, duration = self.mt5Controller.get_position_performace(self.openResult.order)
-        # get the profit
-        # earn = self.mt5Controller.get_position_earn(self.openResult.order)
-        # get duration
-        # duration = self.mt5Controller.get_position_duration(self.openResult.order)
+        # build the record dictionary
         record = {
             'position_id': self.openResult.order,
             'close_price': '',
@@ -88,11 +85,11 @@ class Dealer:
             'finished': 1,
         }
         # save the records into database
-        url = self.nodeJsApiController.dealRecordUrl
+        url = self.nodeJsApiController.strategyRecordUrl
         self.nodeJsApiController.restRequest(url, {'action': 'close'}, record, 'POST')
         # get and print deal detail
-        dealDetail = self.nodeJsApiController.restRequest(url, {'position_id': self.openResult.order})
-        printModel.print_dict(dealDetail)
+        res = self.nodeJsApiController.restRequest(url, {'position_id': self.openResult.order})
+        printModel.print_dict(res['data'], True, 'index')
         # set to empty position
         self.openResult = None
 
@@ -101,10 +98,7 @@ class Dealer:
         result = self.mt5Controller.executor.request_execute(request)
         # get the position performance
         profit, swap, commission, duration = self.mt5Controller.get_position_performace(self.openResult.order)
-        # get the profit
-        # earn = self.mt5Controller.get_position_earn(self.openResult.order)
-        # get duration
-        # duration = self.mt5Controller.get_position_duration(self.openResult.order)
+        # build the record dictionary
         record = {
             'position_id': self.openResult.order,
             'swap': swap,
@@ -122,19 +116,15 @@ class Dealer:
             ]
         }
         # save the records into database
-        url = self.nodeJsApiController.dealRecordUrl
+        url = self.nodeJsApiController.strategyRecordUrl
         self.nodeJsApiController.restRequest(url, {'action': 'partial_close'}, record, 'POST')
         # get and print deal detail
-        dealDetail = self.nodeJsApiController.restRequest(url, {'position_id': self.openResult.order})
-        printModel.print_dict(dealDetail)
+        res = self.nodeJsApiController.restRequest(url, {'position_id': self.openResult.order})
+        printModel.print_dict(res['data'], True, 'index')
 
     def checkDeal(self):
         # get the position performance
         profit, swap, commission, duration = self.mt5Controller.get_position_performace(self.openResult.order)
-        # get duration
-        # duration = self.mt5Controller.get_position_duration(self.openResult.order)
-        # get the profit
-        # earn = self.mt5Controller.get_position_earn(self.openResult.order)
         # build the record dictionary
         record = {
             'position_id': self.openResult.order,
@@ -145,10 +135,10 @@ class Dealer:
             'finished': 1
         }
         # save the records into database
-        url = self.nodeJsApiController.dealRecordUrl
+        url = self.nodeJsApiController.strategyRecordUrl
         self.nodeJsApiController.restRequest(url, {'action': 'check'}, record, 'POST')
         # get and print deal detail
-        dealDetail = self.nodeJsApiController.restRequest(url, {'position_id': self.openResult.order})
-        printModel.print_dict(dealDetail)
+        res = self.nodeJsApiController.restRequest(url, {'position_id': self.openResult.order})
+        printModel.print_dict(res['data'], True, 'index')
         # set to empty position
         self.openResult = None

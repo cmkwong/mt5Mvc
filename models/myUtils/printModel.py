@@ -2,9 +2,10 @@ import pandas as pd
 from models.myUtils import dfModel
 
 
-def print_dict(data_dict: dict, tableFormat: bool = False):
+def print_dict(data_dict: dict, tableFormat: bool = False, orient='index'):
     """
     :param tableFormat: if True, print the table in dataframe format
+    :param orient: if 'index'=straight display, 'columns'=horizontal display
     """
     tableDict = {}
     print("~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*")
@@ -16,7 +17,7 @@ def print_dict(data_dict: dict, tableFormat: bool = False):
             tableDict[key] = [value]
     # print the table
     if tableFormat:
-        dfModel.printDf(pd.DataFrame.from_dict(tableDict, orient='index'))
+        dfModel.printDf(pd.DataFrame.from_dict(tableDict, orient=orient))
 
 
 def print_list(data_list):

@@ -199,7 +199,7 @@ class CommandController:
                             symbol='USDJPY',
                             timeframe='15min',
                             operation='long',
-                            lot=5,
+                            lot=0.1,
                             pt_sl=500,
                             exitPoints={900: 0.75, 1200: 0.2, 1500: 0.05}
                             )
