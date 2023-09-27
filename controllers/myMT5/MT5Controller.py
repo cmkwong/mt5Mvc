@@ -3,12 +3,11 @@ from controllers.myMT5.MT5Executor import MT5Executor
 from controllers.myMT5.MT5SymbolController import MT5SymbolController
 from controllers.myMT5.MT5TickController import MT5TickController
 from controllers.myMT5.MT5TimeController import MT5TimeController
-from models.myUtils import dfModel
+from models.myUtils import dfModel, printModel
 
 import pandas as pd
 import MetaTrader5 as mt5
-from datetime import datetime, timedelta, time
-import pytz
+from datetime import datetime, timedelta
 import config
 
 
@@ -44,19 +43,20 @@ class MT5Controller:
                     v = datetime.fromtimestamp(v) + timedelta(hours=-8)
                 datas[i + 1].append(v)
         positionsDf = pd.DataFrame.from_dict(datas, orient='index', columns=cols)
-        dfModel.printDf(positionsDf)
+        printModel.print_df(positionsDf)
 
     def print_historical_deals(self, *, lastDays: int = 1):
         deals = self.get_historical_deals(lastDays=lastDays)
-        dfModel.printDf(deals)
+        printModel.print_df(deals)
 
-    def get_historical_deals(self, *, position_id: int = None, lastDays: int = 365):
+    def get_historical_deals(self, *, position_id: int = None, lastDays: int = 365, datatype=pd.DataFrame):
         """
-        :param lastDays: 1625 = 5 years
         :param position_id: if specify, then ignore the date range
+        :param lastDays: 1625 = 5 years
+        :param datatype: pd.DataFrame / dict
         :return pd.Dataframe of deals
         """
-        cols = ['time', 'order', 'type', 'entry', 'magic', 'position_id', 'reason', 'volume', 'price', 'commission', 'swap', 'profit', 'fee', 'symbol', 'comment', 'external_id']
+        cols = ['ticket', 'time', 'order', 'type', 'entry', 'magic', 'position_id', 'reason', 'volume', 'price', 'commission', 'swap', 'profit', 'fee', 'symbol', 'comment', 'external_id']
         if position_id:
             deals = mt5.history_deals_get(position=position_id)
             if not deals:
@@ -67,12 +67,13 @@ class MT5Controller:
             fromDate = currentDate - timedelta(days=lastDays)
             deals = mt5.history_deals_get(fromDate, currentDate)
         datas = {}
-        for deal in deals:
+        for i, deal in enumerate(deals):
             # time = datetime.fromtimestamp(deal.time)
             row = []
             for col in cols:
                 row.append(getattr(deal, col))
-            datas[deal.ticket] = row
+            # append the
+            datas[i] = row
         historicalDeals = pd.DataFrame.from_dict(datas, orient='index', columns=cols)
         # transfer seconds into time
         raw_datetime = historicalDeals['time'].apply(datetime.fromtimestamp)
@@ -81,6 +82,8 @@ class MT5Controller:
         # set into date and time
         historicalDeals['date'] = raw_datetime.apply(lambda x: x.date())
         historicalDeals['time'] = raw_datetime.apply(lambda x: x.time())
+        if datatype == dict:
+            historicalDeals = historicalDeals.to_dict(orient='records')
         return historicalDeals
 
     def get_position_performace(self, position_id):

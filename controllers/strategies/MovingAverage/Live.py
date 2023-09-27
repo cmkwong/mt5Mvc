@@ -6,8 +6,21 @@ import time
 
 
 class Live(Base, Dealer):
-    def __init__(self, mainController, *, symbol: str = 'USDJPY', timeframe: str = '15min', fast: int = 5, slow: int = 22, pt_sl: int = 100, pt_tp: int = 210, operation: str = 'long', lot: int = 1, exitPoints: dict = None, **kwargs):
-        super(Live, self).__init__(mainController, strategy_name='Simple MA', strategy_detail=f'{fast}/{slow}', symbol=symbol, timeframe=timeframe, operation=operation, lot=lot, pt_sl=pt_sl, pt_tp=pt_tp, exitPoints=exitPoints)
+    def __init__(self, mainController, *,
+                 symbol: str = 'USDJPY', timeframe: str = '15min',
+                 fast: int = 5, slow: int = 22,
+                 pt_sl: int = 100, pt_tp: int = 210,
+                 operation: str = 'long', lot: int = 1,
+                 exitPoints: dict = None,
+                 strategy_name: str = '',
+                 strategy_id: int = None,
+                 **kwargs):
+        super(Live, self).__init__(mainController, 
+                                   symbol=symbol, timeframe=timeframe, 
+                                   operation=operation, lot=lot, pt_sl=pt_sl, pt_tp=pt_tp, 
+                                   exitPoints=exitPoints,
+                                   strategy_name=strategy_name, strategy_id=strategy_id, strategy_detail=f'{fast}/{slow}'
+                                   )
         self.nodeJsApiController = mainController.nodeJsApiController
         self.mt5Controller = mainController.mt5Controller
         self.openResult = None
@@ -15,44 +28,35 @@ class Live(Base, Dealer):
         self.exitPrices = None  # for partially close the position (take profit)
         self.digit = None
 
-        # for records
-        self.strategy_name = 'Simple MA'
-        self.strategy_detail = f'{fast}/{slow}'
-
         # run parameters
         self.fast = fast
         self.slow = slow
-        # self.symbol = symbol
-        # self.timeframe = timeframe
-        # self.pt_sl = pt_sl
-        # self.pt_tp = pt_tp
-        # self.operation = operation
-        # self.lot = lot
-        # self.positions = positions  # {pt: size}
 
     @staticmethod
     def decodeParams(paramDf):
 
         # create the dict for positions
-        param_positions = {}
-        positionDf = paramDf.loc[:, ('paramid', 'pt', 'size')]
+        param_exits = {}
+        positionDf = paramDf.loc[:, ('strategy_id', 'pt', 'size')]
         for i, row in positionDf.iterrows():
-            if not row['paramid']:
+            if not row['strategy_id']:
                 continue
-            paramid = row['paramid']
-            if paramid not in param_positions.keys():
-                param_positions[paramid] = {float(row['pt']): float(row['size'])}
+            strategy_id = row['strategy_id']
+            if strategy_id not in param_exits.keys():
+                # first time define the exit dict
+                param_exits[strategy_id] = {float(row['pt']): float(row['size'])}
             else:
-                param_positions[paramid][float(row['pt'])] = float(row['size'])
+                # assign another exit points
+                param_exits[strategy_id][float(row['pt'])] = float(row['size'])
         # building the params
         params = {}
         for i, row in paramDf.iterrows():
-            paramid = row['id']
+            strategy_id = row['strategy_id']
             # change dataframe row into dictionary
             param = row.to_dict()
-            if paramid in param_positions.keys():
-                param['exitPoints'] = param_positions[paramid]
-            params[paramid] = param
+            if strategy_id in param_exits.keys():
+                param['exitPoints'] = param_exits[strategy_id]
+            params[strategy_id] = param
 
         return params
 
@@ -61,23 +65,9 @@ class Live(Base, Dealer):
         while True:
             # check if current position is closed by sl or tp
             if self.openResult and self.mt5Controller.check_order_closed(self.openResult.order) == 0:
-                # # get duration
-                # duration = self.mt5Controller.getPositionDuration(self.openResult)
-                # # get the profit
-                # earn = self.mt5Controller.getPositionEarn(self.openResult)
-                # printModel.print_dict({
-                #     'Symbol': self.symbol,
-                #     'Strategy': f'{self.fast}/{self.slow} sl: {self.openResult.request.sl} tp: {self.openResult.request.tp}',
-                #     'Operation': 'closed',
-                #     'Reason': 'sltp',
-                #     'Position ID': self.openResult.order,
-                #     'Balance': f'{earn:2f}',
-                #     'Duration': duration,
-                #     'Remark': ''
-                # }, True)
-                # # print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f} (sltp) and time taken {duration}')
-                # self.openResult = None
                 self.checkDeal()
+                # set to empty position
+                self.openResult = None
 
             # getting the Prices and MaData
             Prices = self.mt5Controller.pricesLoader.getPrices(symbols=[self.symbol], count=1000, timeframe=self.timeframe)
@@ -101,48 +91,11 @@ class Live(Base, Dealer):
                         self.exitPrices = self.getExitPrices_tp(curClose)
                         # execute the open position
                         self.openDeal()
-                        # request = self.mt5Controller.executor.request_format(symbol=self.symbol, operation=self.operation, deviation=5, lot=self.lot, pt_sltp=(self.pt_sl, self.pt_tp))
-                        # # execute request
-                        # self.openResult = self.mt5Controller.executor.request_execute(request)
-                        # # if execute successful
-                        # if self.mt5Controller.orderSentOk(self.openResult):
-                        #     self.lastPositionTime = signal.index[-1]
-                        #     printModel.print_dict({
-                        #         'Symbol': self.symbol,
-                        #         'Strategy': f'{self.fast}/{self.slow} sl: {self.openResult.request.sl} tp: {self.openResult.request.tp}',
-                        #         'Operation': 'opened',
-                        #         'Reason': '',
-                        #         'Position ID': self.openResult.order,
-                        #         'Balance': 0,
-                        #         'Duration': 0,
-                        #         'Remark': ''
-                        #     }, True)
-                        #     # print(f"{symbol} open position with position id: {self.openResult.order}; {fast}/{slow} sl: {self.openResult.request.sl} tp: {self.openResult.request.tp}")
-                        # else:
-                        #     print(f'{self.symbol} open position failed. ')
             else:
                 # check if signal should be close
                 if not signal.iloc[-1] and signal.iloc[-2]:
                     # close the deal
                     self.closeDeal()
-                    # request = self.mt5Controller.executor.close_request_format(self.openResult)
-                    # result = self.mt5Controller.executor.request_execute(request)
-                    # # get the profit
-                    # earn = self.mt5Controller.getPositionEarn(self.openResult)
-                    # # get duration
-                    # duration = self.mt5Controller.getPositionDuration(self.openResult)
-                    # printModel.print_dict({
-                    #     'Symbol': self.symbol,
-                    #     'Strategy': f'{self.fast}/{self.slow} sl: {self.openResult.request.sl} tp: {self.openResult.request.tp}',
-                    #     'Operation': 'closed',
-                    #     'Reason': 'By Signal Close',
-                    #     'Position ID': self.openResult.order,
-                    #     'Balance': f'{earn:2f}',
-                    #     'Duration': duration,
-                    #     'Remark': ''
-                    # }, True)
-                    # # print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f} (By Signal Close) and time taken {duration}')
-                    # self.openResult = None
 
                 # check if the partially position being reached
                 for exitPrice, data in self.exitPrices.items():
@@ -152,24 +105,8 @@ class Live(Base, Dealer):
                     if size > 0:
                         # calculate the stop loss and take profit
                         if curClose >= exitPrice:
-                            # request = self.mt5Controller.executor.close_request_format(self.openResult, size)
-                            # result = self.mt5Controller.executor.request_execute(request)
-                            # # get the profit
-                            # earn = self.mt5Controller.getPositionEarn(self.openResult)
-                            # # get duration
-                            # duration = self.mt5Controller.getPositionDuration(self.openResult)
-                            # printModel.print_dict({
-                            #     'Symbol': self.symbol,
-                            #     'Strategy': f'{self.fast}/{self.slow} sl: {self.openResult.request.sl} tp: {self.openResult.request.tp}',
-                            #     'Operation': 'closed',
-                            #     'Reason': 'Partially',
-                            #     'Position ID': self.openResult.order,
-                            #     'Balance': f'{earn:2f}',
-                            #     'Duration': duration,
-                            #     'Remark': ''
-                            # }, True)
                             # # print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f} (Partial) and time taken {duration}')
-                            self.closeDeal_partial(point, size)
+                            self.closeDeal_partial(size)
                             # reset the position
                             self.exitPrices[exitPrice] = 0
 

@@ -1,6 +1,6 @@
 import requests
 import pandas as pd
-
+import json
 
 # upload the forex loader
 class HttpController:
@@ -20,6 +20,8 @@ class HttpController:
         self.strategyParamUrl = self.mainUrl + "/forex/strategy/param"
         # update the strategy running records
         self.strategyRecordUrl = self.mainUrl + "/forex/strategy/record"
+        # update the deal records
+        self.dealRecordUrl = self.mainUrl + "/forex/deal/record"
 
     # restful API format: GET / POST
     def restRequest(self, url: str, param: dict = None, body: dict = None, restType='GET'):
@@ -28,10 +30,13 @@ class HttpController:
             for k, v in param.items():
                 args.append(f"{k}={v}")
             url += f"?{'&'.join(args)}"
+        # prevent there has time or other not JSON serializable data
+        json_body = json.loads(json.dumps(body, indent=4, sort_keys=True, default=str))
+        # request execute
         if restType == 'GET':
-            r = requests.get(url, json=body)
+            r = requests.get(url, json=json_body)
         elif restType == 'POST':
-            r = requests.post(url, json=body)
+            r = requests.post(url, json=json_body)
         else:
             print(f"{restType} is not matched.")
             return False

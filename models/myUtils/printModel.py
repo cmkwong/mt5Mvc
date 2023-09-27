@@ -1,6 +1,9 @@
 import pandas as pd
-from models.myUtils import dfModel
+from tabulate import tabulate
 
+# display the dataframe into table
+def print_df(df):
+    print(tabulate(df, headers='keys', tablefmt='psql'))
 
 def print_dict(data_dict: dict, tableFormat: bool = False, orient='index'):
     """
@@ -9,15 +12,12 @@ def print_dict(data_dict: dict, tableFormat: bool = False, orient='index'):
     """
     tableDict = {}
     print("~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*")
-    for key, value in data_dict.items():
-        if not tableFormat:
+    if not tableFormat:
+        for key, value in data_dict.items():
             print("{}:\t{:.5f}".format(key, value))
-        else:
-            # transfer value into list
-            tableDict[key] = [value]
-    # print the table
-    if tableFormat:
-        dfModel.printDf(pd.DataFrame.from_dict(tableDict, orient=orient))
+    else:
+        # print the table
+        print_df(pd.DataFrame.from_dict(data_dict, orient=orient))
 
 
 def print_list(data_list):

@@ -110,15 +110,15 @@ class NodeJsApiController(HttpController):
         return all_symbols_info
 
     # get the live strategy parameter
-    def getStrategyParam(self, *, strategyName: str = 'ma', live: int = 1, backtest: int = 1):
+    def getStrategyParam(self, *, strategy_name: str = 'ma', live: int = 1, backtest: int = 1):
         """
-        :param strategyName: str
+        :param strategy_name: str
         :param live: int, index of live
         :return:
         """
         # argStrs = [f'name={strategyName}']
         param = {}
-        param['name'] = strategyName
+        param['strategy_name'] = strategy_name
         if live:
             # argStrs.append(f'live={live}')
             param['live'] = live
