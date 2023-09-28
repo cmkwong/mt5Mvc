@@ -1,4 +1,4 @@
-from models.myUtils.paramModel import SymbolList, DatetimeTuple
+from models.myUtils.paramModel import DatetimeTuple
 from models.myUtils import timeModel, fileModel
 from controllers.strategies.MovingAverage.Base import Base
 import config
@@ -46,24 +46,3 @@ class Backtest(Base):
                     self.plotController.plotHist(axs[i], dist, distName, custTexts={'start': startStr, 'end': endStr, 'timeframe': timeframe, 'fast': fast, 'slow': slow, 'operation': op}, mean=True)
                     # distPath, f'{symbol}-{operation}-{startStr}-{endStr}-{distName}.jpg'
                 self.plotController.saveImg(distPath, f'{symbol}-{op}-{fast}-{slow}-{timeframe}-{startStr}-{endStr}.jpg')
-    #
-    # def getMaDistImgs(self, *, versionNum: str = '2023-08-12 094616'):
-    #     # get the cur time
-    #     curTime = timeModel.getTimeS(outputFormat='%Y-%m-%d %H%M%S')
-    #     # read the file list in folder
-    #     folderPath = os.path.join(self.SummaryPath, versionNum)
-    #     summaryFiles = fileModel.getFileList(folderPath)
-    #
-    #     # loop for each summary
-    #     for summaryFile in summaryFiles:
-    #         summaryDf = pd.read_excel(os.path.join(folderPath, summaryFile))
-    #         requiredParams = summaryDf[summaryDf['reliable'] == 1]
-    #         for i, requiredParam in requiredParams.iterrows():
-    #             symbol = requiredParam['symbol']
-    #             timeframe = requiredParam['timeframe']
-    #             start = timeModel.getTimeT(requiredParam['start'], '%Y-%m-%d %H:%M')
-    #             end = timeModel.getTimeT(requiredParam['end'], '%Y-%m-%d %H:%M')
-    #             fast = requiredParam['fast']
-    #             slow = requiredParam['slow']
-    #             operation = requiredParam['operation']
-    #             self.getMaDistImg(curTime=curTime, symbols=[symbol], timeframe=timeframe, start=start, end=end, fast=fast, slow=slow, operation=operation)

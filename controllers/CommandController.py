@@ -3,6 +3,7 @@ from pyts.image import GramianAngularField
 from models.myUtils.printModel import print_at
 from models.myUtils import paramModel, timeModel
 from controllers.strategies.Dealer import Dealer
+import config
 
 # Strategy
 from controllers.strategies.SwingScalping.Live import Live as SwingScalping_Live
@@ -37,9 +38,13 @@ class CommandController:
             originalSource = self.mainController.mt5Controller.pricesLoader.source
             self.mainController.mt5Controller.pricesLoader.source = 'mt5'
             # upload Prices
-            param = paramStorage.METHOD_PARAMS['upload_mt5_getPrices'][0]
-            param = paramModel.ask_params(self.mainController.mt5Controller.pricesLoader.getPrices, param)
-            Prices = self.mainController.mt5Controller.pricesLoader.getPrices(**param)
+            kwargs = {'symbols': config.DefaultSymbols,
+                     'start': (2023, 6, 1, 0, 0), 'end': (2023, 6, 30, 23, 59),
+                     'timeframe': '1min',
+                     'count': 0,
+                     'ohlcvs': '111111'}
+            kwargs = paramModel.ask_params(self.mainController.mt5Controller.pricesLoader.getPrices, kwargs)
+            Prices = self.mainController.mt5Controller.pricesLoader.getPrices(**kwargs)
             self.mainController.nodeJsApiController.uploadOneMinuteForexData(Prices)
             # resume to original source
             self.mainController.mt5Controller.pricesLoader.source = originalSource
@@ -48,10 +53,10 @@ class CommandController:
         elif command == '-symbol':
             # upload all_symbol_info
             all_symbol_info = self.mainController.mt5Controller.pricesLoader.all_symbols_info
-            param = paramStorage.METHOD_PARAMS['upload_all_symbol_info'][0]
-            param = paramModel.ask_params(self.mainController.nodeJsController.apiController.uploadAllSymbolInfo, param)
-            param['all_symbol_info'] = all_symbol_info
-            self.mainController.nodeJsController.apiController.uploadAllSymbolInfo(**param)
+            kwargs = {'broker': config.Broker}
+            kwargs = paramModel.ask_params(self.mainController.nodeJsController.apiController.uploadAllSymbolInfo, kwargs)
+            kwargs['all_symbol_info'] = all_symbol_info
+            self.mainController.nodeJsController.apiController.uploadAllSymbolInfo(**kwargs)
 
         # ----------------------- Interface / Display -----------------------
         elif command == '-positions':
@@ -62,25 +67,34 @@ class CommandController:
 
         # ----------------------- Strategy -----------------------
         # running SwingScalping_Live with all params
-        elif command == '-swL':
-            defaultParams = paramStorage.METHOD_PARAMS['SwingScalping_Live']
-            for defaultParam in defaultParams:
-                strategy = SwingScalping_Live(self.mainController, auto=True)
-                self.mainController.threadController.runThreadFunction(strategy.run, **defaultParam)
+        # elif command == '-swL':
+        #     defaultParams = paramStorage.METHOD_PARAMS['SwingScalping_Live']
+        #     for defaultParam in defaultParams:
+        #         strategy = SwingScalping_Live(self.mainController, auto=True)
+        #         self.mainController.threadController.runThreadFunction(strategy.run, **defaultParam)
                 # self.mainController.strategyController.appendRunning(dicModel.dic2Txt_k(defaultParam), strategy)
 
         # running Covariance_Live with all params
         elif command == '-cov':
             strategy = Covariance_Train(self.mainController)
-            defaultParam = paramStorage.METHOD_PARAMS['Covariance_Live'][0]
-            defaultParam = paramModel.ask_params(strategy.run, defaultParam)
-            self.mainController.threadController.runThreadFunction(strategy.run, **defaultParam)
+            kwargs = {
+                'start': (2022, 10, 30, 0, 0),
+                'end': (2022, 12, 16, 21, 59),
+                'timeframe': '1H'
+            }
+            kwargs = paramModel.ask_params(strategy.run, kwargs)
+            self.mainController.threadController.runThreadFunction(strategy.run, **kwargs)
 
         elif command == '-coinT':
             strategy = Cointegration_Train(self.mainController)
-            defaultParam = paramStorage.METHOD_PARAMS['Cointegration_Train'][0]
-            defaultParam = paramModel.ask_params(strategy.simpleCheck, defaultParam)
-            self.mainController.threadController.runThreadFunction(strategy.simpleCheck, **defaultParam)
+            kwargs = {
+                'symbols': ["AUDCAD", "EURUSD", "AUDUSD"],
+                'start': (2022, 6, 1, 0, 0), 'end': (2023, 2, 28, 23, 59),
+                'timeframe': '1H',
+                "outputPath": "C:/Users/Chris/projects/221227_mt5Mvc/docs/coin"
+            }
+            kwargs = paramModel.ask_params(strategy.simpleCheck, kwargs)
+            self.mainController.threadController.runThreadFunction(strategy.simpleCheck, **kwargs)
 
         elif command == '-rlT':
             strategy = RL_Simple_Train(self.mainController)
@@ -105,7 +119,7 @@ class CommandController:
             defaultParam = paramModel.ask_params(self.mainController.nodeJsApiController.getStrategyParam)
             params = self.mainController.nodeJsApiController.getStrategyParam(**defaultParam)
             for i, p in params.iterrows():
-                param = {
+                kwargs = {
                     'curTime': curTime,
                     'symbols': [p.symbol],
                     'timeframe': p.timeframe,
@@ -116,7 +130,7 @@ class CommandController:
                     'operation': p.operation
                 }
                 strategy = MovingAverage_Backtest(self.mainController)
-                strategy.getMaDistImg(**param)
+                strategy.getMaDistImg(**kwargs)
 
         # Moving Average Live
         elif command == '-maL':

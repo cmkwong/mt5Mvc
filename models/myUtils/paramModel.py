@@ -1,17 +1,19 @@
 import inspect
 import re
 from datetime import date, datetime
-from models.myUtils import fileModel
 from prompt_toolkit import prompt
 
 
 def decodeParam(input_data, paramSig):
     """
-    eg:  "AUDCAD EURUSD AUDUSD" -> ["AUDCAD", "EURUSD", "AUDUSD"]
+    list:   ["AUDCAD", "EURUSD", "AUDUSD"] -> "AUDCAD EURUSD AUDUSD"
+    tuple:  ("AUDCAD", "EURUSD", "AUDUSD") -> '("AUDCAD", "EURUSD", "AUDUSD")'
+    other:  1 -> '1'
     """
     if paramSig.annotation == list:
         required_input_data = input_data.split(' ')
-        if len(input_data) == 0: required_input_data = []
+        if len(input_data) == 0:
+            required_input_data = []
     elif paramSig.annotation == tuple:
         required_input_data = eval(input_data)
     elif paramSig.annotation == bool:
@@ -27,7 +29,9 @@ def decodeParam(input_data, paramSig):
 # convert dictionary parameter into raw string
 def encodeParam(param):
     """
-    eg: ["AUDCAD", "EURUSD", "AUDUSD"] -> "AUDCAD EURUSD AUDUSD"
+    list:   ["AUDCAD", "EURUSD", "AUDUSD"] -> "AUDCAD EURUSD AUDUSD"
+    tuple:  ("AUDCAD", "EURUSD", "AUDUSD") -> '("AUDCAD", "EURUSD", "AUDUSD")'
+    other:  1 -> '1'
     """
     if isinstance(param, list):
         encoded_param = " ".join([str(p) for p in param])
@@ -38,40 +42,44 @@ def encodeParam(param):
     return encoded_param
 
 # user input the param
-def input_param(paramSig, param):
+def input_param(sig, param):
     # ask use input parameter and allow user to modify the default parameter
-    input_data = prompt(f"{paramSig.name}({paramSig.annotation.__name__}): ", default=param)
+    input_data = prompt(f"{sig.name}({sig.annotation.__name__}): ", default=param)
     # if no input, then assign default parameter
     if len(input_data) == 0:
         input_data = param
     return input_data
 
 # ask user to input parameter from dictionary
-def ask_params(class_object, overWriteArg=None, preprocessNeed=False):
+def ask_params(class_object, **kwargs):
+    """
+    :param class_object: class / function attribute
+    :param kwargs: dict
+    :return:
+    """
     # if it is none
-    if not overWriteArg: overWriteArg = {}
+    if not kwargs: kwargs = {}
     # params details from object
-    sig = inspect.signature(class_object)
+    signatures = inspect.signature(class_object)
     params = {}
     # looping the signature
-    for paramSig in sig.parameters.values():
+    for sig in signatures.parameters.values():
         # argument after(*) && has no default parameter
-        if paramSig.kind == paramSig.KEYWORD_ONLY:
+        if sig.kind == sig.KEYWORD_ONLY:
             # check if parameter is missed in default and assigned dict
-            if paramSig.name not in overWriteArg.keys():
-                if paramSig.default == paramSig.empty:
-                    raise Exception(f'{paramSig.name} parameter is missed. ')
+            if sig.name not in kwargs.keys():
+                if sig.default == sig.empty:
+                    raise Exception(f'{sig.name} parameter is missed. ')
                 else:
-                    overWriteArg[paramSig.name] = paramSig.default
+                    kwargs[sig.name] = sig.default
             # encode the param
-            encoded_params = encodeParam(overWriteArg[paramSig.name])
+            encoded_params = encodeParam(kwargs[sig.name])
             # asking params
-            input_data = input_param(paramSig, encoded_params)
+            input_data = input_param(sig, encoded_params)
             # preprocess the param
-            input_data = decodeParam(input_data, paramSig)
-            params[paramSig.name] = input_data
+            input_data = decodeParam(input_data, sig)
+            params[sig.name] = input_data
     return params
-
 
 def insert_params(class_object, input_datas: list):
     """
