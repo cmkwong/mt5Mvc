@@ -22,6 +22,8 @@ class HttpController:
         self.strategyRecordUrl = self.mainUrl + "/forex/strategy/record"
         # update the deal records
         self.dealRecordUrl = self.mainUrl + "/forex/deal/record"
+        # access the query base
+        self.mysqlQueryUrl = self.mainUrl + "/mysql"
 
     # restful API format: GET / POST
     def restRequest(self, url: str, param: dict = None, body: dict = None, restType='GET'):
@@ -44,7 +46,7 @@ class HttpController:
             print(r.text)
             return False
         res = r.json()
-        print(res)
+        # print(res)
         return res
 
     def postDataframe(self, url: str, df: pd.DataFrame, param: dict = None):

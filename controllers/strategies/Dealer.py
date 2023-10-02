@@ -53,13 +53,14 @@ class Dealer:
         # print the record being uploaded
         printModel.print_dict(records, True, orient='columns')
 
-    def openDeal(self):
+    def openDeal(self, comment=''):
         # execute the open position
         request = self.mt5Controller.executor.request_format(symbol=self.symbol,
                                                              operation=self.operation,
                                                              deviation=5,
                                                              lot=self.lot,
-                                                             pt_sltp=(self.pt_sl, self.pt_tp))
+                                                             pt_sltp=(self.pt_sl, self.pt_tp),
+                                                             comment=comment)
         # execute request
         self.openResult = self.mt5Controller.executor.request_execute(request)
         if not self.openResult:
@@ -69,16 +70,19 @@ class Dealer:
         # update into NodeJS
         self.update_deal()
 
-    def closeDeal(self):
-        request = self.mt5Controller.executor.close_request_format(self.openResult)
+    def closeDeal(self, comment=''):
+        # if no open positions, then return false
+        if not self.openResult:
+            return False
+        request = self.mt5Controller.executor.close_request_format(self.openResult, comment=comment)
         result = self.mt5Controller.executor.request_execute(request)
         # update into NodeJS
         self.update_deal()
         # set to empty position
         self.openResult = None
 
-    def closeDeal_partial(self, size):
-        request = self.mt5Controller.executor.close_request_format(self.openResult, size)
+    def closeDeal_partial(self, size, comment='Partial Close'):
+        request = self.mt5Controller.executor.close_request_format(self.openResult, size, comment=comment)
         result = self.mt5Controller.executor.request_execute(request)
         # update into NodeJS
         self.update_deal()

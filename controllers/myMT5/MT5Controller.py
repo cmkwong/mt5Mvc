@@ -28,26 +28,22 @@ class MT5Controller:
         # get loader on MetaTrader 5 version
         print(mt5.version())
 
-    def print_active_positions(self):
+    def get_active_positions(self):
         """
         :return: print all of the active order situation
         """
-        cols = ['ticket', 'time', 'volume', 'type', 'profit', 'price_open', 'price_current']
+        cols = ['ticket', 'time', 'symbol', 'volume', 'type', 'profit', 'price_open', 'price_current']
         postions = mt5.positions_get()
         datas = {}
         for i, position in enumerate(postions):
-            datas[i+1] = []
+            datas[i + 1] = []
             for col in cols:
                 v = getattr(position, col)
                 if col == 'time':
                     v = datetime.fromtimestamp(v) + timedelta(hours=-8)
                 datas[i + 1].append(v)
         positionsDf = pd.DataFrame.from_dict(datas, orient='index', columns=cols)
-        printModel.print_df(positionsDf)
-
-    def print_historical_deals(self, *, lastDays: int = 1):
-        deals = self.get_historical_deals(lastDays=lastDays)
-        printModel.print_df(deals)
+        return positionsDf
 
     def get_historical_deals(self, *, position_id: int = None, lastDays: int = 365, datatype=pd.DataFrame):
         """

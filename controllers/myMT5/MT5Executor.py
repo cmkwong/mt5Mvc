@@ -17,7 +17,7 @@ class MT5Executor:
     def __init__(self, all_symbols_info):
         self.all_symbols_info = all_symbols_info
 
-    def request_format(self, symbol, operation, deviation, lot, sltp=(), pt_sltp=()):
+    def request_format(self, symbol, operation, deviation, lot, sltp=(), pt_sltp=(), comment=''):
         """
         :param strategy_id: str, belong to specific strategy
         :param lots: [float]
@@ -52,6 +52,7 @@ class MT5Executor:
             'deviation': deviation,  # indeed, the deviation is useless when it is marketing order, note 73d
             "type_time": mt5.ORDER_TIME_GTC,
             "type_filling": tf,
+            "comment": comment
         }
         # transfer into sltp from pt if needed
         if pt_sltp:
@@ -80,7 +81,7 @@ class MT5Executor:
             sltp[1] = price + SLTP_FACTOR * (pt_sltp[1] * (10 ** (-digit)))
         return tuple(sltp)
 
-    def close_request_format(self, openResult, percent=1.0):
+    def close_request_format(self, openResult, percent=1.0, comment=''):
         """
         return close the position request format
         """
@@ -95,6 +96,7 @@ class MT5Executor:
             'symbol': symbol,
             'volume': volume,
             'position': positionId,
+            'comment': comment
         }
         return request
 

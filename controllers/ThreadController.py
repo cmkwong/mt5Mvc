@@ -22,6 +22,10 @@ class ThreadController:
             print_at(f"{fn} running ...")
         else:
             print_at(f"{fn} running ... with params: \n{kwargs}")
+
+    def getThreadingFunction(self):
+        for thread in threading.enumerate():
+            print(thread.name)
 # class StrategyController_DISCARD:
 #     def __init__(self, mt5Controller, nodeJsServerController, defaultSymbols, tg=None):
 #         self.mt5Controller = mt5Controller

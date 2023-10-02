@@ -95,20 +95,22 @@ class Live(Base, Dealer):
                 # check if signal should be close
                 if not signal.iloc[-1] and signal.iloc[-2]:
                     # close the deal
-                    self.closeDeal()
+                    self.closeDeal(comment='Signal Off')
 
                 # check if the partially position being reached
                 for exitPrice, data in self.exitPrices.items():
-                    size = data['size']
-                    point = data['point']
-                    # check if available size left
-                    if size > 0:
+                    try:
+                        size = data['size']
+                        point = data['point']
                         # calculate the stop loss and take profit
                         if curClose >= exitPrice:
                             # # print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f} (Partial) and time taken {duration}')
                             self.closeDeal_partial(size)
-                            # reset the position
-                            self.exitPrices[exitPrice] = 0
+                            # delete the position
+                            del self.exitPrices[exitPrice]
+                    except:
+                        print(self.exitPrices)
+                        print(data)
 
             # delay the operation
             time.sleep(5)

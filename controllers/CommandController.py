@@ -1,7 +1,8 @@
+import pandas as pd
 from pyts.image import GramianAngularField
 
 from models.myUtils.printModel import print_at
-from models.myUtils import paramModel, timeModel
+from models.myUtils import paramModel, timeModel, printModel
 from controllers.strategies.Dealer import Dealer
 import config
 
@@ -21,6 +22,8 @@ import paramStorage
 class CommandController:
     def __init__(self, mainController):
         self.mainController = mainController
+        # storing the running strategy
+        self.RunningStrategies = []
 
     def run(self, command):
         # ----------------------- Control -----------------------
@@ -43,7 +46,7 @@ class CommandController:
                      'timeframe': '1min',
                      'count': 0,
                      'ohlcvs': '111111'}
-            kwargs = paramModel.ask_params(self.mainController.mt5Controller.pricesLoader.getPrices, kwargs)
+            kwargs = paramModel.ask_params(self.mainController.mt5Controller.pricesLoader.getPrices, **kwargs)
             Prices = self.mainController.mt5Controller.pricesLoader.getPrices(**kwargs)
             self.mainController.nodeJsApiController.uploadOneMinuteForexData(Prices)
             # resume to original source
@@ -54,16 +57,31 @@ class CommandController:
             # upload all_symbol_info
             all_symbol_info = self.mainController.mt5Controller.pricesLoader.all_symbols_info
             kwargs = {'broker': config.Broker}
-            kwargs = paramModel.ask_params(self.mainController.nodeJsController.apiController.uploadAllSymbolInfo, kwargs)
+            kwargs = paramModel.ask_params(self.mainController.nodeJsController.apiController.uploadAllSymbolInfo, **kwargs)
             kwargs['all_symbol_info'] = all_symbol_info
             self.mainController.nodeJsController.apiController.uploadAllSymbolInfo(**kwargs)
 
+        # close all deals
+        elif command == '-closeAll':
+            positionsDf = self.mainController.mt5Controller.get_active_positions()
+            print(positionsDf)
+
+        # close all deals by strategu
+        elif command == '-closeAll_s':
+            for strategy in self.RunningStrategies:
+                strategy.closeDeal('Force to Close')
+
         # ----------------------- Interface / Display -----------------------
         elif command == '-positions':
-            self.mainController.mt5Controller.print_active_positions()
+            positionsDf = self.mainController.mt5Controller.get_active_positions()
+            nextTargetDf = self.mainController.nodeJsApiController.executeMySqlQuery('query_positions_next_target')
+            # merge the df
+            mergedDf = pd.merge(positionsDf, nextTargetDf, left_on='ticket', right_on='position_id', how='inner', right_index=False)
+            printModel.print_df(mergedDf)
 
         elif command == '-deals':
-            self.mainController.mt5Controller.print_historical_deals(lastDays=1)
+            deals = self.mainController.mt5Controller.get_historical_deals(lastDays=1)
+            printModel.print_df(deals)
 
         # ----------------------- Strategy -----------------------
         # running SwingScalping_Live with all params
@@ -82,7 +100,7 @@ class CommandController:
                 'end': (2022, 12, 16, 21, 59),
                 'timeframe': '1H'
             }
-            kwargs = paramModel.ask_params(strategy.run, kwargs)
+            kwargs = paramModel.ask_params(strategy.run, **kwargs)
             self.mainController.threadController.runThreadFunction(strategy.run, **kwargs)
 
         elif command == '-coinT':
@@ -93,7 +111,7 @@ class CommandController:
                 'timeframe': '1H',
                 "outputPath": "C:/Users/Chris/projects/221227_mt5Mvc/docs/coin"
             }
-            kwargs = paramModel.ask_params(strategy.simpleCheck, kwargs)
+            kwargs = paramModel.ask_params(strategy.simpleCheck, **kwargs)
             self.mainController.threadController.runThreadFunction(strategy.simpleCheck, **kwargs)
 
         elif command == '-rlT':
@@ -121,7 +139,7 @@ class CommandController:
             for i, p in params.iterrows():
                 kwargs = {
                     'curTime': curTime,
-                    'symbols': [p.symbol],
+                    'symbol': p.symbol,
                     'timeframe': p.timeframe,
                     'start': timeModel.getTimeT(p.start, "%Y-%m-%d %H:%M"),
                     'end': timeModel.getTimeT(p.end, "%Y-%m-%d %H:%M"),
@@ -151,18 +169,20 @@ class CommandController:
                 strategy = MovingAverage_Live(self.mainController, **p)
                 # strategy.run(**p)
                 self.mainController.threadController.runThreadFunction(strategy.run)
+                # append the strategy
+                self.RunningStrategies.append(strategy)
 
         # view the time series into Gramian Angular Field Image
         elif command == '-gaf':
             defaultParam = paramModel.ask_params(self.mainController.mt5Controller.pricesLoader.getPrices)
             Prices = self.mainController.mt5Controller.pricesLoader.getPrices(**defaultParam)
             ohlcvs_dfs = Prices.getOhlcvsFromPrices()
-            for symbol, df in ohlcvs_dfs.items():
+            for symbol, nextTargetDf in ohlcvs_dfs.items():
                 gasf = GramianAngularField(method='summation', image_size=1.0)
-                X_gasf = gasf.fit_transform(df['close'].values.reshape(1, -1))
+                X_gasf = gasf.fit_transform(nextTargetDf['close'].values.reshape(1, -1))
                 gadf = GramianAngularField(method='difference', image_size=1.0)
-                X_gadf = gadf.fit_transform(df['close'].values.reshape(1, -1))
-                self.mainController.plotController.getGafImg(X_gasf[0, :, :], X_gadf[0, :, :], df['close'], f"{symbol}_gaf.jpg")
+                X_gadf = gadf.fit_transform(nextTargetDf['close'].values.reshape(1, -1))
+                self.mainController.plotController.getGafImg(X_gasf[0, :, :], X_gadf[0, :, :], nextTargetDf['close'], f"{symbol}_gaf.jpg")
                 print(f"{symbol} gaf generated. ")
 
         # get the summary of df
@@ -173,8 +193,8 @@ class CommandController:
             readParam = paramModel.ask_params(DfController.readAsDf)
             print("Output pdf: ")
             sumParam = paramModel.ask_params(DfController.summaryPdf)
-            df = dfController.readAsDf(**readParam)
-            dfController.summaryPdf(df, **sumParam)
+            nextTargetDf = dfController.readAsDf(**readParam)
+            dfController.summaryPdf(nextTargetDf, **sumParam)
 
         # ----------------------- Testing -----------------------
         # testing for getting the data from sql / mt5 by switch the data source

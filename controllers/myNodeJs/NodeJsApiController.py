@@ -8,7 +8,7 @@ import pandas as pd
 class NodeJsApiController(HttpController):
     def __init__(self):
         self.mainUrl = None
-        self.switchEnv('prod')
+        self.switchEnv('dev')
 
     # create the forex 1min table
     def createForex1MinTable(self, tableName, schemaType):
@@ -129,8 +129,11 @@ class NodeJsApiController(HttpController):
         df = self.getDataframe(self.strategyParamUrl, param)
         return df
 
-    # get the backtest strategy parameter
-    # def getBacktestStrategyParam(self, *, strategyName: str = 'ma', backtest: int = 1):
-    #     url = self.strategyParamUrl.format(strategyName, backtest)
-    #     df = self.getDataframe(url)
-    #     return df
+    # get the query
+    def executeMySqlQuery(self, queryName: str):
+        param = {
+            "queryName": queryName
+        }
+        df = self.getDataframe(self.mysqlQueryUrl, param)
+        return df
+
