@@ -13,9 +13,11 @@ MetaTrader:
     
 """
 
+
 class MT5Executor:
-    def __init__(self, all_symbols_info):
+    def __init__(self, all_symbols_info, get_historical_deals):
         self.all_symbols_info = all_symbols_info
+        self._fn_get_historical_deals = get_historical_deals
 
     def request_format(self, symbol, operation, deviation, lot, sltp=(), pt_sltp=(), comment=''):
         """
@@ -81,21 +83,23 @@ class MT5Executor:
             sltp[1] = price + SLTP_FACTOR * (pt_sltp[1] * (10 ** (-digit)))
         return tuple(sltp)
 
-    def close_request_format(self, openResult, percent=1.0, comment=''):
+    def close_request_format(self, *, position_id: int, percent: float = 1.0, comment: str = ''):
         """
         return close the position request format
         """
-        symbol = openResult.request.symbol
-        positionId = openResult.order
-        oppositeType = 1 if openResult.request.type == 0 else 0
-        volume = openResult.volume * percent
+        # get the first deal which is open position
+        openDeal = self._fn_get_historical_deals(position_id=position_id, datatype=dict)[0]
+        # get the information
+        symbol = openDeal['symbol']
+        oppositeType = 1 if openDeal['type'] == 0 else 0
+        volume = openDeal['volume'] * percent
         request = {
             'action': mt5.TRADE_ACTION_DEAL,
             'type': oppositeType,
             'price': mt5.symbol_info_tick(symbol).bid,
             'symbol': symbol,
             'volume': volume,
-            'position': positionId,
+            'position': position_id,
             'comment': comment
         }
         return request

@@ -70,7 +70,7 @@ class StrategyRecordHandler:
         printModel.print_dict(res['data'], True, 'index')
 
     def closeDeal(self):
-        request = self.mt5Controller.executor.close_request_format(self.openResult)
+        request = self.mt5Controller.executor.close_request_format(position_id=self.openResult.order)
         result = self.mt5Controller.executor.request_execute(request)
         # get the position performance
         profit, swap, commission, duration = self.mt5Controller.get_position_performace(self.openResult.order)
@@ -94,7 +94,7 @@ class StrategyRecordHandler:
         self.openResult = None
 
     def closeDeal_partial(self, point, size):
-        request = self.mt5Controller.executor.close_request_format(self.openResult, size)
+        request = self.mt5Controller.executor.close_request_format(position_id=self.openResult.order, percent=size)
         result = self.mt5Controller.executor.request_execute(request)
         # get the position performance
         profit, swap, commission, duration = self.mt5Controller.get_position_performace(self.openResult.order)

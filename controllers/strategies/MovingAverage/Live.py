@@ -11,7 +11,7 @@ class Live(Base, Dealer):
                  fast: int = 5, slow: int = 22,
                  pt_sl: int = 100, pt_tp: int = 210,
                  operation: str = 'long', lot: int = 1,
-                 exitPoints: dict = None,
+                 exitPoints: list = None,
                  strategy_name: str = '',
                  strategy_id: int = None,
                  **kwargs):
@@ -23,10 +23,7 @@ class Live(Base, Dealer):
                                    )
         self.nodeJsApiController = mainController.nodeJsApiController
         self.mt5Controller = mainController.mt5Controller
-        self.openResult = None
         self.lastPositionTime = None
-        self.exitPrices = None  # for partially close the position (take profit)
-        self.digit = None
 
         # run parameters
         self.fast = fast
@@ -34,20 +31,21 @@ class Live(Base, Dealer):
 
     @staticmethod
     def decodeParams(paramDf):
-
+        """
+        :return: dict: {strategy_id: { param } }
+        """
         # create the dict for positions
         param_exits = {}
-        positionDf = paramDf.loc[:, ('strategy_id', 'pt', 'size')]
+        positionDf = paramDf.loc[:, ('exit_id', 'strategy_id', 'pt', 'size')]
         for i, row in positionDf.iterrows():
             if not row['strategy_id']:
                 continue
             strategy_id = row['strategy_id']
             if strategy_id not in param_exits.keys():
                 # first time define the exit dict
-                param_exits[strategy_id] = {float(row['pt']): float(row['size'])}
-            else:
-                # assign another exit points
-                param_exits[strategy_id][float(row['pt'])] = float(row['size'])
+                param_exits[strategy_id] = []
+            param_exits[strategy_id].append([int(row['exit_id']), float(row['pt']), float(row['size'])])
+
         # building the params
         params = {}
         for i, row in paramDf.iterrows():
@@ -64,10 +62,11 @@ class Live(Base, Dealer):
 
         while True:
             # check if current position is closed by sl or tp
-            if self.openResult and self.mt5Controller.check_order_closed(self.openResult.order) == 0:
+            if self.position_id and self.mt5Controller.check_order_closed(self.position_id) == 0:
+                print("sub: ", self.position_id)
                 self.checkDeal()
                 # set to empty position
-                self.openResult = None
+                self.position_id = None
 
             # getting the Prices and MaData
             Prices = self.mt5Controller.pricesLoader.getPrices(symbols=[self.symbol], count=1000, timeframe=self.timeframe)
@@ -82,13 +81,13 @@ class Live(Base, Dealer):
             # get signal by 'long' or 'short' 1300
             signal = MaData[self.symbol][self.operation]
 
-            if not self.openResult:
+            if not self.position_id:
                 # open position signal
                 if signal.iloc[-1] and not signal.iloc[-2]:
                     # to avoid open the position at same condition
                     if self.lastPositionTime != operationGroupTime:
                         # get the partially exit price
-                        self.exitPrices = self.getExitPrices_tp(curClose)
+                        self.getExitPrices_tp(curClose)
                         # execute the open position
                         self.openDeal()
             else:
@@ -99,18 +98,19 @@ class Live(Base, Dealer):
 
                 # check if the partially position being reached
                 for exitPrice, data in self.exitPrices.items():
-                    try:
-                        size = data['size']
-                        point = data['point']
-                        # calculate the stop loss and take profit
-                        if curClose >= exitPrice:
-                            # # print(f'{symbol} position closed with position id: {self.openResult.order} and earn: {earn:2f} (Partial) and time taken {duration}')
-                            self.closeDeal_partial(size)
-                            # delete the position
-                            del self.exitPrices[exitPrice]
-                    except:
-                        print(self.exitPrices)
-                        print(data)
+                    # setup data
+                    exit_id = data['exit_id']
+                    size = data['size']
+                    point = data['point']
+                    # bypass the exit position with size=0
+                    if size == 0:
+                        continue
+                    # calculate the stop loss and take profit
+                    if curClose >= exitPrice:
+                        self.closeDeal_partial(size, info={'exit_id': exit_id})
+                        # delete the position
+                        self.exitPrices[exitPrice]['size'] = 0.0
+                        break
 
             # delay the operation
             time.sleep(5)

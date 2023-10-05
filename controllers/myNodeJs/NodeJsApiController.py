@@ -119,12 +119,10 @@ class NodeJsApiController(HttpController):
         # argStrs = [f'name={strategyName}']
         param = {}
         param['strategy_name'] = strategy_name
-        if live:
-            # argStrs.append(f'live={live}')
-            param['live'] = live
-        if backtest:
-            # argStrs.append(f'backtest={backtest}')
-            param['backtest'] = backtest
+        # live
+        param['live'] = live
+        # backtest
+        param['backtest'] = backtest
         # url = self.strategyParamUrl.format("&".join(argStrs))
         df = self.getDataframe(self.strategyParamUrl, param)
         return df

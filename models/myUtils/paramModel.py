@@ -79,7 +79,7 @@ def ask_params(class_object, **kwargs):
             # preprocess the param
             input_data = decodeParam(input_data, sig)
             params[sig.name] = input_data
-    return params
+    return class_object, params
 
 def insert_params(class_object, input_datas: list):
     """

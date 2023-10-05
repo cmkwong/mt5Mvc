@@ -70,12 +70,7 @@ class HttpController:
         :return pd.DataFrame with ohlcvs
         """
         res = self.restRequest(url, param, body)
-        # r = requests.get(url, json=body)
-        # res = r.json()
-        # if r.status_code != 200:
-        #     print(r.text)
-        #     return False
-        # change to dataframe
+
         return pd.DataFrame.from_dict(res['data'])
 
     # def createTable(self, url: str, schemaObj: dict):

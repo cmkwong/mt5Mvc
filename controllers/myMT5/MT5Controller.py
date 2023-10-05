@@ -18,7 +18,7 @@ class MT5Controller:
         self.tickController = MT5TickController()
         self.timeController = MT5TimeController()
         self.pricesLoader = MT5PricesLoader(self.timeController, self.symbolController, nodeJsApiController)  # loading the loader
-        self.executor = MT5Executor(self.pricesLoader.all_symbols_info)  # execute the request (buy/sell)
+        self.executor = MT5Executor(self.pricesLoader.all_symbols_info, self.get_historical_deals)  # execute the request (buy/sell)
 
     def print_terminal_info(self):
         # request connection status and parameters
@@ -71,7 +71,9 @@ class MT5Controller:
             # append the
             datas[i] = row
         historicalDeals = pd.DataFrame.from_dict(datas, orient='index', columns=cols)
-        # transfer seconds into time
+        # sort by date
+        historicalDeals.sort_values(by=['time'], inplace=True)
+        # transfer seconds into time format
         raw_datetime = historicalDeals['time'].apply(datetime.fromtimestamp)
         # resume back to UTC time
         raw_datetime = raw_datetime.apply(lambda t: t + timedelta(hours=-8))
