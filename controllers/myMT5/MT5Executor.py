@@ -88,7 +88,12 @@ class MT5Executor:
         return close the position request format
         """
         # get the first deal which is open position
-        openDeal = self._fn_get_historical_deals(position_id=position_id, datatype=dict)[0]
+        openDeals = self._fn_get_historical_deals(position_id=position_id, datatype=dict)
+        if openDeals:
+            openDeal = openDeals[0]
+        else:
+            print(f"Cannot find position id: {position_id}")
+            return False
         # get the information
         symbol = openDeal['symbol']
         oppositeType = 1 if openDeal['type'] == 0 else 0
@@ -109,6 +114,9 @@ class MT5Executor:
         :param request: request
         :return: Boolean
         """
+        if not request:
+            return False
+
         # sending the request
         result = mt5.order_send(request)
 

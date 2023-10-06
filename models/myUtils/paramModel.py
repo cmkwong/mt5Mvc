@@ -66,14 +66,20 @@ def ask_params(class_object, **kwargs):
     for sig in signatures.parameters.values():
         # argument after(*) && has no default parameter
         if sig.kind == sig.KEYWORD_ONLY:
-            # check if parameter is missed in default and assigned dict
-            if sig.name not in kwargs.keys():
-                if sig.default == sig.empty:
-                    raise Exception(f'{sig.name} parameter is missed. ')
-                else:
-                    kwargs[sig.name] = sig.default
+            # # check if parameter is missed in default and assigned dict
+            # if sig.name not in kwargs.keys():
+            #     if sig.default == sig.empty:
+            #         raise Exception(f'{sig.name} parameter is missed. ')
+            #     else:
+            #         kwargs[sig.name] = sig.default
             # encode the param
-            encoded_params = encodeParam(kwargs[sig.name])
+            if sig.name in kwargs.keys():
+                encoded_params = encodeParam(kwargs[sig.name])
+            else:
+                if sig.default == sig.empty:
+                    encoded_params = ''
+                else:
+                    encoded_params = encodeParam(sig.default)
             # asking params
             input_data = input_param(sig, encoded_params)
             # preprocess the param

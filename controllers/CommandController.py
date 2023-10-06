@@ -65,9 +65,9 @@ class CommandController:
         # close all deals
         elif command == '-close':
             kwargs = {
-                "position_id": 0,
-                "percent": 1.0,
-                "comment": "Manuel Close"
+                # "position_id": 0,
+                # "percent": 0.9,
+                # "comment": "Manuel Close"
             }
             obj, kwargs = paramModel.ask_params(self.mainController.mt5Controller.executor.close_request_format, **kwargs)
             request = obj(**kwargs)
@@ -204,6 +204,9 @@ class CommandController:
             obj, kwargs = paramModel.ask_params(self.mainController.nodeJsApiController.getStrategyParam, **kwargs)
             # get the parameter from SQL
             paramDf = obj(**kwargs)
+            if paramDf.empty:
+                print("No Param Found. ")
+                return False
             params = MovingAverage_Live.decodeParams(paramDf)
             # run for each param
             for i, p in params.items():

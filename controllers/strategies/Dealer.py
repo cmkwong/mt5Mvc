@@ -42,20 +42,19 @@ class Dealer:
     #     return exitPoints
 
     def update_deal(self, info: dict = None):
-        # build the record dictionary
-        records = self.mt5Controller.get_historical_deals(position_id=self.position_id, datatype=dict)
+        # build the record dictionary (only update last deal)
+        record = self.mt5Controller.get_historical_deals(position_id=self.position_id, datatype=dict)[-1]
         url = self.nodeJsApiController.dealRecordUrl
-        for i, record in enumerate(records):
-            # append self-defined fields
-            record['strategy_name'] = self.strategy_name
-            record['strategy_id'] = self.strategy_id
-            # merge user-defined and pre-defined data into only last deal
-            if info and i == (len(records) - 1):
-                record.update(info)
-            # send request
-            self.nodeJsApiController.restRequest(url, None, record, 'POST')
+
+        # append self-defined fields
+        record['strategy_name'] = self.strategy_name
+        record['strategy_id'] = self.strategy_id
+        # merge user-defined and pre-defined data into only last deal
+        if info: record.update(info)
+        # send request
+        self.nodeJsApiController.restRequest(url, None, record, 'POST')
         # print the record being uploaded
-        printModel.print_dict(records, True, orient='columns')
+        printModel.print_dict(record, True, orient='index')
 
     def openDeal(self, info: dict = None, comment=''):
         # execute the open position
