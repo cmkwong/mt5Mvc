@@ -8,7 +8,6 @@ import config
 
 # Strategy
 from controllers.strategies.SwingScalping.Live import Live as SwingScalping_Live
-from controllers.strategies.Covariance.Train import Train as Covariance_Train
 from controllers.strategies.Conintegration.Train import Train as Cointegration_Train
 from controllers.strategies.RL_Simple.Train import Train as RL_Simple_Train
 from controllers.strategies.MovingAverage.Train import Train as MovingAverage_Train
@@ -128,17 +127,6 @@ class CommandController:
         #         self.mainController.threadController.runThreadFunction(strategy.run, **defaultParam)
                 # self.mainController.strategyController.appendRunning(dicModel.dic2Txt_k(defaultParam), strategy)
 
-        # running Covariance_Live with all params
-        elif command == '-cov':
-            strategy = Covariance_Train(self.mainController)
-            kwargs = {
-                'start': (2022, 10, 30, 0, 0),
-                'end': (2022, 12, 16, 21, 59),
-                'timeframe': '1H'
-            }
-            obj, kwargs = paramModel.ask_params(strategy.run, **kwargs)
-            self.mainController.threadController.runThreadFunction(obj, **kwargs)
-
         elif command == '-coinT':
             strategy = Cointegration_Train(self.mainController)
             kwargs = {
@@ -217,6 +205,29 @@ class CommandController:
                 # append the strategy
                 self.RunningStrategies.append(strategy)
 
+        # ----------------------- Analysis -----------------------
+        # running Covariance_Live with all params
+        elif command == '-cov':
+            kwargs = {
+                'symbols': config.DefaultSymbols,
+                'start': (2022, 10, 30, 0, 0),
+                'end': (2022, 12, 16, 21, 59),
+                'timeframe': '1H'
+            }
+            obj, kwargs = paramModel.ask_params(self.mainController.mt5Controller.pricesLoader.getPrices, **kwargs)
+            Prices = obj(**kwargs)
+            # get the correlation table
+            corelaDf = self.mainController.timeSeriesController.get_corelaDf(Prices.cc)
+            corelaTxtDf = pd.DataFrame()
+            for symbol in kwargs['symbols']:
+                series = corelaDf[symbol].sort_values(ascending=False).drop(symbol)
+                corelaDict = dict(series)
+                corelaTxtDf[symbol] = pd.Series([f"{key}: {value * 100:.2f}%" for key, value in corelaDict.items()])
+            # print the correlation tables
+            printModel.print_df(corelaDf)
+            # print the highest correlated symbol tables
+            printModel.print_df(corelaTxtDf)
+
         # view the time series into Gramian Angular Field Image
         elif command == '-gaf':
             obj, kwargs = paramModel.ask_params(self.mainController.mt5Controller.pricesLoader.getPrices)
@@ -229,6 +240,9 @@ class CommandController:
                 X_gadf = gadf.fit_transform(nextTargetDf['close'].values.reshape(1, -1))
                 self.mainController.plotController.getGafImg(X_gasf[0, :, :], X_gadf[0, :, :], nextTargetDf['close'], f"{symbol}_gaf.jpg")
                 print(f"{symbol} gaf generated. ")
+
+        elif command == '-corelate':
+            pass
 
         # get the summary of df
         elif command == '-dfsumr':
