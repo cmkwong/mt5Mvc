@@ -75,23 +75,30 @@ class Dealer:
         # update into NodeJS
         self.update_deal(info)
 
+        return True
+
     def closeDeal(self, info: dict = None, comment=''):
         # if no open positions, then return false
         if not self.position_id:
             return False
         request = self.mt5Controller.executor.close_request_format(position_id=self.position_id, comment=comment)
         result = self.mt5Controller.executor.request_execute(request)
-        # update into NodeJS
-        self.update_deal(info)
-        # set to empty position
-        self.position_id = None
+        # update into NodeJS, if succeed
+        if result:
+            self.update_deal(info)
+            # set to empty position
+            self.position_id = None
+        return result
 
     def closeDeal_partial(self, size, info: dict = None, comment: str = 'Partial Close'):
         request = self.mt5Controller.executor.close_request_format(position_id=self.position_id, percent=size, comment=comment)
         result = self.mt5Controller.executor.request_execute(request)
-        # update into NodeJS
-        self.update_deal(info)
+        # update into NodeJS, if succeed
+        if result:
+            self.update_deal(info)
+        return result
 
     def checkDeal(self):
         # update into NodeJS
         self.update_deal()
+        return True

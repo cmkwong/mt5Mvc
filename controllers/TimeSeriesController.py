@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
+from pyts.image import GramianAngularField
+
 # from statsmodels.graphics import tsaplots
 # from pandas import read_csv
 # from matplotlib import pyplot

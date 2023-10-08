@@ -21,8 +21,6 @@ import paramStorage
 class CommandController:
     def __init__(self, mainController):
         self.mainController = mainController
-        # storing the running strategy
-        self.RunningStrategies = []
 
     def run(self, command):
         # ----------------------- Control -----------------------
@@ -65,8 +63,8 @@ class CommandController:
         elif command == '-close':
             kwargs = {
                 # "position_id": 0,
-                # "percent": 0.9,
-                # "comment": "Manuel Close"
+                "percent": 1.0,
+                "comment": "Manuel Close"
             }
             obj, kwargs = paramModel.ask_params(self.mainController.mt5Controller.executor.close_request_format, **kwargs)
             request = obj(**kwargs)
@@ -74,8 +72,10 @@ class CommandController:
 
         # close all deals from opened by strategy
         elif command == '-closeAll_s':
-            for strategy in self.RunningStrategies:
-                strategy.closeDeal('Force to Close')
+            for id, strategy in self.mainController.strategyController:
+                # if succeed to close deal
+                if strategy.closeDeal('Force to Close'):
+                    print(f"Strategy id: {id} closed. ")
 
         # ----------------------- Interface / Display -----------------------
         elif command == '-positions':
@@ -92,32 +92,33 @@ class CommandController:
 
         # ----------------------- Strategy -----------------------
         # load the processing strategy parameter from database
-        elif command == '-loads':
-            positionsDf = self.mainController.mt5Controller.get_active_positions()
-            for i, row in positionsDf.iterrows():
-                position_id = row['ticket']
-                price_open = row['price_open']
-                url = self.mainController.nodeJsApiController.strategyParamUrl
-                param = {
-                    'position_id': position_id
-                }
-                paramDf = self.mainController.nodeJsApiController.getDataframe(url, param)
-                if paramDf.empty:
-                    print(f"{position_id} has no param found. ")
-                    continue
-                params = MovingAverage_Live.decodeParams(paramDf)
-                # run for each param
-                for i, p in params.items():
-                    # define require strategy
-                    strategy = MovingAverage_Live(self.mainController, **p)
-                    # assign position id and setup ExitPrices
-                    strategy.position_id = position_id
-                    strategy.getExitPrices_tp(price_open)
-                    # run thread
-                    self.mainController.threadController.runThreadFunction(strategy.run)
-                    # append the strategy
-                    self.RunningStrategies.append(strategy)
-                    print(f"{position_id} param found. ")
+        # elif command == '-loads':
+        #     positionsDf = self.mainController.mt5Controller.get_active_positions()
+        #     for i, row in positionsDf.iterrows():
+        #         position_id = row['ticket']
+        #         price_open = row['price_open']
+        #         url = self.mainController.nodeJsApiController.strategyParamUrl
+        #         param = {
+        #             'strategy_name': 'ma',
+        #             'position_id': position_id
+        #         }
+        #         paramDf = self.mainController.nodeJsApiController.getDataframe(url, param)
+        #         if paramDf.empty:
+        #             print(f"{position_id} has no param found. ")
+        #             continue
+        #         params = MovingAverage_Live.decodeParams(paramDf)
+        #         # run for each param
+        #         for i, p in params.items():
+        #             # define require strategy
+        #             strategy = MovingAverage_Live(self.mainController, **p)
+        #             # assign position id and setup ExitPrices
+        #             strategy.position_id = position_id
+        #             strategy.getExitPrices_tp(price_open)
+        #             # run thread
+        #             self.mainController.threadController.runThreadFunction(strategy.run)
+        #             # append the strategy
+        #             self.mainController.strategyController.add(strategy)
+        #             print(f"{position_id} param found. ")
 
         # running SwingScalping_Live with all params
         # elif command == '-swL':
@@ -184,8 +185,33 @@ class CommandController:
 
         # Moving Average Live (get params from SQL)
         elif command == '-maLs':
+            def foo(paramDf, position_id=None, price_open=None):
+                params = MovingAverage_Live.decodeParams(paramDf)
+                # run for each param
+                for i, p in params.items():
+                    # if existed strategy, will not run again
+                    if self.mainController.strategyController.exist(p['strategy_id']):
+                        continue
+                    # define require strategy
+                    strategy = MovingAverage_Live(self.mainController, **p)
+                    # assign position id and setup ExitPrices (for load param)
+                    if position_id and price_open:
+                        strategy.position_id = position_id
+                        strategy.getExitPrices_tp(price_open)
+                    # run thread
+                    self.mainController.threadController.runThreadFunction(strategy.run)
+                    # append the strategy
+                    self.mainController.strategyController.add(strategy)
+
+            strategy_name = 'ma'
+            print("Running position parameter ... ")
+            # check if running strategy, if so, then run them first
+            for paramDf, position_id, price_open in self.mainController.strategyController.load_param(strategy_name):
+                # running param
+                foo(paramDf, position_id, price_open)
+
             # ask args
-            kwargs = {'strategy_name': 'ma',
+            kwargs = {'strategy_name': strategy_name,
                       'live': 2,
                       'backtest': 2
                       }
@@ -195,15 +221,8 @@ class CommandController:
             if paramDf.empty:
                 print("No Param Found. ")
                 return False
-            params = MovingAverage_Live.decodeParams(paramDf)
-            # run for each param
-            for i, p in params.items():
-                # define require strategy
-                strategy = MovingAverage_Live(self.mainController, **p)
-                # run thread
-                self.mainController.threadController.runThreadFunction(strategy.run)
-                # append the strategy
-                self.RunningStrategies.append(strategy)
+            # running param
+            foo(paramDf)
 
         # ----------------------- Analysis -----------------------
         # running Covariance_Live with all params
@@ -240,9 +259,6 @@ class CommandController:
                 X_gadf = gadf.fit_transform(nextTargetDf['close'].values.reshape(1, -1))
                 self.mainController.plotController.getGafImg(X_gasf[0, :, :], X_gadf[0, :, :], nextTargetDf['close'], f"{symbol}_gaf.jpg")
                 print(f"{symbol} gaf generated. ")
-
-        elif command == '-corelate':
-            pass
 
         # get the summary of df
         elif command == '-dfsumr':

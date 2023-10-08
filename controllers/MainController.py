@@ -1,3 +1,4 @@
+from controllers.strategies.StrategyController import StrategyController
 from controllers.myMT5.MT5Controller import MT5Controller
 from controllers.myNodeJs.NodeJsApiController import NodeJsApiController
 from controllers.PlotController import PlotController
@@ -12,3 +13,4 @@ class MainController:
         self.plotController = PlotController()
         self.threadController = ThreadController()
         self.timeSeriesController = TimeSeriesController()
+        self.strategyController = StrategyController(self.mt5Controller, self.nodeJsApiController)
