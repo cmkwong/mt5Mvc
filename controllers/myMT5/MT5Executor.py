@@ -15,9 +15,10 @@ MetaTrader:
 
 
 class MT5Executor:
-    def __init__(self, all_symbols_info, get_historical_deals):
+    def __init__(self, all_symbols_info, get_historical_deals, get_position_volume_balance):
         self.all_symbols_info = all_symbols_info
         self._fn_get_historical_deals = get_historical_deals
+        self._fn_get_position_volume_balance = get_position_volume_balance
 
     def request_format(self, symbol, operation, deviation, lot, sltp=(), pt_sltp=(), comment=''):
         """
@@ -89,6 +90,7 @@ class MT5Executor:
         """
         # get the first deal which is open position
         openDeals = self._fn_get_historical_deals(position_id=position_id, datatype=dict)
+        # get the first deal (open position)
         if openDeals:
             openDeal = openDeals[0]
         else:
@@ -97,7 +99,12 @@ class MT5Executor:
         # get the information
         symbol = openDeal['symbol']
         oppositeType = 1 if openDeal['type'] == 0 else 0
+
+        # check if volume is not exceed the balance
+        volume_balance = self._fn_get_position_volume_balance(position_id)
         volume = openDeal['volume'] * percent
+        volume = min(volume, volume_balance)
+
         request = {
             'action': mt5.TRADE_ACTION_DEAL,
             'type': oppositeType,

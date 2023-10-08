@@ -62,7 +62,7 @@ class Live(Base, Dealer):
 
         while True:
             # check if current position is closed by sl or tp
-            if self.position_id and self.mt5Controller.check_order_closed(self.position_id) == 0:
+            if self.position_id and self.mt5Controller.get_position_volume_balance(self.position_id) == 0:
                 print("sub: ", self.position_id)
                 self.checkDeal()
                 # set to empty position

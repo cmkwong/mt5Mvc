@@ -18,7 +18,7 @@ class MT5Controller:
         self.tickController = MT5TickController()
         self.timeController = MT5TimeController()
         self.pricesLoader = MT5PricesLoader(self.timeController, self.symbolController, nodeJsApiController)  # loading the loader
-        self.executor = MT5Executor(self.pricesLoader.all_symbols_info, self.get_historical_deals)  # execute the request (buy/sell)
+        self.executor = MT5Executor(self.pricesLoader.all_symbols_info, self.get_historical_deals, self.get_position_volume_balance)  # execute the request (buy/sell)
 
     def print_terminal_info(self):
         # request connection status and parameters
@@ -142,7 +142,7 @@ class MT5Controller:
             orders = mt5.history_orders_get(fromDate, currentDate)
         return orders
 
-    def check_order_closed(self, position_id):
+    def get_position_volume_balance(self, position_id):
         """
         Check if order finished or not
         :param position_id: ticket ID, in metatrader position ID is same as ticket ID
