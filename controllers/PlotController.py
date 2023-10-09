@@ -115,6 +115,9 @@ class PlotController:
         self.fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
         plt.close('all')
 
+    def show(self):
+        self.fig.show()
+
     def plotTxtBox(self, ax, txt, position=(0, 0), bboxColor='red', fontsize='small'):
         """
         :param ax:
@@ -231,11 +234,6 @@ class PlotController:
                     rotation=90,
                     color=txtColor,
                 )
-        # fig.tight_layout()
-        # imgFullPath = os.path.join(outPath, filename)
-        # fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
-        # plt.close('all')
-        # return imgFullPath
 
     def plotMultiHistogramWithSum(self, ax, df, yLabel):
         # reset axis
@@ -267,10 +265,6 @@ class PlotController:
         # set layout
         # fig.tight_layout()
         plt.autoscale(enable=True, axis='x', tight=True)
-        # imgFullPath = os.path.join(outPath, filename)
-        # fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
-        # plt.close('all')
-        # return imgFullPath
 
     def plotSimpleLine(self, ax, series, yLabel='y-axis'):
         # reset axis
@@ -288,12 +282,6 @@ class PlotController:
         # set ylabel
         ax.set_ylabel(yLabel)
 
-        # fig.tight_layout()
-        # imgFullPath = os.path.join(outPath, filename)
-        # fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
-        # plt.close('all')
-        # return imgFullPath
-
     def plotMultiLine(self, ax, df, yLabel):
         # reset axis
         # plt.clf()
@@ -307,11 +295,6 @@ class PlotController:
         # ax.xaxis.set_major_locator(self.locator)
         ax.set_ylabel(yLabel)
         ax.legend(loc='upper left')
-        # fig.tight_layout()
-        # imgFullPath = os.path.join(outPath, filename)
-        # fig.savefig(imgFullPath, bbox_inches="tight", transparent=True)
-        # plt.close('all')
-        # return imgFullPath
 
     # plot head-map
     def getCorrHeatmapImg(self, df, outPath, filename):
@@ -361,14 +344,3 @@ class PlotController:
         fig.tight_layout()
         fig.savefig(f'./docs/img/{filename}')
         plt.close('all')
-
-    # def imgSave2(self, arr2D, series, filename):
-    #     """
-    #     :param x: np.array
-    #     :param filename: str
-    #     """
-    #     # reset axis
-    #     plt.clf()
-    #     fig = plt.figure(figsize=self.figsize)
-    #     gs = fig.add_gridspec(2, 1, height_ratios=(5, 1))
-    #     fig.add

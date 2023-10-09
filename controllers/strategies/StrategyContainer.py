@@ -1,5 +1,5 @@
 
-class StrategyController:
+class StrategyContainer:
 
     def __init__(self, mt5Controller, nodeJsApiController):
         self.mt5Controller = mt5Controller

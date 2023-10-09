@@ -13,7 +13,7 @@ class HttpController:
         print(f"Connecting to {self.mainUrl} ... ")
         # define the url
         self.uploadForexDataUrl = self.mainUrl + "/forex/table/upload"
-        self.downloadForexDataUrl = self.mainUrl + "/forex/table/download?tableName={}"
+        self.downloadForexDataUrl = self.mainUrl + "/forex/table/download"
         self.createTableUrl = self.mainUrl + "/forex/table/create"
         self.allSymbolInfoUrl = self.mainUrl + "/forex/symbol/info"
         # get strategy param

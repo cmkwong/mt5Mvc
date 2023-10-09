@@ -29,6 +29,9 @@ class Live(Base, Dealer):
         self.fast = fast
         self.slow = slow
 
+    def __str__(self):
+        return f"{self.symbol}: {self.fast}/{self.slow}"
+
     @staticmethod
     def decodeParams(paramDf):
         """

@@ -202,6 +202,8 @@ class CommandController:
                     self.mainController.threadController.runThreadFunction(strategy.run)
                     # append the strategy
                     self.mainController.strategyController.add(strategy)
+                    # print running strategy
+                    print(strategy)
 
             strategy_name = 'ma'
             print("Running position parameter ... ")
@@ -225,6 +227,27 @@ class CommandController:
             foo(paramDf)
 
         # ----------------------- Analysis -----------------------
+        # seeing the decomposition of time series
+        elif command == '-dct':
+            symbol = 'USDJPY'
+            kwargs = {
+                'symbols': [symbol],
+                'start': (2023, 5, 30, 0, 0),
+                'end': (2023, 9, 30, 23, 59),
+                'timeframe': '15min'
+            }
+            obj, kwargs = paramModel.ask_params(self.mainController.mt5Controller.pricesLoader.getPrices, **kwargs)
+            Prices = obj(**kwargs)
+            season, trend, resid = self.mainController.timeSeriesController.decompose_timeData(Prices.close)
+            axs = self.mainController.plotController.getAxes(4, 1, (90, 50))
+            self.mainController.plotController.plotSimpleLine(axs[0], Prices.close.iloc[:, 0], symbol)
+            self.mainController.plotController.plotSimpleLine(axs[1], season, 'season')
+            self.mainController.plotController.plotSimpleLine(axs[2], trend, 'trend')
+            self.mainController.plotController.plotSimpleLine(axs[3], resid, 'resid')
+            # self.mainController.plotController.show()
+            self.mainController.plotController.saveImg('./docs/img')
+            print()
+
         # running Covariance_Live with all params
         elif command == '-cov':
             kwargs = {
