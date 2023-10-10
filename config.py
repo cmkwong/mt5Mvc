@@ -18,6 +18,9 @@ DepositCurrency = 'USD'
 TypeFilling = 'ioc'
 DefaultSymbols = ['AUDJPY', 'AUDCAD', 'AUDUSD', 'CADJPY', 'EURAUD', 'EURCAD', 'EURGBP', 'EURUSD', 'GBPUSD', 'USDCAD', 'USDJPY']
 
+# sql query
+SQLQUERY_FOREX_DIR = 'C:/Users/Chris/projects/220627_forexWebServer/queries/forex'
+
 # ---------------------------------------------------------------------------------------------
 # Forex Train Option
 LEARNING_RATE = 0.01

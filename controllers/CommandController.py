@@ -1,8 +1,9 @@
 import pandas as pd
+import os
 from pyts.image import GramianAngularField
 
 from models.myUtils.printModel import print_at
-from models.myUtils import paramModel, timeModel, printModel
+from models.myUtils import paramModel, timeModel, printModel, fileModel, inputModel
 from controllers.strategies.Dealer import Dealer
 import config
 
@@ -76,6 +77,18 @@ class CommandController:
                 # if succeed to close deal
                 if strategy.closeDeal('Force to Close'):
                     print(f"Strategy id: {id} closed. ")
+
+        # execute the query and get the dataframe
+        elif command == '-runsql':
+            # get the query name
+            fileList = fileModel.getFileList(config.SQLQUERY_FOREX_DIR)
+            userInput = inputModel.askSelection(fileList)
+            queryName = fileList[userInput].rsplit('.', 1)[0]
+            df = self.mainController.nodeJsApiController.executeMySqlQuery(queryName)
+            # out and open the excel
+            fullPath = os.path.join('./docs/excel', f"{queryName}_{timeModel.getTimeS(outputFormat='%Y%m%d%H%M%S')}.xlsx")
+            df.to_excel(fullPath)
+            os.system(os.path.abspath(fullPath))
 
         # ----------------------- Interface / Display -----------------------
         elif command == '-positions':
