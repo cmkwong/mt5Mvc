@@ -16,7 +16,6 @@ from controllers.strategies.MovingAverage.Live import Live as MovingAverage_Live
 from controllers.strategies.MovingAverage.Backtest import Backtest as MovingAverage_Backtest
 
 from controllers.DfController import DfController
-import paramStorage
 
 
 class CommandController:
@@ -30,7 +29,7 @@ class CommandController:
             self.mainController.nodeJsApiController.switchEnv(command[1:])
 
         # switch the price loader source from mt5 / local
-        elif command == '-mt5' or command == '-sql':
+        elif command == '-mt5' or command == '-local':
             self.mainController.mt5Controller.pricesLoader.switchSource(command[1:])
 
         # upload the data into mySql server
@@ -78,8 +77,16 @@ class CommandController:
                 if strategy.closeDeal('Force to Close'):
                     print(f"Strategy id: {id} closed. ")
 
+        # check the deal performance from-to
+        elif command == '-performance':
+            kwargs = {
+                'datefrom': '2023-10-01 00:00:00',
+                'dateto': timeModel.getTimeS()
+            }
+            # obj, kwargs = paramModel.
+
         # execute the query and get the dataframe
-        elif command == '-runsql':
+        elif command == '-sql':
             # get the query name
             fileList = fileModel.getFileList(config.SQLQUERY_FOREX_DIR)
             userInput = inputModel.askSelection(fileList)
@@ -94,7 +101,7 @@ class CommandController:
         elif command == '-positions':
             positionsDf = self.mainController.mt5Controller.get_active_positions()
             nextTargetDf = self.mainController.nodeJsApiController.executeMySqlQuery('query_positions_next_target')
-            # merge the df
+            # merge the positionsDf and nextTargetDf
             if not nextTargetDf.empty:
                 positionsDf = pd.merge(positionsDf, nextTargetDf, left_on='ticket', right_on='position_id', how='left', right_index=False).fillna('')
             printModel.print_df(positionsDf)
@@ -198,6 +205,7 @@ class CommandController:
 
         # Moving Average Live (get params from SQL)
         elif command == '-maLs':
+            # dummy function for running the treading strategy
             def foo(paramDf, position_id=None, price_open=None):
                 params = MovingAverage_Live.decodeParams(paramDf)
                 # run for each param
@@ -238,6 +246,8 @@ class CommandController:
                 return False
             # running param
             foo(paramDf)
+
+        # ----------------------- Analysis -----------------------
 
         # ----------------------- Analysis -----------------------
         # seeing the decomposition of time series
@@ -323,8 +333,6 @@ class CommandController:
                 count=1000,
                 timeframe='15min'
             )
-        elif command == '-testOrder':
-            pass
 
         elif command == '-testDeal':
             # define the dealer

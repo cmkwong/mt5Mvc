@@ -4,24 +4,24 @@ from datetime import date, datetime
 from prompt_toolkit import prompt
 
 
-def decodeParam(input_data, paramSig):
+def decodeParam(input_data, dataType):
     """
     list:   ["AUDCAD", "EURUSD", "AUDUSD"] -> "AUDCAD EURUSD AUDUSD"
     tuple:  ("AUDCAD", "EURUSD", "AUDUSD") -> '("AUDCAD", "EURUSD", "AUDUSD")'
     other:  1 -> '1'
     """
-    if paramSig.annotation == list:
+    if dataType == list:
         required_input_data = input_data.split(' ')
         if len(input_data) == 0:
             required_input_data = []
-    elif paramSig.annotation == tuple:
+    elif dataType == tuple:
         required_input_data = eval(input_data)
-    elif paramSig.annotation == bool:
+    elif dataType == bool:
         required_input_data = False
         if input_data == 'True':
             required_input_data = True
-    elif type(input_data) != paramSig.annotation:
-        required_input_data = paramSig.annotation(input_data)  # __new__, refer: https://www.pythontutorial.net/python-oop/python-__new__/
+    elif type(input_data) != dataType:
+        required_input_data = dataType(input_data)  # __new__, refer: https://www.pythontutorial.net/python-oop/python-__new__/
     else:
         required_input_data = input_data
     return required_input_data
@@ -42,12 +42,12 @@ def encodeParam(param):
     return encoded_param
 
 # user input the param
-def input_param(sig, param):
+def input_param(paramName, paramValue, dataTypeName):
     # ask use input parameter and allow user to modify the default parameter
-    input_data = prompt(f"{sig.name}({sig.annotation.__name__}): ", default=param)
+    input_data = prompt(f"{paramName}({dataTypeName}): ", default=paramValue)
     # if no input, then assign default parameter
     if len(input_data) == 0:
-        input_data = param
+        input_data = paramValue
     return input_data
 
 # ask user to input parameter from dictionary
@@ -66,12 +66,6 @@ def ask_params(class_object, **kwargs):
     for sig in signatures.parameters.values():
         # argument after(*) && has no default parameter
         if sig.kind == sig.KEYWORD_ONLY:
-            # # check if parameter is missed in default and assigned dict
-            # if sig.name not in kwargs.keys():
-            #     if sig.default == sig.empty:
-            #         raise Exception(f'{sig.name} parameter is missed. ')
-            #     else:
-            #         kwargs[sig.name] = sig.default
             # encode the param
             if sig.name in kwargs.keys():
                 encoded_params = encodeParam(kwargs[sig.name])
@@ -81,27 +75,27 @@ def ask_params(class_object, **kwargs):
                 else:
                     encoded_params = encodeParam(sig.default)
             # asking params
-            input_data = input_param(sig, encoded_params)
+            input_data = input_param(sig.name, encoded_params, sig.annotation.__name__)
             # preprocess the param
-            input_data = decodeParam(input_data, sig)
+            input_data = decodeParam(input_data, sig.annotation)
             params[sig.name] = input_data
     return class_object, params
 
-def insert_params(class_object, input_datas: list):
-    """
-    inputParams and class_object must have same order and length
-    :param class_object: class
-    :param inputParams: list of input parameters
-    :return: {params}
-    """
-    # params details from object
-    sig = inspect.signature(class_object)
-    params = {}
-    for i, paramSig in enumerate(sig.parameters.values()):
-        if (paramSig.kind == paramSig.KEYWORD_ONLY):  # and (param.default == param.empty)
-            input_data = decodeParam(input_datas[i], paramSig)
-            params[paramSig.name] = input_data
-    return params
+# def insert_params(class_object, input_datas: list):
+#     """
+#     inputParams and class_object must have same order and length
+#     :param class_object: class
+#     :param inputParams: list of input parameters
+#     :return: {params}
+#     """
+#     # params details from object
+#     sig = inspect.signature(class_object)
+#     params = {}
+#     for i, paramSig in enumerate(sig.parameters.values()):
+#         if (paramSig.kind == paramSig.KEYWORD_ONLY):  # and (param.default == param.empty)
+#             input_data = decodeParam(input_datas[i], paramSig)
+#             params[paramSig.name] = input_data
+#     return params
 
 
 class SymbolList(list):
