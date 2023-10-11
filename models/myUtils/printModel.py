@@ -10,7 +10,6 @@ def print_dict(data_dict: dict, tableFormat: bool = False, orient='index'):
     :param tableFormat: if True, print the table in dataframe format
     :param orient: if 'index'=straight display, 'columns'=horizontal display
     """
-    tableDict = {}
     print("~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*")
     if not tableFormat:
         for key, value in data_dict.items():

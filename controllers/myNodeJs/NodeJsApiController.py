@@ -128,10 +128,12 @@ class NodeJsApiController(HttpController):
         return df
 
     # get the query
-    def executeMySqlQuery(self, queryName: str):
-        param = {
+    def executeMySqlQuery(self, queryName: str, params: dict = None):
+        base_param = {
             "queryName": queryName
         }
-        df = self.getDataframe(self.mysqlQueryUrl, param)
+        if params:
+            base_param.update(params)
+        df = self.getDataframe(self.mysqlQueryUrl, base_param)
         return df
 

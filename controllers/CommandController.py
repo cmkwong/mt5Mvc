@@ -43,7 +43,7 @@ class CommandController:
                      'timeframe': '1min',
                      'count': 0,
                      'ohlcvs': '111111'}
-            obj, kwargs = paramModel.ask_params(self.mainController.mt5Controller.pricesLoader.getPrices, **kwargs)
+            obj, kwargs = paramModel.ask_param_fn(self.mainController.mt5Controller.pricesLoader.getPrices, **kwargs)
             Prices = obj(**kwargs)
             self.mainController.nodeJsApiController.uploadOneMinuteForexData(Prices)
             # resume to original source
@@ -54,7 +54,7 @@ class CommandController:
             # upload all_symbol_info
             all_symbol_info = self.mainController.mt5Controller.pricesLoader.all_symbols_info
             kwargs = {'broker': config.Broker}
-            obj, kwargs = paramModel.ask_params(self.mainController.nodeJsController.apiController.uploadAllSymbolInfo, **kwargs)
+            obj, kwargs = paramModel.ask_param_fn(self.mainController.nodeJsController.apiController.uploadAllSymbolInfo, **kwargs)
             # append param
             kwargs['all_symbol_info'] = all_symbol_info
             obj(**kwargs)
@@ -66,7 +66,7 @@ class CommandController:
                 "percent": 1.0,
                 "comment": "Manuel Close"
             }
-            obj, kwargs = paramModel.ask_params(self.mainController.mt5Controller.executor.close_request_format, **kwargs)
+            obj, kwargs = paramModel.ask_param_fn(self.mainController.mt5Controller.executor.close_request_format, **kwargs)
             request = obj(**kwargs)
             self.mainController.mt5Controller.executor.request_execute(request)
 
@@ -83,7 +83,9 @@ class CommandController:
                 'datefrom': '2023-10-01 00:00:00',
                 'dateto': timeModel.getTimeS()
             }
-            # obj, kwargs = paramModel.
+            kwargs = paramModel.ask_param(kwargs)
+            df = self.mainController.nodeJsApiController.executeMySqlQuery('query_position_performance', kwargs)
+            printModel.print_df(df)
 
         # execute the query and get the dataframe
         elif command == '-sql':
@@ -156,7 +158,7 @@ class CommandController:
                 'timeframe': '1H',
                 "outputPath": "C:/Users/Chris/projects/221227_mt5Mvc/docs/coin"
             }
-            obj, kwargs = paramModel.ask_params(strategy.simpleCheck, **kwargs)
+            obj, kwargs = paramModel.ask_param_fn(strategy.simpleCheck, **kwargs)
             self.mainController.threadController.runThreadFunction(obj, **kwargs)
 
         elif command == '-rlT':
@@ -166,20 +168,20 @@ class CommandController:
         # finding the best index in moving average
         elif command == '-maT':
             strategy = MovingAverage_Train(self.mainController)
-            obj, kwargs = paramModel.ask_params(strategy.getMaSummaryDf)
+            obj, kwargs = paramModel.ask_param_fn(strategy.getMaSummaryDf)
             obj(**kwargs)
 
         # get the distribution for the specific fast and slow param (the earning distribution)
         elif command == '-mad':
             strategy = MovingAverage_Backtest(self.mainController)
-            obj, kwargs = paramModel.ask_params(strategy.getMaDistImg)
+            obj, kwargs = paramModel.ask_param_fn(strategy.getMaDistImg)
             obj(**kwargs)
 
         # Moving Average distribution (get params from SQL)
         elif command == '-mads':
             curTime = timeModel.getTimeS(outputFormat='%Y-%m-%d %H%M%S')
             # get strategy param from
-            obj, kwargs = paramModel.ask_params(self.mainController.nodeJsApiController.getStrategyParam)
+            obj, kwargs = paramModel.ask_param_fn(self.mainController.nodeJsApiController.getStrategyParam)
             params = obj(**kwargs)
             # run the params
             for i, p in params.iterrows():
@@ -199,7 +201,7 @@ class CommandController:
         # Moving Average Live
         elif command == '-maL':
             strategy = MovingAverage_Live(self.mainController)
-            obj, kwargs = paramModel.ask_params(strategy.run)
+            obj, kwargs = paramModel.ask_param_fn(strategy.run)
             self.mainController.threadController.runThreadFunction(obj, **kwargs)
             # strategy.run(**defaultParam)
 
@@ -238,7 +240,7 @@ class CommandController:
                       'live': 2,
                       'backtest': 2
                       }
-            obj, kwargs = paramModel.ask_params(self.mainController.nodeJsApiController.getStrategyParam, **kwargs)
+            obj, kwargs = paramModel.ask_param_fn(self.mainController.nodeJsApiController.getStrategyParam, **kwargs)
             # get the parameter from SQL
             paramDf = obj(**kwargs)
             if paramDf.empty:
@@ -259,7 +261,7 @@ class CommandController:
                 'end': (2023, 9, 30, 23, 59),
                 'timeframe': '15min'
             }
-            obj, kwargs = paramModel.ask_params(self.mainController.mt5Controller.pricesLoader.getPrices, **kwargs)
+            obj, kwargs = paramModel.ask_param_fn(self.mainController.mt5Controller.pricesLoader.getPrices, **kwargs)
             Prices = obj(**kwargs)
             season, trend, resid = self.mainController.timeSeriesController.decompose_timeData(Prices.close)
             axs = self.mainController.plotController.getAxes(4, 1, (90, 50))
@@ -279,7 +281,7 @@ class CommandController:
                 'end': (2022, 12, 16, 21, 59),
                 'timeframe': '1H'
             }
-            obj, kwargs = paramModel.ask_params(self.mainController.mt5Controller.pricesLoader.getPrices, **kwargs)
+            obj, kwargs = paramModel.ask_param_fn(self.mainController.mt5Controller.pricesLoader.getPrices, **kwargs)
             Prices = obj(**kwargs)
             # get the correlation table
             corelaDf = self.mainController.timeSeriesController.get_corelaDf(Prices.cc)
@@ -295,7 +297,7 @@ class CommandController:
 
         # view the time series into Gramian Angular Field Image
         elif command == '-gaf':
-            obj, kwargs = paramModel.ask_params(self.mainController.mt5Controller.pricesLoader.getPrices)
+            obj, kwargs = paramModel.ask_param_fn(self.mainController.mt5Controller.pricesLoader.getPrices)
             Prices = obj(**kwargs)
             ohlcvs_dfs = Prices.getOhlcvsFromPrices()
             for symbol, nextTargetDf in ohlcvs_dfs.items():
@@ -311,9 +313,9 @@ class CommandController:
             dfController = DfController()
             # read the df
             print("Read File csv/exsl: ")
-            obj_readParam, readParam = paramModel.ask_params(DfController.readAsDf)
+            obj_readParam, readParam = paramModel.ask_param_fn(DfController.readAsDf)
             print("Output pdf: ")
-            obj_sumParam, sumParam = paramModel.ask_params(DfController.summaryPdf)
+            obj_sumParam, sumParam = paramModel.ask_param_fn(DfController.summaryPdf)
             nextTargetDf = obj_readParam(**readParam)
             obj_sumParam(nextTargetDf, **sumParam)
 

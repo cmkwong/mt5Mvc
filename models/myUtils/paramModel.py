@@ -51,7 +51,7 @@ def input_param(paramName, paramValue, dataTypeName):
     return input_data
 
 # ask user to input parameter from dictionary
-def ask_params(class_object, **kwargs):
+def ask_params_DISCARD(class_object, **kwargs):
     """
     :param class_object: class / function attribute
     :param kwargs: dict
@@ -64,23 +64,69 @@ def ask_params(class_object, **kwargs):
     params = {}
     # looping the signature
     for sig in signatures.parameters.values():
-        # argument after(*) && has no default parameter
+        # argument after(*)
         if sig.kind == sig.KEYWORD_ONLY:
             # encode the param
             if sig.name in kwargs.keys():
-                encoded_params = encodeParam(kwargs[sig.name])
+                encoded_param = encodeParam(kwargs[sig.name])
             else:
+                # has no default parameter
                 if sig.default == sig.empty:
-                    encoded_params = ''
+                    encoded_param = ''
                 else:
-                    encoded_params = encodeParam(sig.default)
+                    encoded_param = encodeParam(sig.default)
             # asking params
-            input_data = input_param(sig.name, encoded_params, sig.annotation.__name__)
+            input_data = input_param(sig.name, encoded_param, sig.annotation.__name__)
             # preprocess the param
             input_data = decodeParam(input_data, sig.annotation)
             params[sig.name] = input_data
     return class_object, params
 
+def ask_param_fn(class_object, **kwargs):
+    """
+    :param class_object: class / function attribute
+    :param kwargs: dict
+    :return: obj, dict of param
+    """
+    # if it is none
+    if not kwargs: kwargs = {}
+    # params details from object
+    signatures = inspect.signature(class_object)
+    params = {}
+    # looping the signature
+    for sig in signatures.parameters.values():
+        # argument after(*)
+        if sig.kind == sig.KEYWORD_ONLY:
+            # encode the param
+            if sig.name in kwargs.keys():
+                params[sig.name] = kwargs[sig.name]
+            else:
+                # has no default parameter
+                if sig.default == sig.empty:
+                    params[sig.name] = ''
+                else:
+                    params[sig.name] = sig.default
+    # ask user to input the param
+    params = ask_param(params)
+    return class_object, params
+
+def ask_param(kwargs):
+    """
+    pure to ask the param base on the dictionary
+    :param params: dict
+    :return:
+    """
+    params = {}
+    for k, v in kwargs.items():
+        dataType = type(v)
+        # encode the param (for user input)
+        encoded_param = encodeParam(v)
+        # asking params
+        input_data = input_param(k, encoded_param, dataType.__name__)
+        # decode the param
+        decode_data = decodeParam(input_data, dataType)
+        params[k] = decode_data
+    return params
 # def insert_params(class_object, input_datas: list):
 #     """
 #     inputParams and class_object must have same order and length
