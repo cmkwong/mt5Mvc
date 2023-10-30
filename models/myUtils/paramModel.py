@@ -18,8 +18,11 @@ def decodeParam(input_data, dataType):
         required_input_data = eval(input_data)
     elif dataType == bool:
         required_input_data = False
-        if input_data == 'True':
+        if input_data.upper() == 'TRUE':
             required_input_data = True
+    # as space/empty cannot int / float the transform
+    elif dataType in (int, float) and (input_data == '' or input_data.isspace()):
+        required_input_data = 0
     elif type(input_data) != dataType:
         required_input_data = dataType(input_data)  # __new__, refer: https://www.pythontutorial.net/python-oop/python-__new__/
     else:
@@ -82,50 +85,49 @@ def ask_params_DISCARD(class_object, **kwargs):
             params[sig.name] = input_data
     return class_object, params
 
-def ask_param_fn(class_object, **kwargs):
+def ask_param_fn(class_object, **overwrote_paramFormat):
     """
     :param class_object: class / function attribute
-    :param kwargs: dict
+    :param overwrote_paramFormat: dict
     :return: obj, dict of param
     """
     # if it is none
-    if not kwargs: kwargs = {}
+    if not overwrote_paramFormat: overwrote_paramFormat = {}
     # params details from object
     signatures = inspect.signature(class_object)
-    params = {}
+    paramFormat = {}
     # looping the signature
     for sig in signatures.parameters.values():
         # argument after(*)
         if sig.kind == sig.KEYWORD_ONLY:
             # encode the param
-            if sig.name in kwargs.keys():
-                params[sig.name] = kwargs[sig.name]
+            if sig.name in overwrote_paramFormat.keys():
+                paramFormat[sig.name] = overwrote_paramFormat[sig.name]
             else:
                 # has no default parameter
                 if sig.default == sig.empty:
-                    params[sig.name] = ''
+                    paramFormat[sig.name] = ['', sig.annotation]
                 else:
-                    params[sig.name] = sig.default
+                    paramFormat[sig.name] = [sig.default, sig.annotation]
     # ask user to input the param
-    params = ask_param(params)
-    return class_object, params
+    paramFormat = ask_param(paramFormat)
+    return class_object, paramFormat
 
-def ask_param(kwargs):
+def ask_param(paramFormat):
     """
-    pure to ask the param base on the dictionary
-    :param params: dict
+    purely to ask the param base on the dictionary
+    :param params: dict, { name: [value, dataType] }
     :return:
     """
     params = {}
-    for k, v in kwargs.items():
-        dataType = type(v)
+    for name, (value, dataType) in paramFormat.items():
         # encode the param (for user input)
-        encoded_param = encodeParam(v)
+        encoded_param = encodeParam(value)
         # asking params
-        input_data = input_param(k, encoded_param, dataType.__name__)
+        input_data = input_param(name, encoded_param, dataType.__name__)
         # decode the param
         decode_data = decodeParam(input_data, dataType)
-        params[k] = decode_data
+        params[name] = decode_data
     return params
 # def insert_params(class_object, input_datas: list):
 #     """

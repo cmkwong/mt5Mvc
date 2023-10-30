@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+from datetime import datetime, timedelta
 from pyts.image import GramianAngularField
 
 from models.myUtils.printModel import print_at
@@ -63,8 +64,8 @@ class CommandController:
         elif command == '-close':
             kwargs = {
                 # "position_id": 0,
-                "percent": 1.0,
-                "comment": "Manuel Close"
+                "percent": [1.0, float],
+                "comment": ["Manuel Close", str]
             }
             obj, kwargs = paramModel.ask_param_fn(self.mainController.mt5Controller.executor.close_request_format, **kwargs)
             request = obj(**kwargs)
@@ -74,14 +75,16 @@ class CommandController:
         elif command == '-closeAll_s':
             for id, strategy in self.mainController.strategyController:
                 # if succeed to close deal
-                if strategy.closeDeal('Force to Close'):
+                if strategy.closeDeal(comment='Force to Close'):
                     print(f"Strategy id: {id} closed. ")
 
         # check the deal performance from-to
         elif command == '-performance':
+            now = datetime.now()
+            dateFormat = "%Y-%m-%d %H-%M-%S"
             kwargs = {
-                'datefrom': '2023-10-01 00:00:00',
-                'dateto': timeModel.getTimeS()
+                'datefrom': ((now + timedelta(hours=-48)).strftime(dateFormat), str),
+                'dateto': (now.strftime(dateFormat), str)
             }
             kwargs = paramModel.ask_param(kwargs)
             df = self.mainController.nodeJsApiController.executeMySqlQuery('query_position_performance', kwargs)
@@ -236,9 +239,9 @@ class CommandController:
                 foo(paramDf, position_id, price_open)
 
             # ask args
-            kwargs = {'strategy_name': strategy_name,
-                      'live': 2,
-                      'backtest': 2
+            kwargs = {'strategy_name': [strategy_name, str],
+                      'live': [2, int],
+                      'backtest': [2, int]
                       }
             obj, kwargs = paramModel.ask_param_fn(self.mainController.nodeJsApiController.getStrategyParam, **kwargs)
             # get the parameter from SQL
