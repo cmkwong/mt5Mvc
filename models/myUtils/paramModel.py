@@ -110,8 +110,8 @@ def ask_param_fn(class_object, **overwrote_paramFormat):
                 else:
                     paramFormat[sig.name] = [sig.default, sig.annotation]
     # ask user to input the param
-    paramFormat = ask_param(paramFormat)
-    return class_object, paramFormat
+    param = ask_param(paramFormat)
+    return class_object, param
 
 def ask_param(paramFormat):
     """
