@@ -107,6 +107,7 @@ class CommandController:
             # merge the positionsDf and nextTargetDf
             if not nextTargetDf.empty:
                 positionsDf = pd.merge(positionsDf, nextTargetDf, left_on='ticket', right_on='position_id', how='left', right_index=False).fillna('')
+                positionsDf['position_id'] = positionsDf['position_id'].astype('Int64').astype('str')
             printModel.print_df(positionsDf)
 
         elif command == '-deals':

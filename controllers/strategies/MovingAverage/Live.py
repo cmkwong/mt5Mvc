@@ -114,6 +114,9 @@ class Live(Base, Dealer):
                         self.closeDeal_partial(size, info={'exit_id': exit_id})
                         # delete the position
                         self.exitPrices[exitPrice]['size'] = 0.0
+                        if self.mt5Controller.get_position_volume_balance(self.position_id) == 0:
+                            # set to empty position
+                            self.position_id = None
                         break
 
             # delay the operation
