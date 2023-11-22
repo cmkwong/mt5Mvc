@@ -17,6 +17,10 @@ class Train(Base):
                                 'reliable'
                                 ]
 
+    def genData(self):
+        Prices = self.mt5Controller.pricesLoader.getPrices()
+
+    # get summary dataframe
     def getMaSummaryDf(self, *,
                        symbols: list = config.DefaultSymbols,
                        timeframe: str = '15min',

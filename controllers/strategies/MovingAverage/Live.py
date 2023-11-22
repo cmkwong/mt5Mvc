@@ -75,7 +75,7 @@ class Live(Base, Dealer):
             # getting the Prices and MaData
             Prices = self.mt5Controller.pricesLoader.getPrices(symbols=[self.symbol], count=1000, timeframe=self.timeframe)
             MaData = self.getMaData(Prices, self.fast, self.slow)
-            MaData = self.getOperationGroup(MaData)
+            MaData = self.getOperationGroup_MaData(MaData)
             # getting curClose and its digit
             curClose = Prices.close[self.symbol][-1]
             self.digit = Prices.all_symbols_info[self.symbol]['digits']  # set the digit
@@ -100,7 +100,7 @@ class Live(Base, Dealer):
                     # close the deal
                     self.closeDeal(comment='Signal Off')
 
-                # check if the partially position being reached
+                # check each of partially position if being reached
                 for exitPrice, data in self.exitPrices.items():
                     # setup data
                     exit_id = data['exit_id']
@@ -114,8 +114,8 @@ class Live(Base, Dealer):
                         self.closeDeal_partial(size, info={'exit_id': exit_id})
                         # delete the position
                         self.exitPrices[exitPrice]['size'] = 0.0
+                        # set to empty position if the balance is 0
                         if self.mt5Controller.get_position_volume_balance(self.position_id) == 0:
-                            # set to empty position
                             self.position_id = None
                         break
 

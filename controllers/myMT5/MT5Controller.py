@@ -28,6 +28,10 @@ class MT5Controller:
         # get loader on MetaTrader 5 version
         print(mt5.version())
 
+    def print_account_balance(self):
+        info = mt5.account_info()._asdict()
+        print(f"balance: {info['balance']:.2f}, profit: {info['profit']:.2f}, equity: {info['equity']:.2f}, margin: {info['margin']}")
+
     def get_active_positions(self):
         """
         :return: print all of the active order situation

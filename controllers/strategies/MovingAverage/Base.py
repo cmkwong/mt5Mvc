@@ -45,12 +45,12 @@ class Base:
             MaData[symbol, 'short'] = MaData[symbol, 'short'].shift(1).fillna(False)  # signal should delay 1 timeframe
 
         # for grouping usage, if Signal=True, ffill the signal start date
-        MaData = self.getOperationGroup(MaData)
+        MaData = self.getOperationGroup_MaData(MaData)
 
         return MaData
 
     # assigning the first start date to signal==True
-    def getOperationGroup(self, MaData):
+    def getOperationGroup_MaData(self, MaData):
 
         # get the symbol list
         symbols = list(MaData.columns.levels[0])
@@ -110,3 +110,16 @@ class Base:
                 # save the distribution
                 Distributions[symbol][operation] = dist
         return Distributions
+
+    # get the signal and the operation time (if existed)
+    def getMaSignal(self, Prices, fast, slow):
+        MaData = self.getMaData(Prices, fast, slow)
+        MaData = self.getOperationGroup_MaData(MaData)
+        # getting curClose and its digit
+        curClose = Prices.close[self.symbol][-1]
+        self.digit = Prices.all_symbols_info[self.symbol]['digits']  # set the digit
+
+        # get the operation group value, either False / datetime
+        operationGroupTime = MaData.loc[:, (self.symbol, f"{self.operation}_group")][-1]
+        # get signal by 'long' or 'short' 1300
+        signal = MaData[self.symbol][self.operation]

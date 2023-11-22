@@ -76,18 +76,6 @@ class CommandController:
                 if strategy.closeDeal(comment='Force to Close'):
                     print(f"Strategy id: {id} closed. ")
 
-        # check the deal performance from-to
-        elif command == '-performance':
-            now = datetime.now()
-            dateFormat = "%Y-%m-%d %H:%M:%S"
-            paramFormat = {
-                'datefrom': ((now + timedelta(hours=-48)).strftime(dateFormat), str),
-                'dateto': (now.strftime(dateFormat), str)
-            }
-            param = paramModel.ask_param(paramFormat)
-            df = self.mainController.nodeJsApiController.executeMySqlQuery('query_position_performance', param)
-            printModel.print_df(df)
-
         # execute the query and get the dataframe
         elif command == '-sql':
             # get the query name
@@ -109,6 +97,20 @@ class CommandController:
                 positionsDf = pd.merge(positionsDf, nextTargetDf, left_on='ticket', right_on='position_id', how='left', right_index=False).fillna('')
                 positionsDf['position_id'] = positionsDf['position_id'].astype('Int64').astype('str')
             printModel.print_df(positionsDf)
+
+        # check the deal performance from-to
+        elif command == '-performance':
+            now = datetime.now()
+            dateFormat = "%Y-%m-%d %H:%M:%S"
+            paramFormat = {
+                'datefrom': ((now + timedelta(hours=-48)).strftime(dateFormat), str),
+                'dateto': (now.strftime(dateFormat), str)
+            }
+            param = paramModel.ask_param(paramFormat)
+            df = self.mainController.nodeJsApiController.executeMySqlQuery('query_position_performance', param)
+            printModel.print_df(df)
+            # account balance
+            self.mainController.mt5Controller.print_account_balance()
 
         elif command == '-deals':
             deals = self.mainController.mt5Controller.get_historical_deals(lastDays=1)
