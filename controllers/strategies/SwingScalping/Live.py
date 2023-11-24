@@ -86,7 +86,7 @@ class Live(Base):
                                                                ohlcvs='111111'
                                                                )
             # getting ohlcvs
-            ohlcvs = Prices.getOhlcvsFromPrices()[symbol]
+            ohlcvs = Prices.getOhlcvsFromPrice()[symbol]
 
             # getting master signal
             masterSignal = self.getMasterSignal(symbol, ohlcvs, self.lowerEma, self.middleEma, self.upperEma,

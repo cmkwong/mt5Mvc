@@ -304,7 +304,7 @@ class CommandController:
         elif command == '-gaf':
             obj, param = paramModel.ask_param_fn(self.mainController.mt5Controller.pricesLoader.getPrices)
             Prices = obj(**param)
-            ohlcvs_dfs = Prices.getOhlcvsFromPrices()
+            ohlcvs_dfs = Prices.getOhlcvsFromPrice()
             for symbol, nextTargetDf in ohlcvs_dfs.items():
                 gasf = GramianAngularField(method='summation', image_size=1.0)
                 X_gasf = gasf.fit_transform(nextTargetDf['close'].values.reshape(1, -1))

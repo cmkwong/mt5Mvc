@@ -22,7 +22,7 @@ class Base:
         # getting the Prices
         # self.fetchData_min = self.nodeJsServerController.downloadForexData(symbol, timeframe='1min', startTime=start, endTime=end)
         Prices = self.mt5Controller.pricesLoader.getPrices([symbol], start=start, end=end, timeframe='1min')
-        self.fetchData_min = Prices.getOhlcvsFromPrices()[symbol]
+        self.fetchData_min = Prices.getOhlcvsFromPrice()[symbol]
         # switch back to original data source
         self.mt5Controller.pricesLoader.switchSource(originalSource)
 

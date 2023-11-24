@@ -20,7 +20,7 @@ class Backtest(Base):
         # getting the Prices
         # fetchData_cust = self.nodeJsServerController.downloadForexData(symbol, timeframe='5min', startTime=startTime, endTime=endTime)
         Prices = self.mt5Controller.pricesLoader.getPrices([symbol], start=startTime, end=endTime, timeframe='5min')
-        fetchData_cust = Prices.getOhlcvsFromPrices()[symbol]
+        fetchData_cust = Prices.getOhlcvsFromPrice()[symbol]
 
         # getting master signal
         masterSignal = self.getMasterSignal(symbol, fetchData_cust,

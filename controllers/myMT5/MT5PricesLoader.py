@@ -1,4 +1,4 @@
-from controllers.myMT5.InitPrices import InitPrices
+from controllers.myMT5.InitPrice import InitPrice
 from models.myBacktest import exchgModel
 from models.myUtils import timeModel, inputModel
 from models.myUtils.paramModel import SymbolList, DatetimeTuple
@@ -134,7 +134,7 @@ class MT5PricesLoader:  # created note 86a
         df.dropna(inplace=True)
         return df
 
-    def _price_type_from_code(self, ohlcvs):
+    def _price_type_from_ohlcvs(self, ohlcvs):
         """
         :param ohlcvs: str of code, eg: '100100'
         :return: list, eg: ['open', 'close']
@@ -151,32 +151,35 @@ class MT5PricesLoader:  # created note 86a
     def _prices_df2dict(self, prices_raw_df, symbols, ohlcvs):
 
         # rename columns of the prices_df
-        col_names = self._price_type_from_code(ohlcvs)
-        prices_raw_df.columns = col_names * len(symbols)
+        price_type = self._price_type_from_ohlcvs(ohlcvs)
+        prices_raw_df.columns = price_type * len(symbols)
 
         prices = {}
         max_length = len(prices_raw_df.columns)
-        step = len(col_names)
+        step = len(price_type)
         for i in range(0, max_length, step):
             symbol = symbols[int(i / step)]
             prices[symbol] = prices_raw_df.iloc[:, i:i + step]
         return prices
 
-    def _get_specific_from_prices(self, prices: pd.DataFrame, required_symbols, ohlcvs):
+    def _get_ohlcvs_from_prices(self, prices: pd.DataFrame, symbols, ohlcvs):
         """
         :param prices: {symbol: pd.DataFrame}
-        :param required_symbols: [str]
-        :param ohlcvs: str, '1000'
+        :param symbols: [str]
+        :param ohlcvs: str, '100000', only one dimension could be extract
         :return: pd.DataFrame
         """
-        types = self._price_type_from_code(ohlcvs)
+        # check if only 1-dimension being selected
+        if sum(int(v) for v in ohlcvs) > 1:
+            raise Exception('Cannot extract larger than one dimension. ')
+        price_type = self._price_type_from_ohlcvs(ohlcvs)
         required_prices = pd.DataFrame()
-        for i, symbol in enumerate(required_symbols):
+        for i, symbol in enumerate(symbols):
             if i == 0:
-                required_prices = prices[symbol].loc[:, types].copy()
+                required_prices = prices[symbol].loc[:, price_type].copy()
             else:
-                required_prices = pd.concat([required_prices, prices[symbol].loc[:, types]], axis=1)
-        required_prices.columns = required_symbols
+                required_prices = pd.concat([required_prices, prices[symbol].loc[:, price_type]], axis=1)
+        required_prices.columns = symbols
         return required_prices
 
     def get_exchange_symbols(self, symbols, exchg_type='q2d'):
@@ -220,7 +223,7 @@ class MT5PricesLoader:  # created note 86a
         :return: pd.DataFrame
         """
         join = 'outer'
-        required_types = self._price_type_from_code(ohlcvs)
+        price_type = self._price_type_from_ohlcvs(ohlcvs)
         prices_df = None
         for i, symbol in enumerate(symbols):
             if count > 0:  # get the latest units of loader
@@ -236,7 +239,7 @@ class MT5PricesLoader:  # created note 86a
                     self.source = _originalSource # resume to original data source
             else:
                 raise Exception('start-date must be set when end-date is being set.')
-            price = price.loc[:, required_types]
+            price = price.loc[:, price_type]
             if i == 0:
                 prices_df = price.copy()
             else:
@@ -253,8 +256,15 @@ class MT5PricesLoader:  # created note 86a
 
     # get latest Prices format
     def get_latest_Prices_format(self, symbols, prices, q2d_exchg_symbols, count):
+        """
+        :param symbols: [str]
+        :param prices: pd.DataFrame
+        :param q2d_exchg_symbols: [str]
+        :param count: int
+        :return: [Price]
+        """
 
-        close_prices = self._get_specific_from_prices(prices, symbols, ohlcvs='000100')
+        close_prices = self._get_ohlcvs_from_prices(prices, symbols, ohlcvs='000100')
         if len(close_prices) != count:  # note 63a
             print("prices_df length of Data is not equal to count")
             return False
@@ -263,67 +273,79 @@ class MT5PricesLoader:  # created note 86a
         change_close_prices = ((close_prices - close_prices.shift(1)) / close_prices.shift(1)).fillna(0.0)
 
         # get quote exchange with values
-        exchg_close_prices = self._get_specific_from_prices(prices, q2d_exchg_symbols, ohlcvs='000100')
+        exchg_close_prices = self._get_ohlcvs_from_prices(prices, q2d_exchg_symbols, ohlcvs='000100')
         q2d_exchange_rate_df = exchgModel.get_exchange_df(symbols, q2d_exchg_symbols, exchg_close_prices, config.DepositCurrency, "q2d")
         # if len(q2d_exchange_rate_df_o) or len(q2d_exchange_rate_df_c) == 39, return false and run again
         if len(q2d_exchange_rate_df) != count:  # note 63a
             print("q2d_exchange_rate_df_o or q2d_exchange_rate_df_c length of Data is not equal to count")
             return False
 
-        Prices = InitPrices(symbols=symbols,
-                            all_symbols_info=self.all_symbols_info,
-                            close=close_prices,
-                            cc=change_close_prices,
-                            # ptDv=points_dff_values_df,
-                            # ptD=points_diff_df,
-                            quote_exchg=q2d_exchange_rate_df
-                            )
-
+        Prices = []
+        for symbol in symbols:
+            Price = InitPrice(symbol=symbol,
+                              all_symbols_info=self.all_symbols_info,
+                              close=close_prices,
+                              cc=change_close_prices,
+                              # ptDv=points_dff_values_df,
+                              # ptD=points_diff_df,
+                              quote_exchg=q2d_exchange_rate_df
+                              )
+            Prices.append(Price)
         return Prices
 
     def get_Prices_format(self, symbols, prices, q2d_exchg_symbols, b2d_exchg_symbols, ohlcvs):
-
+        """
+        :param symbols: [str]
+        :param prices: {symbol: dataframe}
+        :param q2d_exchg_symbols: [str]
+        :param b2d_exchg_symbols: [str]
+        :param ohlcvs: str, eg: '111111'
+        :return: [Object of Price]
+        """
         # get the change of close price
-        close_prices = self._get_specific_from_prices(prices, symbols, ohlcvs='000100')
+        close_prices = self._get_ohlcvs_from_prices(prices, symbols, ohlcvs='000100')
         changes = ((close_prices - close_prices.shift(1)) / close_prices.shift(1)).fillna(0.0)
 
         # get the quote to deposit exchange rate
-        exchg_close_prices = self._get_specific_from_prices(prices, q2d_exchg_symbols, ohlcvs='000100')
+        exchg_close_prices = self._get_ohlcvs_from_prices(prices, q2d_exchg_symbols, ohlcvs='000100')
         q2d_exchange_rate_df = exchgModel.get_exchange_df(symbols, q2d_exchg_symbols, exchg_close_prices, config.DepositCurrency, "q2d")
 
         # get the base to deposit exchange rate
-        exchg_close_prices = self._get_specific_from_prices(prices, b2d_exchg_symbols, ohlcvs='000100')
+        exchg_close_prices = self._get_ohlcvs_from_prices(prices, b2d_exchg_symbols, ohlcvs='000100')
         b2d_exchange_rate_df = exchgModel.get_exchange_df(symbols, q2d_exchg_symbols, exchg_close_prices, config.DepositCurrency, "b2d")
 
-        # assign the column into each collection tuple
-        Prices = InitPrices(symbols=symbols,
-                            all_symbols_info=self.all_symbols_info,
-                            close=close_prices,
-                            cc=changes,
-                            # ptDv=points_dff_values_df,
-                            # ptD=points_diff_df,
-                            quote_exchg=q2d_exchange_rate_df,
-                            base_exchg=b2d_exchange_rate_df
-                            )
-        # get open prices
-        if ohlcvs[0] == '1':
-            Prices.open = self._get_specific_from_prices(prices, symbols, ohlcvs='100000')
+        Prices = []
+        for symbol in symbols:
+            # assign the column into each collection tuple
+            Price = InitPrice(symbol=symbol,
+                              all_symbols_info=self.all_symbols_info,
+                              close=close_prices,
+                              cc=changes,
+                              # ptDv=points_dff_values_df,
+                              # ptD=points_diff_df,
+                              quote_exchg=q2d_exchange_rate_df,
+                              base_exchg=b2d_exchange_rate_df
+                              )
+            # get open prices
+            if ohlcvs[0] == '1':
+                Price.open = self._get_ohlcvs_from_prices(prices, symbols, ohlcvs='100000')
 
-        # get the change of high price
-        if ohlcvs[1] == '1':
-            Prices.high = self._get_specific_from_prices(prices, symbols, ohlcvs='010000')
+            # get the change of high price
+            if ohlcvs[1] == '1':
+                Price.high = self._get_ohlcvs_from_prices(prices, symbols, ohlcvs='010000')
 
-        # get the change of low price
-        if ohlcvs[2] == '1':
-            Prices.low = self._get_specific_from_prices(prices, symbols, ohlcvs='001000')
+            # get the change of low price
+            if ohlcvs[2] == '1':
+                Price.low = self._get_ohlcvs_from_prices(prices, symbols, ohlcvs='001000')
 
-        # get the tick volume
-        if ohlcvs[4] == '1':
-            Prices.volume = self._get_specific_from_prices(prices, symbols, ohlcvs='000010')
+            # get the tick volume
+            if ohlcvs[4] == '1':
+                Price.volume = self._get_ohlcvs_from_prices(prices, symbols, ohlcvs='000010')
 
-        if ohlcvs[5] == '1':
-            Prices.spread = self._get_specific_from_prices(prices, symbols, ohlcvs='000001')
+            if ohlcvs[5] == '1':
+                Price.spread = self._get_ohlcvs_from_prices(prices, symbols, ohlcvs='000001')
 
+            Prices.append(Price)
         return Prices
 
     def getPrices(self, *,
@@ -344,6 +366,7 @@ class MT5PricesLoader:  # created note 86a
         required_symbols = list(set(symbols + q2d_exchg_symbols + b2d_exchg_symbols))
         self.check_if_symbols_available(required_symbols)  # if not, raise Exception
         prices = self._get_prices_df(required_symbols, timeframe, start, end, ohlcvs, count)
+
         Prices = self.get_Prices_format(symbols, prices, q2d_exchg_symbols, b2d_exchg_symbols, ohlcvs)
         return Prices
 

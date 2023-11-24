@@ -19,24 +19,23 @@ class Base:
         :param slow_param: int
         :return: pd.Dataframe
         """
-        columnIndex = dfModel.getLevelColumnIndex(level_1=list(Prices.close.columns), level_2=self.MA_DATA_COLS)
-        # get the close price
-        Close = Prices.close
-        # get the point value (Based on Deposit Dollar)
-        valueDiff = Prices.ptDv
-        # get the point difference
-        ptDiff = Prices.ptD
-        # get the changes
-        Change = Prices.cc
+        symbols = [Price.symbol for Price in Prices]
+        columnIndex = dfModel.getLevelColumnIndex(level_1=symbols, level_2=self.MA_DATA_COLS)
         # create empty ma_data
-        MaData = pd.DataFrame(columns=columnIndex, index=Close.index)
-        for i, symbol in enumerate(Prices.symbols):
-            MaData[symbol, 'close'] = Close[symbol]
-            MaData[symbol, 'cc'] = Change[symbol]
-            MaData[symbol, 'valueDiff'] = valueDiff.iloc[:, i]
-            MaData[symbol, 'ptDiff'] = ptDiff.iloc[:, i]
-            MaData[symbol, 'fast'] = techModel.get_MA(Close[symbol], fast_param, False)
-            MaData[symbol, 'slow'] = techModel.get_MA(Close[symbol], slow_param, False)
+        MaData = pd.DataFrame(columns=columnIndex, index=Prices[0].close.index)
+        for Price in Prices:
+            # get the symbol
+            symbol = Price.symbol
+            # get the close
+            MaData[symbol, 'close'] = Price.close
+            # get the changes
+            MaData[symbol, 'cc'] = Price.cc
+            # get the point value (Based on Deposit Dollar)
+            MaData[symbol, 'valueDiff'] = Price.ptDv
+            # get the point difference
+            MaData[symbol, 'ptDiff'] = Price.ptD
+            MaData[symbol, 'fast'] = techModel.get_MA(Price.close, fast_param, False)
+            MaData[symbol, 'slow'] = techModel.get_MA(Price.close, slow_param, False)
             # long signal
             MaData[symbol, 'long'] = MaData[symbol, 'fast'] > MaData[symbol, 'slow']
             MaData[symbol, 'long'] = MaData[symbol, 'long'].shift(1).fillna(False)  # signal should delay 1 timeframe

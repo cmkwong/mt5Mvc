@@ -5,7 +5,7 @@ import pandas as pd
 
 
 @dataclass
-class InitPrices:
+class InitPrice:
     # symbols: list
     # all_symbols_info: dict
     # close: pd.DataFrame
@@ -20,7 +20,7 @@ class InitPrices:
     # volume: pd.DataFrame = pd.DataFrame()
     # spread: pd.DataFrame = pd.DataFrame()
     def __init__(self,
-                symbols: list,
+                symbol: str,
                 all_symbols_info: dict,
                 close: pd.DataFrame,
                 cc: pd.DataFrame,
@@ -34,7 +34,7 @@ class InitPrices:
                 volume: pd.DataFrame = pd.DataFrame(),
                 spread: pd.DataFrame = pd.DataFrame()
                 ):
-        self.symbols = symbols
+        self.symbol = symbol
         self.all_symbols_info = all_symbols_info
         self.close = close
         self.cc = cc
@@ -69,31 +69,31 @@ class InitPrices:
                 testDict[name] = attr
             else:
                 trainDict[name], testDict[name] = dfModel.split_df(attr, percentage)
-        return InitPrices(**trainDict), InitPrices(**testDict)
+        return InitPrice(**trainDict), InitPrice(**testDict)
 
     # get {'symbol': df with ohlcvs}
-    def getOhlcvsFromPrices(self):
+    def getOhlcvsFromPrice(self):
         """
         resume into normal dataframe
-        :param symbols: [symbol str]
+        :param symbol: str
         :param Prices: Prices collection
         :return: {pd.DataFrame}
         """
         ohlcsvs = {}
-        nameDict = {'open': 'open', 'high': 'high', 'low': 'low', 'close': 'close', 'volume': 'volume', 'spread': 'spread', 'quote_exchg': 'quote_exchg', 'base_exchg': 'base_exchg'}
+        required_attrs = {'open': 'open', 'high': 'high', 'low': 'low', 'close': 'close', 'volume': 'volume', 'spread': 'spread', 'quote_exchg': 'quote_exchg', 'base_exchg': 'base_exchg'}
         for si, symbol in enumerate(self.symbols):
             requiredDf = pd.DataFrame()  # create empty df
-            for name in self.attrs:  # name = variable name; field = pd.dataframe/ value
+            for attr in self.attrs:  # name = variable name; field = pd.dataframe/ value
                 # only need the cols in nameDict
-                if name not in nameDict.keys(): continue
+                if attr not in required_attrs.keys(): continue
                 # get the attr
-                attr = getattr(self, name)
-                # if not dataframe
-                if not isinstance(attr, pd.DataFrame): continue
+                attr_df = getattr(self, attr)
+                # if not dataframe data type
+                if not isinstance(attr_df, pd.DataFrame): continue
                 # if dataframe empty
-                if attr.empty: continue
+                if attr_df.empty: continue
                 # assign columns
-                dfCol = attr.iloc[:, si].rename(nameDict[name])  # get required column
+                dfCol = attr_df.iloc[:, si].rename(required_attrs[attr])  # get required column
                 if requiredDf.empty:
                     requiredDf = dfCol.copy()
                 else:
@@ -178,15 +178,15 @@ class InitPrices:
         :return: get the values in deposit
         """
         # get the digits
-        digits = [10 ** self.all_symbols_info[symbol]['digits'] for symbol in self.symbols]
+        digits = 10 ** self.all_symbols_info[self.symbol]['digits']
 
         # get the point values, eg: 1 pt of USDJPY = 100 YEN
-        pt_values = [self.all_symbols_info[symbol]['pt_value'] for symbol in self.symbols]
+        pt_values = self.all_symbols_info[self.symbol]['pt_value']
 
         # get values in deposit
         new_prices = self.close
         old_prices = self.close.shift(periods=1)
-        values_diff_df = pd.DataFrame((new_prices - old_prices) * digits * pt_values * self.quote_exchg.values, columns=self.symbols)
+        values_diff_df = pd.DataFrame((new_prices - old_prices) * digits * pt_values * self.quote_exchg.values, columns=[self.symbol])
 
         return values_diff_df
 

@@ -25,7 +25,7 @@ class NodeJsApiController(HttpController):
         :return:
         """
         # process into dataframe
-        dfs = Prices.getOhlcvsFromPrices()
+        dfs = Prices.getOhlcvsFromPrice()
         # get to upload the data to database
         for symbol, df in dfs.items():
             df['datetime'] = df.index
