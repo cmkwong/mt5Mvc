@@ -2,12 +2,12 @@ from models.myUtils import timeModel, printModel
 
 
 class Dealer:
-    def __init__(self, mainController, *,
+    def __init__(self, mt5Controller, nodeJsApiController, *,
                  symbol, timeframe, operation, lot,
                  pt_sl=None, pt_tp=None, exitPoints=None,
                  strategy_name='', strategy_id='', strategy_detail=''):
-        self.mt5Controller = mainController.mt5Controller
-        self.nodeJsApiController = mainController.nodeJsApiController
+        self.mt5Controller = mt5Controller
+        self.nodeJsApiController = nodeJsApiController
         self.position_id = None # if none, means it has no position yet
 
         # params

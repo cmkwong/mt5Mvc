@@ -2,10 +2,10 @@ from models.myUtils import strModel
 from controllers.strategies.Conintegration.Base import Base
 
 class Train(Base):
-    def __init__(self, mainController):
-        self.mt5Controller = mainController.mt5Controller
-        self.nodeJsServerController = mainController.nodeJsApiController
-        self.plotController = mainController.plotController
+    def __init__(self, mt5Controller, nodeJsApiController, plotController):
+        self.mt5Controller = mt5Controller
+        self.nodeJsServerController = nodeJsApiController
+        self.plotController = plotController
 
     def simpleCheck(self, *, symbols: list, start: tuple, end: tuple, timeframe: str, outputPath: str):
         """

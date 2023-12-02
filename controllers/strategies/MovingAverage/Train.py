@@ -9,8 +9,8 @@ import os
 
 
 class Train(Base):
-    def __init__(self, mainController):
-        self.mt5Controller = mainController.mt5Controller
+    def __init__(self, mt5Controller):
+        self.mt5Controller = mt5Controller
         # self.nodeJsServerController = mainController.nodeJsApiController
         self.MA_SUMMARY_COLS = ['symbol', 'fast', 'slow', 'operation', 'total', 'rate', 'count', 'mean_duration', 'timeframe', 'start', 'end',
                                 '0%', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%',

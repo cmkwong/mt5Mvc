@@ -110,16 +110,3 @@ class Base:
                 # save the distribution
                 Distributions[symbol][operation] = dist
         return Distributions
-
-    # get the signal and the operation time (if existed)
-    def getMaSignal(self, Prices, fast, slow):
-        MaData = self.getMaData(Prices, fast, slow)
-        MaData = self.getOperationGroup_MaData(MaData)
-        # getting curClose and its digit
-        curClose = Prices.close[self.symbol][-1]
-        self.digit = Prices.all_symbols_info[self.symbol]['digits']  # set the digit
-
-        # get the operation group value, either False / datetime
-        operationGroupTime = MaData.loc[:, (self.symbol, f"{self.operation}_group")][-1]
-        # get signal by 'long' or 'short' 1300
-        signal = MaData[self.symbol][self.operation]

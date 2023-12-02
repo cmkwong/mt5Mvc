@@ -8,10 +8,10 @@ import os
 
 
 class Backtest(Base):
-    def __init__(self, mainController):
-        self.mt5Controller = mainController.mt5Controller
-        self.nodeJsApiController = mainController.nodeJsApiController
-        self.plotController = mainController.plotController
+    def __init__(self, mt5Controller, nodeJsApiController, plotController):
+        self.mt5Controller = mt5Controller
+        self.nodeJsApiController = nodeJsApiController
+        self.plotController = plotController
 
     def getMaDistImg(self, curTime=None, *,
                      symbol: str = 'USDJPY',
