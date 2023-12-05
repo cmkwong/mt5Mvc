@@ -3,15 +3,14 @@ import pandas as pd
 import numpy as np
 from fpdf import FPDF
 
-from controllers.PlotController import PlotController
 from models.myUtils import inputModel, listModel, fileModel, timeModel
 
 class DfController:
     """
     Data source: local, nodeJs server, python df
     """
-    def __init__(self):
-        self.plotController = PlotController()
+    def __init__(self, plotController):
+        self.plotController = plotController
         self.pdf = FPDF('L', 'mm', 'A4')
 
     def readAsDf(self, *, path: str='./docs/datas'):
@@ -32,7 +31,7 @@ class DfController:
         else:
             df = pd.DataFrame()
         print(f"read {filename} in {path}. ")
-        return df
+        return filename, df
 
     def getPreviousIndex(self, currentIndex, df, limitReplace=None):
         idx = np.searchsorted(df.index, currentIndex)

@@ -12,7 +12,7 @@ class NodeJsApiController(HttpController):
 
     # create the forex 1min table
     def createForex1MinTable(self, tableName, schemaType):
-        created = self.restRequest(self.createTableUrl, {'tableName': tableName, 'schemaType': schemaType})
+        created = self.restRequest(self.createTableUrl, {'schemaName': 'forex', 'tableName': tableName, 'schemaType': schemaType})
         if created:
             print(f"The table is created.")
 
@@ -31,7 +31,7 @@ class NodeJsApiController(HttpController):
             df['datetime'] = df.index
             # change to UTC + 0
             df['datetime'] = (df['datetime'] + pd.Timedelta(hours=-config.Broker_Time_Between_UTC)).dt.strftime('%Y-%m-%d %H:%M:%S')
-            if (self.postDataframe(self.uploadForexDataUrl, df, {'tableName': f'{symbol.lower()}_1m'})):
+            if (self.postDataframe(self.uploadTableUrl, df, {'schemaName': 'forex', 'tableName': f'{symbol.lower()}_1m'})):
                 print(f"{symbol}: {len(dfs[symbol])} data being uploaded. ")
 
     # get data
@@ -50,7 +50,7 @@ class NodeJsApiController(HttpController):
             'from': timeModel.getTimeS(startTime, outputFormat='%Y-%m-%d %H:%M:%S'),
             'to': timeModel.getTimeS(endTime, outputFormat='%Y-%m-%d %H:%M:%S')
         }
-        forexDataDf_raw = self.getDataframe(self.downloadForexDataUrl, {'tableName': tableName}, body)
+        forexDataDf_raw = self.getDataframe(self.downloadTableUrl, {'schemaName': 'forex', 'tableName': tableName}, body)
         if (len(forexDataDf_raw) == 0):
             print('No data being fetched. ')
             return False

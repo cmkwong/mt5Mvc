@@ -11,10 +11,11 @@ class HttpController:
         else:
             self.mainUrl = "http://localhost:3002/api/v1/query"
         print(f"Connecting to {self.mainUrl} ... ")
-        # define the url
-        self.uploadForexDataUrl = self.mainUrl + "/forex/table/upload"
-        self.downloadForexDataUrl = self.mainUrl + "/forex/table/download"
-        self.createTableUrl = self.mainUrl + "/forex/table/create"
+        # table url
+        self.uploadTableUrl = self.mainUrl + "/table/upload"
+        self.downloadTableUrl = self.mainUrl + "/table/download"
+        self.createTableUrl = self.mainUrl + "/table/create"
+        # symbol url
         self.allSymbolInfoUrl = self.mainUrl + "/forex/symbol/info"
         # get strategy param
         self.strategyParamUrl = self.mainUrl + "/forex/strategy/param"

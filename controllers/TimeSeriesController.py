@@ -10,7 +10,9 @@ from pyts.image import GramianAngularField
 # import pyts
 
 class TimeSeriesController:
-
+    """
+    About analysis the time series data
+    """
     def __init__(self):
         pass
 

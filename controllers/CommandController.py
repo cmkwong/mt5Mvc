@@ -28,10 +28,11 @@ from controllers.DfController import DfController
 class CommandController:
     def __init__(self):
         self.nodeJsApiController = NodeJsApiController()
-        self.mt5Controller = MT5Controller(self.nodeJsApiController)
         self.plotController = PlotController()
         self.threadController = ThreadController()
         self.timeSeriesController = TimeSeriesController()
+        self.mt5Controller = MT5Controller(self.nodeJsApiController)
+        self.dfController = DfController(self.plotController)
         self.strategyController = StrategyContainer(self.mt5Controller, self.nodeJsApiController)
 
     def run(self, command):
@@ -333,14 +334,27 @@ class CommandController:
 
         # get the summary of df
         elif command == '-dfsumr':
-            dfController = DfController()
             # read the df
             print("Read File csv/exsl: ")
-            obj_readParam, readParam = paramModel.ask_param_fn(DfController.readAsDf)
+            obj_readParam, readParam = paramModel.ask_param_fn(self.dfController.readAsDf)
             print("Output pdf: ")
-            obj_sumParam, sumParam = paramModel.ask_param_fn(DfController.summaryPdf)
-            nextTargetDf = obj_readParam(**readParam)
+            obj_sumParam, sumParam = paramModel.ask_param_fn(self.dfController.summaryPdf)
+            _, nextTargetDf = obj_readParam(**readParam)
             obj_sumParam(nextTargetDf, **sumParam)
+
+        # read the price csv and upload into server
+        elif command == '-upload_stock':
+            params = paramModel.ask_param({
+                'path': ['C:/Users/Chris/projects/221227_mt5Mvc/docs/datas/US Stock', str]
+            })
+            filename, df = self.dfController.readAsDf(**params)
+            # ask table name
+            params = paramModel.ask_param({
+                'tableName': [filename.lower(), str]
+            })
+            # change the index into datetime
+            if (self.nodeJsApiController.postDataframe(self.nodeJsApiController.uploadTableUrl, df, {'schemaName': 'stock', **params})):
+                print(f"{params}: {len(df)} data being uploaded. ")
 
         # ----------------------- Testing -----------------------
         # testing for getting the data from sql / mt5 by switch the data source
