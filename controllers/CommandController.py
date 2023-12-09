@@ -350,8 +350,11 @@ class CommandController:
             filename, df = self.dfController.readAsDf(**params)
             # ask table name
             params = paramModel.ask_param({
-                'tableName': [filename.lower(), str]
+                'tableName': [filename.lower().split('.', -1)[0], str]
             })
+            # change the datetime
+            df['datetime'] = pd.to_datetime(df['datetime'])
+
             # change the index into datetime
             if (self.nodeJsApiController.postDataframe(self.nodeJsApiController.uploadTableUrl, df, {'schemaName': 'stock', **params})):
                 print(f"{params}: {len(df)} data being uploaded. ")
