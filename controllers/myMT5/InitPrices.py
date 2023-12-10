@@ -47,8 +47,8 @@ class InitPrices:
         self.low = low
         self.volume = volume
         self.spread = spread
-        self.ptD = self.get_points_dff_df(ptValue=False)
-        self.ptDv = self.get_values_dff_df() # in-deposit, eg USD
+        self.ptD = self.get_points_dff_df(ptValue_need=False, depositValue_need=False)
+        self.ptDv = self.get_points_dff_df() # in-deposit, eg USD
         # get attr
         self.attrs = [attr for attr in dir(self) if not callable(getattr(self, attr)) and not attr.startswith("__")]
 
@@ -143,8 +143,29 @@ class InitPrices:
             pointValueDiffs[symbol] = (new - old) * (10 ** digits) * self.all_symbols_info[symbol]['pt_value'] * q2d_at
         return pointValueDiffs
 
+    def get_points_dff_df(self, ptValue_need=True, depositValue_need=True):
+        """
+        :return: get the values in deposit
+        """
+        # get the digits
+        digits = [10 ** self.all_symbols_info[symbol]['digits'] for symbol in self.symbols]
 
-    def get_points_dff_df(self, col_names=None, ptValue=True):
+        # get the point values, eg: 1 pt of USDJPY = 100 YEN
+        pt_values = [self.all_symbols_info[symbol]['pt_value'] if ptValue_need else 1 for symbol in self.symbols]
+
+        if depositValue_need:
+            quote_exchgs = self.quote_exchg.values
+        else:
+            quote_exchgs = [1 for symbol in self.symbols]
+
+        # get values in deposit
+        new_prices = self.close
+        old_prices = self.close.shift(periods=1)
+        values_diff_df = pd.DataFrame((new_prices - old_prices) * digits * pt_values * quote_exchgs, columns=self.symbols)
+
+        return values_diff_df
+
+    def get_points_dff_df__DISCARD(self, col_names=None, ptValue=True):
         """
         :param col_names: list, set None to use the symbols as column names. Otherwise, rename as fake column name
         :param ptValue: Boolean, if True, return in point value, eg: 1 pt of USDJPY = 100 YEN
@@ -172,23 +193,6 @@ class InitPrices:
         elif col_names == None:
             points_dff_df.columns = symbols
         return points_dff_df
-
-    def get_values_dff_df(self):
-        """
-        :return: get the values in deposit
-        """
-        # get the digits
-        digits = [10 ** self.all_symbols_info[symbol]['digits'] for symbol in self.symbols]
-
-        # get the point values, eg: 1 pt of USDJPY = 100 YEN
-        pt_values = [self.all_symbols_info[symbol]['pt_value'] for symbol in self.symbols]
-
-        # get values in deposit
-        new_prices = self.close
-        old_prices = self.close.shift(periods=1)
-        values_diff_df = pd.DataFrame((new_prices - old_prices) * digits * pt_values * self.quote_exchg.values, columns=self.symbols)
-
-        return values_diff_df
 
 
 

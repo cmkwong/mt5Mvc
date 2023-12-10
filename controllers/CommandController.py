@@ -136,43 +136,6 @@ class CommandController:
             printModel.print_df(deals)
 
         # ----------------------- Strategy -----------------------
-        # load the processing strategy parameter from database
-        # elif command == '-loads':
-        #     positionsDf = self.mt5Controller.get_active_positions()
-        #     for i, row in positionsDf.iterrows():
-        #         position_id = row['ticket']
-        #         price_open = row['price_open']
-        #         url = self.nodeJsApiController.strategyParamUrl
-        #         param = {
-        #             'strategy_name': 'ma',
-        #             'position_id': position_id
-        #         }
-        #         paramDf = self.nodeJsApiController.getDataframe(url, param)
-        #         if paramDf.empty:
-        #             print(f"{position_id} has no param found. ")
-        #             continue
-        #         params = MovingAverage_Live.decodeParams(paramDf)
-        #         # run for each param
-        #         for i, p in params.items():
-        #             # define require strategy
-        #             strategy = MovingAverage_Live(self, **p)
-        #             # assign position id and setup ExitPrices
-        #             strategy.position_id = position_id
-        #             strategy.getExitPrices_tp(price_open)
-        #             # run thread
-        #             self.threadController.runThreadFunction(strategy.run)
-        #             # append the strategy
-        #             self.strategyController.add(strategy)
-        #             print(f"{position_id} param found. ")
-
-        # running SwingScalping_Live with all params
-        # elif command == '-swL':
-        #     defaultParams = paramStorage.METHOD_PARAMS['SwingScalping_Live']
-        #     for defaultParam in defaultParams:
-        #         strategy = SwingScalping_Live(self, auto=True)
-        #         self.threadController.runThreadFunction(strategy.run, **defaultParam)
-                # self.strategyController.appendRunning(dicModel.dic2Txt_k(defaultParam), strategy)
-
         elif command == '-coinT':
             strategy = Cointegration_Train(self.mt5Controller, self.nodeJsApiController, self.plotController)
             paramFormat = {
