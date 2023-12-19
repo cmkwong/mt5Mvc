@@ -35,7 +35,7 @@ class NodeJsApiController(HttpController):
                 print(f"{symbol}: {len(dfs[symbol])} data being uploaded. ")
 
     # get data
-    def downloadForexData(self, symbol: str, timeframe: str, startTime: tuple, endTime: tuple):
+    def downloadSeriesData(self, schemaName: str, symbol: str, timeframe: str, startTime: tuple, endTime: tuple):
         """
         :param symbol: str
         :param startTime: tuple for time
@@ -43,14 +43,15 @@ class NodeJsApiController(HttpController):
         :param timeframe: str
         :return:
         """
-        forexDataDf = pd.DataFrame()
+        # define the dataframe
+        df = pd.DataFrame()
         # define the table name
         tableName = symbol.lower() + '_1m'
         body = {
             'from': timeModel.getTimeS(startTime, outputFormat='%Y-%m-%d %H:%M:%S'),
             'to': timeModel.getTimeS(endTime, outputFormat='%Y-%m-%d %H:%M:%S')
         }
-        forexDataDf_raw = self.getDataframe(self.downloadTableUrl, {'schemaName': 'forex', 'tableName': tableName}, body)
+        forexDataDf_raw = self.getDataframe(self.downloadTableUrl, {'schemaName': schemaName, 'tableName': tableName}, body)
         if (len(forexDataDf_raw) == 0):
             print('No data being fetched. ')
             return False
@@ -62,25 +63,18 @@ class NodeJsApiController(HttpController):
         # resample the dataframe
         for col in forexDataDf_raw:
             if col == 'open':
-                forexDataDf[col] = forexDataDf_raw[col].resample(timeframe).first()
+                df[col] = forexDataDf_raw[col].resample(timeframe).first()
             elif col == 'high':
-                forexDataDf[col] = forexDataDf_raw[col].resample(timeframe).max()
+                df[col] = forexDataDf_raw[col].resample(timeframe).max()
             elif col == 'low':
-                forexDataDf[col] = forexDataDf_raw[col].resample(timeframe).min()
+                df[col] = forexDataDf_raw[col].resample(timeframe).min()
             elif col == 'close':
-                forexDataDf[col] = forexDataDf_raw[col].resample(timeframe).last()
+                df[col] = forexDataDf_raw[col].resample(timeframe).last()
             elif col == 'volume':
-                forexDataDf[col] = forexDataDf_raw[col].resample(timeframe).sum()
+                df[col] = forexDataDf_raw[col].resample(timeframe).sum()
             elif col == 'spread':
-                forexDataDf[col] = forexDataDf_raw[col].resample(timeframe).last()
-            # elif col == 'base_exchg':
-            #     forexDataDf[col] = forexDataDf_raw[col].resample(timeframe).last()
-            # elif col == 'quote_exchg':
-            #     forexDataDf[col] = forexDataDf_raw[col].resample(timeframe).last()
-            # elif col == 'ptDv':
-            #     forexDataDf[col] = forexDataDf_raw[col].resample(timeframe).sum()
-        # drop the nan rows that is holiday
-        return forexDataDf.rename(columns={"volume": "tick_volume"}).dropna()
+                df[col] = forexDataDf_raw[col].resample(timeframe).last()
+        return df.rename(columns={"volume": "tick_volume"}).dropna(how='all')
 
     # upload all symbol info
     def uploadAllSymbolInfo(self, *, all_symbol_info: dict, broker: str):

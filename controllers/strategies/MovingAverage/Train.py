@@ -22,7 +22,7 @@ class Train(Base):
 
     # get summary dataframe
     def getMaSummaryDf(self, *,
-                       symbols: list = config.DefaultSymbols,
+                       symbols: list = config.Default_Forex_Symbols,
                        timeframe: str = '15min',
                        start: DatetimeTuple = (2023, 6, 1, 0, 0),
                        end: DatetimeTuple = (2023, 7, 30, 23, 59),

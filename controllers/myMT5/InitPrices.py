@@ -3,30 +3,14 @@ from models.myUtils import dfModel
 from dataclasses import dataclass
 import pandas as pd
 
-
 @dataclass
 class InitPrices:
-    # symbols: list
-    # all_symbols_info: dict
-    # close: pd.DataFrame
-    # cc: pd.DataFrame
-    # # ptDv: pd.DataFrame
-    # # ptD: pd.DataFrame
-    # quote_exchg: pd.DataFrame
-    # base_exchg: pd.DataFrame = pd.DataFrame()
-    # open: pd.DataFrame = pd.DataFrame()
-    # high: pd.DataFrame = pd.DataFrame()
-    # low: pd.DataFrame = pd.DataFrame()
-    # volume: pd.DataFrame = pd.DataFrame()
-    # spread: pd.DataFrame = pd.DataFrame()
     def __init__(self,
                 symbols: list,
-                all_symbols_info: dict,
                 close: pd.DataFrame,
                 cc: pd.DataFrame,
-                # ptDv: pd.DataFrame,
-                # ptD: pd.DataFrame,
-                quote_exchg: pd.DataFrame,
+                all_symbols_info: dict = None,
+                quote_exchg: pd.DataFrame = pd.DataFrame(),
                 base_exchg: pd.DataFrame = pd.DataFrame(),
                 open: pd.DataFrame = pd.DataFrame(),
                 high: pd.DataFrame = pd.DataFrame(),
@@ -35,11 +19,9 @@ class InitPrices:
                 spread: pd.DataFrame = pd.DataFrame()
                 ):
         self.symbols = symbols
-        self.all_symbols_info = all_symbols_info
+        self.all_symbols_info = all_symbols_info if all_symbols_info else {}
         self.close = close
         self.cc = cc
-        # ptDv: pd.DataFrame,
-        # ptD: pd.DataFrame,
         self.quote_exchg = quote_exchg
         self.base_exchg = base_exchg
         self.open = open
@@ -47,8 +29,8 @@ class InitPrices:
         self.low = low
         self.volume = volume
         self.spread = spread
-        self.ptD = self.get_points_dff_df(ptValue_need=False, depositValue_need=False)
-        self.ptDv = self.get_points_dff_df() # in-deposit, eg USD
+        self.ptD = self.get_points_dff_df(ptValue_need=False, depositValue_need=False) if all_symbols_info else None
+        self.ptDv = self.get_points_dff_df() if all_symbols_info else None # in-deposit, eg USD
         # get attr
         self.attrs = [attr for attr in dir(self) if not callable(getattr(self, attr)) and not attr.startswith("__")]
 

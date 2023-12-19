@@ -16,7 +16,8 @@ Broker_Time_Between_UTC = 0
 TimeZone = 'Etc/UTC'   # Check: set(pytz.all_timezones_set) - (Etc/UTC) # Hongkong
 DepositCurrency = 'USD'
 TypeFilling = 'ioc'
-DefaultSymbols = ['AUDJPY', 'AUDCAD', 'AUDUSD', 'CADJPY', 'EURAUD', 'EURCAD', 'EURGBP', 'EURUSD', 'GBPUSD', 'USDCAD', 'USDJPY']
+Default_Forex_Symbols = ['AUDJPY', 'AUDCAD', 'AUDUSD', 'CADJPY', 'EURAUD', 'EURCAD', 'EURGBP', 'EURUSD', 'GBPUSD', 'USDCAD', 'USDJPY']
+Default_Stock_Symbols = ['AAPL', 'AMZN', 'META', 'MSFT', 'TSLA']
 
 # sql query
 SQLQUERY_FOREX_DIR = 'C:/Users/Chris/projects/220627_forexWebServer/queries/forex'

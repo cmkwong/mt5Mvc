@@ -12,6 +12,7 @@ import config
 from controllers.strategies.StrategyContainer import StrategyContainer
 from controllers.myMT5.MT5Controller import MT5Controller
 from controllers.myNodeJs.NodeJsApiController import NodeJsApiController
+from controllers.myStock.StockPriceLoader import StockPriceLoader
 from controllers.PlotController import PlotController
 from controllers.ThreadController import ThreadController
 from controllers.TimeSeriesController import TimeSeriesController
@@ -31,6 +32,7 @@ class CommandController:
         self.plotController = PlotController()
         self.threadController = ThreadController()
         self.timeSeriesController = TimeSeriesController()
+        self.stockPriceLoader = StockPriceLoader(self.nodeJsApiController)
         self.mt5Controller = MT5Controller(self.nodeJsApiController)
         self.dfController = DfController(self.plotController)
         self.strategyController = StrategyContainer(self.mt5Controller, self.nodeJsApiController)
@@ -52,11 +54,12 @@ class CommandController:
             self.mt5Controller.pricesLoader.source = 'mt5'
             # upload Prices
             paramFormat = {
-                    'symbols': config.DefaultSymbols,
-                    'start': (2023, 6, 1, 0, 0), 'end': (2023, 6, 30, 23, 59),
-                    'timeframe': '1min',
-                    'count': 0,
-                    'ohlcvs': '111111'
+                    'symbols':      [config.Default_Forex_Symbols, list],
+                    'start':        [(2023, 3, 24, 0, 0), tuple],
+                    'end':          [(2023, 4, 24, 23, 59), tuple],
+                    'timeframe':    ['1min', str],
+                    'count':        [0, int],
+                    'ohlcvs':       ['111111', str]
             }
             obj, param = paramModel.ask_param_fn(self.mt5Controller.pricesLoader.getPrices, **paramFormat)
             Prices = obj(**param)
@@ -64,10 +67,16 @@ class CommandController:
             # resume to original source
             self.mt5Controller.pricesLoader.source = originalSource
 
+        # download the stock data
+        elif command == '-download_test':
+            obj, param = paramModel.ask_param_fn(self.stockPriceLoader.getPrices)
+            Prices = obj(**param)
+            print()
+
         # all symbol info upload
         elif command == '-symbol':
             # upload all_symbol_info
-            all_symbol_info = self.mt5Controller.pricesLoader.all_symbols_info
+            all_symbol_info = self.mt5Controller.symbolController.get_all_symbols_info()
             paramFormat = {'broker': config.Broker}
             obj, param = paramModel.ask_param_fn(self.nodeJsApiController.uploadAllSymbolInfo, **paramFormat)
             # append param
@@ -263,7 +272,7 @@ class CommandController:
         # running Covariance_Live with all params
         elif command == '-cov':
             paramFormat = {
-                'symbols': [config.DefaultSymbols, list],
+                'symbols': [config.Default_Forex_Symbols, list],
                 'start': [(2022, 10, 30, 0, 0), tuple],
                 'end': [(2022, 12, 16, 21, 59), tuple],
                 'timeframe': ['1H', str]
@@ -282,18 +291,21 @@ class CommandController:
             # print the highest correlated symbol tables
             printModel.print_df(corelaTxtDf)
 
-        # view the time series into Gramian Angular Field Image
+        # view the time series into Gramian Angular Field Image (forex / stock)
         elif command == '-gaf':
-            obj, param = paramModel.ask_param_fn(self.mt5Controller.pricesLoader.getPrices)
+            ans = inputModel.askSelection(["Forex", "Stock"])
+            # get the price
+            if ans == 0:
+                obj, param = paramModel.ask_param_fn(self.mt5Controller.pricesLoader.getPrices)
+            else:
+                obj, param = paramModel.ask_param_fn(self.stockPriceLoader.getPrices)
             Prices = obj(**param)
             ohlcvs_dfs = Prices.getOhlcvsFromPrices()
+            # get time string
+            curTimeStr = timeModel.getTimeS(outputFormat="%Y%m%d-%H%M%S")
             for symbol, nextTargetDf in ohlcvs_dfs.items():
-                gasf = GramianAngularField(method='summation', image_size=1.0)
-                X_gasf = gasf.fit_transform(nextTargetDf['close'].values.reshape(1, -1))
-                gadf = GramianAngularField(method='difference', image_size=1.0)
-                X_gadf = gadf.fit_transform(nextTargetDf['close'].values.reshape(1, -1))
-                self.plotController.getGafImg(X_gasf[0, :, :], X_gadf[0, :, :], nextTargetDf['close'], f"{symbol}_gaf.jpg")
-                print(f"{symbol} gaf generated. ")
+                X_gasf, X_gadf = self.timeSeriesController.getGAF(nextTargetDf['close'])
+                self.plotController.getGafImg(X_gasf[0, :, :], X_gadf[0, :, :], nextTargetDf['close'], './docs/img', f"{curTimeStr}_{symbol}_gaf.jpg")
 
         # get the summary of df
         elif command == '-dfsumr':

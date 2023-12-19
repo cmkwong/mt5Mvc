@@ -21,6 +21,21 @@ def askNum(placeholder="Please enter a number: ", outType=int):
     usr_input = outType(usr_input)
     return usr_input
 
+# ask for confirm (Y / N)
+def askConfirm(question=''):
+    if question: print(question)
+    placeholder = 'Input [y]es to confirm OR others to cancel: '
+    confirm_input = input(placeholder)
+    if confirm_input == 'y' or confirm_input == "yes":
+        return True
+    else:
+        return False
+
+# ask user for selection from a {txt: callback}
+def askSelection(options: list):
+    placeholder = f"{listModel.optionsTxt(options)}\nPlease Select: "
+    userInput = askNum(placeholder)
+    return userInput
 
 # def askDate(placeholder='Please input the date: ', defaultDate='', dateFormat="%Y-%m-%d %H:%M:%S"):
 #     """
@@ -38,19 +53,3 @@ def askNum(placeholder="Please enter a number: ", outType=int):
 #             requiredDate = defaultDate
 #
 #     return timeModel.getTimeT(requiredDate, dateFormat, dateFormat, True)
-
-
-def askConfirm(question=''):
-    if question: print(question)
-    placeholder = 'Input [y]es to confirm OR others to cancel: '
-    confirm_input = input(placeholder)
-    if confirm_input == 'y' or confirm_input == "yes":
-        return True
-    else:
-        return False
-
-# ask user for selection from a {txt: callback}
-def askSelection(options: list):
-    placeholder = f"{listModel.optionsTxt(options)}\nPlease Select: "
-    userInput = askNum(placeholder)
-    return userInput

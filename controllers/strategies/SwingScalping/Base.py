@@ -42,7 +42,8 @@ class Base:
 
     # calculate the ema difference
     def getRangePointDiff(self, symbol, upper, middle, lower):
-        digits = self.mt5Controller.pricesLoader.all_symbols_info[symbol]['digits']
+        all_symbols_info = self.mt5Controller.symbolController.get_all_symbols_info()
+        digits = all_symbols_info[symbol]['digits']
         return (upper - middle) * (10 ** digits), (middle - lower) * (10 ** digits)
 
     # get break through signal
@@ -103,9 +104,10 @@ class Base:
     # calculate the earning
     def getEarning(self, symbol, currentTime, breakCondition, rangeCondition, actionPrice, quote_exchg: float, sl: float, tp: float, trendType='rise'):
         # get digit
-        digits = self.mt5Controller.all_symbols_info[symbol].digits
+        all_symbols_info = self.mt5Controller.symbolController.get_all_symbols_info()
+        digits = all_symbols_info[symbol].digits
         # get the value for each point
-        pt_value = self.mt5Controller.all_symbols_info[symbol].pt_value
+        pt_value = all_symbols_info[symbol].pt_value
         if not breakCondition or not rangeCondition:
             return 0.0
         # rise trend

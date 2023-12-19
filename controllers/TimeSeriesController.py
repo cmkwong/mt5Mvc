@@ -25,7 +25,7 @@ class TimeSeriesController:
         decomposition = sm.tsa.seasonal_decompose(timeData, period=int(len(timeData) / 2))
         return decomposition.seasonal, decomposition.trend, decomposition.resid
 
-    def get_corelaDf(self, timeDatas: pd.DataFrame, rowvar=False, bias=False):
+    def get_corelaDf(self, timeDatas: pd.DataFrame, rowvar=False):
         """
         :param timeDatas: normally it is change
         :param rowvar:
@@ -33,10 +33,21 @@ class TimeSeriesController:
         :return:
         """
         changes_arr = timeDatas.values
-        cor_matrix = np.corrcoef(changes_arr, rowvar=rowvar, bias=bias)
+        cor_matrix = np.corrcoef(changes_arr, rowvar=rowvar)
         symbols = list(timeDatas.columns)
         corelaDf = pd.DataFrame(cor_matrix, index=symbols, columns=symbols)
         return corelaDf
+
+    def getGAF(self, series):
+        """
+        :return: X_gasf, X_gadf
+        """
+        gasf = GramianAngularField(method='summation', image_size=1.0)
+        X_gasf = gasf.fit_transform(series.values.reshape(1, -1))
+        gadf = GramianAngularField(method='difference', image_size=1.0)
+        X_gadf = gadf.fit_transform(series.values.reshape(1, -1))
+        return X_gasf, X_gadf
+
 
 # symbol = 'EURUSD'
 # params = {'symbols': [symbol], 'start': (2018, 1, 1, 0 ,0), 'end': (2023, 5, 31,23,59), 'timeframe': '1H', 'count': 0, 'ohlcvs': '111111'}

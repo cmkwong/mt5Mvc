@@ -319,28 +319,31 @@ class PlotController:
         return fullPath
 
     # @testing
-    def getGafImg(self, x_gasf, x_gadf, series, filename):
+    def getGafImg(self, x_gasf, x_gadf, series, path='./docs/img', filename='temp.jpg'):
         """
         :param x: np.array
         :param filename: str
         """
         # reset axis
         plt.clf()
-        fig, (ax1, ax2, ax3) = plt.subplots(nrows=3, ncols=1, figsize=(12, 12), dpi=self.dpi)
+        fig, (ax1, ax2, ax3) = plt.subplots(nrows=3, ncols=1, figsize=(12, 36), dpi=self.dpi)
 
         index = series.reset_index().index
         # set limit
         ax1.set_xlim([index.min(), index.max()])
         # plot graph
         ax1.plot(index, series)
-        # show image
-        c = ax2.imshow(x_gasf, origin='lower', aspect='auto')
+        # show image gasf
+        c = ax2.imshow(x_gasf, origin='lower', extent=[0, x_gasf.shape[1], 0, x_gasf.shape[0]], aspect='auto')
         ax2.text(5, 5, 'gasf')
         # fig.colorbar(c, ax=ax2, orientation="horizontal")
-        c = ax3.imshow(x_gadf, origin='lower', aspect='auto')
+        # show image gasf
+        c = ax3.imshow(x_gadf, origin='lower', extent=[0, x_gadf.shape[1], 0, x_gadf.shape[0]], aspect='auto')
         ax3.text(5, 5, 'gadf')
         # fig.colorbar(c, ax=ax3, orientation="horizontal")
 
         fig.tight_layout()
-        fig.savefig(f'./docs/img/{filename}')
+        full_path = os.path.join(path, filename)
+        fig.savefig(full_path)
+        print(f"Image is stored in path {full_path}")
         plt.close('all')
