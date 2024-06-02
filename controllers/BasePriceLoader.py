@@ -100,44 +100,57 @@ class BasePriceLoader:
         close_prices = self._get_specific_from_prices(prices, symbols, ohlcvs='000100')
         changes = ((close_prices - close_prices.shift(1)) / close_prices.shift(1)).fillna(0.0)
 
+        # get the quote to deposit exchange rate
+        quote_exchg = pd.DataFrame()
+        if q2d_exchg_symbols:
+            exchg_close_prices = self._get_specific_from_prices(prices, q2d_exchg_symbols, ohlcvs='000100')
+            q2d_exchange_rate_df = exchgModel.get_exchange_df(symbols, q2d_exchg_symbols, exchg_close_prices, config.DepositCurrency, "q2d")
+            quote_exchg = q2d_exchange_rate_df
+
+        # get the base to deposit exchange rate
+        base_exchg = pd.DataFrame()
+        if b2d_exchg_symbols:
+            exchg_close_prices = self._get_specific_from_prices(prices, b2d_exchg_symbols, ohlcvs='000100')
+            b2d_exchange_rate_df = exchgModel.get_exchange_df(symbols, b2d_exchg_symbols, exchg_close_prices, config.DepositCurrency, "b2d")
+            base_exchg = b2d_exchange_rate_df
+
+        # get open prices
+        open = pd.DataFrame()
+        if ohlcvs[0] == '1':
+            open = self._get_specific_from_prices(prices, symbols, ohlcvs='100000')
+
+        # get the change of high price
+        high = pd.DataFrame()
+        if ohlcvs[1] == '1':
+            high = self._get_specific_from_prices(prices, symbols, ohlcvs='010000')
+
+        # get the change of low price
+        low = pd.DataFrame()
+        if ohlcvs[2] == '1':
+            low = self._get_specific_from_prices(prices, symbols, ohlcvs='001000')
+
+        # get the tick volume
+        volume = pd.DataFrame()
+        if ohlcvs[4] == '1':
+            volume = self._get_specific_from_prices(prices, symbols, ohlcvs='000010')
+
+        # get the spread
+        spread = pd.DataFrame()
+        if ohlcvs[5] == '1':
+            spread = self._get_specific_from_prices(prices, symbols, ohlcvs='000001')
+
         # assign the column into each collection tuple
         Prices = InitPrices(symbols=symbols,
                             close=close_prices,
                             cc=changes,
+                            all_symbols_info=all_symbols_info,
+                            quote_exchg=quote_exchg,
+                            base_exchg=base_exchg,
+                            open=open,
+                            high=high,
+                            low=low,
+                            volume=volume,
+                            spread=spread
                             )
-
-        # all symbols info
-        Prices.all_symbols_info = all_symbols_info
-
-        # get the quote to deposit exchange rate
-        if q2d_exchg_symbols:
-            exchg_close_prices = self._get_specific_from_prices(prices, q2d_exchg_symbols, ohlcvs='000100')
-            q2d_exchange_rate_df = exchgModel.get_exchange_df(symbols, q2d_exchg_symbols, exchg_close_prices, config.DepositCurrency, "q2d")
-            Prices.quote_exchg = q2d_exchange_rate_df
-
-        # get the base to deposit exchange rate
-        if b2d_exchg_symbols:
-            exchg_close_prices = self._get_specific_from_prices(prices, b2d_exchg_symbols, ohlcvs='000100')
-            b2d_exchange_rate_df = exchgModel.get_exchange_df(symbols, b2d_exchg_symbols, exchg_close_prices, config.DepositCurrency, "b2d")
-            Prices.base_exchg = b2d_exchange_rate_df
-
-        # get open prices
-        if ohlcvs[0] == '1':
-            Prices.open = self._get_specific_from_prices(prices, symbols, ohlcvs='100000')
-
-        # get the change of high price
-        if ohlcvs[1] == '1':
-            Prices.high = self._get_specific_from_prices(prices, symbols, ohlcvs='010000')
-
-        # get the change of low price
-        if ohlcvs[2] == '1':
-            Prices.low = self._get_specific_from_prices(prices, symbols, ohlcvs='001000')
-
-        # get the tick volume
-        if ohlcvs[4] == '1':
-            Prices.volume = self._get_specific_from_prices(prices, symbols, ohlcvs='000010')
-
-        if ohlcvs[5] == '1':
-            Prices.spread = self._get_specific_from_prices(prices, symbols, ohlcvs='000001')
 
         return Prices
