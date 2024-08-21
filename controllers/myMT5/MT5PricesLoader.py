@@ -27,7 +27,7 @@ class MT5PricesLoader(BasePriceLoader):  # created note 86a
 
         self.source = 'mt5'
 
-    def switchSource(self, s='mt5'):
+    def switch_source(self, s='mt5'):
         if s not in ['mt5', 'sql']:
             print('The command of switch source is not correct')
             return False

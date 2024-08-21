@@ -10,7 +10,9 @@ def decodeParam(input_data, dataType):
     tuple:  ("AUDCAD", "EURUSD", "AUDUSD") -> '("AUDCAD", "EURUSD", "AUDUSD")'
     other:  1 -> '1'
     """
-    if dataType == list:
+    if dataType == any:
+        required_input_data = eval(input_data)
+    elif dataType == list:
         required_input_data = input_data.split(' ')
         if len(input_data) == 0:
             required_input_data = []

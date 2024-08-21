@@ -11,7 +11,7 @@ class Handler_Control:
 
         # switch the price loader source from mt5 / local
         elif command == '-mt5' or command == '-local':
-            self.mt5Controller.pricesLoader.switchSource(command[1:])
+            self.mt5Controller.pricesLoader.switch_source(command[1:])
 
         else:
             return True

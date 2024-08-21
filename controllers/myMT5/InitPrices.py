@@ -34,7 +34,7 @@ class InitPrices:
         # get attr
         self.attrs = [attr for attr in dir(self) if not callable(getattr(self, attr)) and not attr.startswith("__")]
 
-    def getValidCols(self):
+    def get_valid_cols(self):
         validCol = []
         for name in self.attrs:
             value = getattr(self, name)
@@ -54,7 +54,7 @@ class InitPrices:
         return InitPrices(**trainDict), InitPrices(**testDict)
 
     # get {'symbol': df with ohlcvs}
-    def getOhlcvsFromPrices(self):
+    def get_ohlcvs_from_prices(self):
         """
         resume into normal dataframe
         :param symbols: [symbol str]
@@ -84,7 +84,7 @@ class InitPrices:
         return ohlcsvs
 
     # calculate the value of point with respect to that time exchage rate
-    def getPointValue(self, point, offset, iloc=True):
+    def get_point_value(self, point, offset, iloc=True):
         """
         Getting forex point in deposit value (usually calculate the trading cost)
         :param point: float
@@ -100,7 +100,7 @@ class InitPrices:
             pointValues[symbol] = (point * self.all_symbols_info[symbol]['pt_value'] * q2d_at)
         return pointValues
 
-    def getValueDiff(self, offset_s, offset_e, iloc=True):
+    def get_value_diff(self, offset_s, offset_e, iloc=True):
         """
         Getting the difference of close price between these offsets (In deposit exchange rate)
         :param offset_s:

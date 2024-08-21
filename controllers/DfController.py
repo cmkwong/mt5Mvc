@@ -13,7 +13,7 @@ class DfController:
         self.plotController = plotController
         self.pdf = FPDF('L', 'mm', 'A4')
 
-    def readAsDf(self, *, path: str='./docs/datas'):
+    def read_as_df(self, *, path: str= './docs/datas', chunksize=None, colnames=None, header=0):
         """
         :param path: read as dataframe
         """
@@ -25,28 +25,28 @@ class DfController:
         filename = fileList[fileNum]
         fullPath = os.path.join(path, filename)
         if filename.endswith('.xlsx'):
-            df = pd.read_excel(fullPath)
+            df = pd.read_excel(fullPath)    # read_excel has no chunksize parameter
         elif filename.endswith('.csv'):
-            df = pd.read_csv(fullPath)
+            df = pd.read_csv(fullPath, chunksize=chunksize, names=colnames, header=header)
         else:
             df = pd.DataFrame()
         print(f"read {filename} in {path}. ")
         return filename, df
 
-    def getPreviousIndex(self, currentIndex, df, limitReplace=None):
+    def get_previous_index(self, currentIndex, df, limitReplace=None):
         idx = np.searchsorted(df.index, currentIndex)
         if limitReplace and idx == 0:
             return limitReplace
         return df.index[max(0, idx - 1)]
 
-    def getNextIndex(self, currentIndex, df, limitReplace=None):
+    def get_next_index(self, currentIndex, df, limitReplace=None):
         idx = np.searchsorted(df.index, currentIndex)
         if limitReplace and idx == len(df) - 1:
             return limitReplace
         return df.index[min(idx + 1, len(df) - 1)]
 
     # combine the column
-    def combineCols(self, df, cols, separator=',', newColName=''):
+    def combine_cols(self, df, cols, separator=',', newColName=''):
         colsListType = listModel.checkType(cols)
         if len(newColName) == 0:
             newColName = '-'.join(cols)
@@ -58,7 +58,7 @@ class DfController:
         return df
 
     # drop rows by selecting method
-    def dropRows(self, df, arg, method):
+    def drop_rows(self, df, arg, method):
         """
         arg: str, dict, int
         method: 'last'(int) / 'head'(int) / 'condition'(dict)
@@ -85,7 +85,7 @@ class DfController:
         return df
 
     # change the dataframe column data type
-    def changeColsType(self, df, cols, wantedType):
+    def change_cols_type(self, df, cols, wantedType):
         """
         :param df: dataframe
         :param cols: col name, not accept index
@@ -94,7 +94,7 @@ class DfController:
         """
         for col in cols:
             df[col] = pd.to_numeric(df[col], errors='coerce')
-            df = self.dropRows(df, arg={col: ''}, method='condition')
+            df = self.drop_rows(df, arg={col: ''}, method='condition')
             df[col] = df[col].astype(wantedType)
         return df
 

@@ -40,6 +40,7 @@ class CommandController:
         self.handler_test = Handler_Test(self.nodeJsApiController, self.mt5Controller, self.stockPriceLoader, self.threadController, self.strategyController, self.plotController)
 
     def run(self, command):
+        # if not hit the command, return False
         if not self.handler_control.run(command): return True
         if not self.handler_data.run(command): return True
         if not self.handler_strategy.run(command): return True
@@ -49,17 +50,6 @@ class CommandController:
 
         print_at('No command detected. Please input again. ')
         return False
-
-    # ----------------------- Interface / Display -----------------------
-
-    # ----------------------- Strategy -----------------------
-
-    # ----------------------- Analysis -----------------------
-
-    # ----------------------- Analysis -----------------------
-
-    # ----------------------- Testing -----------------------
-
 
 """
 1. List the strategy, ask for train, backtest, go-live

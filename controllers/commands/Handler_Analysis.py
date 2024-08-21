@@ -67,7 +67,7 @@ class Handler_Analysis:
             else:
                 obj, param = paramModel.ask_param_fn(self.stockPriceLoader.getPrices)
             Prices = obj(**param)
-            ohlcvs_dfs = Prices.getOhlcvsFromPrices()
+            ohlcvs_dfs = Prices.get_ohlcvs_from_prices()
             # get time string
             curTimeStr = timeModel.getTimeS(outputFormat="%Y%m%d-%H%M%S")
             for symbol, nextTargetDf in ohlcvs_dfs.items():
@@ -78,7 +78,7 @@ class Handler_Analysis:
         elif command == '-dfsumr':
             # read the df
             print("Read File csv/exsl: ")
-            obj_readParam, readParam = paramModel.ask_param_fn(self.dfController.readAsDf)
+            obj_readParam, readParam = paramModel.ask_param_fn(self.dfController.read_as_df)
             print("Output pdf: ")
             obj_sumParam, sumParam = paramModel.ask_param_fn(self.dfController.summaryPdf)
             _, nextTargetDf = obj_readParam(**readParam)

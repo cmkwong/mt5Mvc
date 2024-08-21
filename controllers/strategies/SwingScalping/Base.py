@@ -18,13 +18,13 @@ class Base:
         :return: pd.DataFrame(open, high, low, close)
         """
         originalSource = self.mt5Controller.pricesLoader.source
-        self.mt5Controller.pricesLoader.switchSource('sql')
+        self.mt5Controller.pricesLoader.switch_source('sql')
         # getting the Prices
         # self.fetchData_min = self.nodeJsServerController.downloadForexData(symbol, timeframe='1min', startTime=start, endTime=end)
         Prices = self.mt5Controller.pricesLoader.getPrices([symbol], start=start, end=end, timeframe='1min')
-        self.fetchData_min = Prices.getOhlcvsFromPrices()[symbol]
+        self.fetchData_min = Prices.get_ohlcvs_from_prices()[symbol]
         # switch back to original data source
-        self.mt5Controller.pricesLoader.switchSource(originalSource)
+        self.mt5Controller.pricesLoader.switch_source(originalSource)
 
     # calculate the win rate
     def getWinRate(self, masterSignal, trendType='rise'):

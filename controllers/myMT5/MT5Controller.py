@@ -161,7 +161,7 @@ class MT5Controller:
             volumeBalance += factor * position.volume
         return volumeBalance
 
-    def orderSentOk(self, result):
+    def order_sent_ok(self, result):
         """
         :param result: Check if mt5 order sent and return successful code
         """

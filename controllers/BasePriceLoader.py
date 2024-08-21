@@ -94,7 +94,7 @@ class BasePriceLoader:
             prices[symbol] = prices_raw_df.iloc[:, i:i + step]
         return prices
 
-    def get_Prices_format(self, symbols, prices, ohlcvs, q2d_exchg_symbols = None, b2d_exchg_symbols= None, all_symbols_info=None):
+    def get_Prices_format(self, symbols, prices, ohlcvs, q2d_exchg_symbols=None, b2d_exchg_symbols=None, all_symbols_info=None):
 
         # get the change of close price
         close_prices = self._get_specific_from_prices(prices, symbols, ohlcvs='000100')
@@ -152,5 +152,4 @@ class BasePriceLoader:
                             volume=volume,
                             spread=spread
                             )
-
         return Prices
