@@ -1,6 +1,7 @@
 import MetaTrader5 as mt5
 import collections
 
+import config
 
 class MT5SymbolController:
     def get_symbol_total(self):
@@ -45,3 +46,34 @@ class MT5SymbolController:
             else:
                 symbols_info[symbol_name]['pt_value'] = 1  # 1 dollar for quote per each point  (See note Stock Market - Knowledge - note 3)
         return symbols_info
+
+    def get_exchange_symbols(self, symbols, exchg_type='q2d'):
+        """
+        Find all the currency pair related to and required currency and deposit symbol
+        :param symbols: [str] : ["AUDJPY", "AUDUSD", "CADJPY", "EURUSD", "NZDUSD", "USDCAD"]
+        :param exchg_type: str, 'q2d' = quote to deposit OR 'b2d' = base to deposit
+        :return: [str], get required exchange symbol in list: ['USDJPY', 'AUDUSD', 'USDJPY', 'EURUSD', 'NZDUSD', 'USDCAD']
+        """
+        all_symbols_info = self.get_all_symbols_info()
+        symbol_names = list(all_symbols_info.keys())
+        exchange_symbols = []
+        target_symbol = None
+        for symbol in symbols:
+            if exchg_type == 'b2d':
+                target_symbol = symbol[:3]
+            elif exchg_type == 'q2d':
+                target_symbol = symbol[3:]
+            if target_symbol != config.DepositCurrency:  # if the symbol not relative to required deposit currency
+                test_symbol_1 = target_symbol + config.DepositCurrency
+                test_symbol_2 = config.DepositCurrency + target_symbol
+                if test_symbol_1 in symbol_names:
+                    exchange_symbols.append(test_symbol_1)
+                    continue
+                elif test_symbol_2 in symbol_names:
+                    exchange_symbols.append(test_symbol_2)
+                    continue
+                else:  # if not found the relative pair with respect to deposit currency, raise the error
+                    raise Exception("{} has no relative currency with respect to deposit {}.".format(target_symbol, config.DepositCurrency))
+            else:  # if the symbol already relative to deposit currency
+                exchange_symbols.append(symbol)
+        return exchange_symbols

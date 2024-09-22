@@ -3,7 +3,8 @@ import pandas as pd
 import numpy as np
 from fpdf import FPDF
 
-from models.myUtils import inputModel, listModel, fileModel, timeModel
+from models.myUtils import listModel, fileModel, timeModel, inputModel
+
 
 class DfController:
     """

@@ -14,10 +14,10 @@ import numpy as np
 
 # Mt5f loader price loader
 class MT5PricesLoader(BasePriceLoader):  # created note 86a
-    def __init__(self, mt5TimeController, mt5SymbolController, nodeJsApiController):
+    def __init__(self, timeController, symbolController, nodeJsApiController):
         self.nodeJsApiController = nodeJsApiController
-        self.mt5SymbolController = mt5SymbolController
-        self.mt5TimeController = mt5TimeController
+        self.symbolController = symbolController
+        self.timeController = timeController
 
         # for Mt5f
         # self.all_symbols_info = self.mt5SymbolController.get_all_symbols_info()
@@ -47,14 +47,14 @@ class MT5PricesLoader(BasePriceLoader):  # created note 86a
             utc_to_tuple = timeModel.get_utc_time_with_timezone(end, config.TimeZone, 1)
             rates_frame = self.nodeJsApiController.downloadSeriesData('forex', symbol, timeframe, utc_from_tuple, utc_to_tuple)
         else:
-            utc_from = self.mt5TimeController.get_utc_time_from_broker(start, config.TimeZone)
+            utc_from = self.timeController.get_utc_time_from_broker(start, config.TimeZone)
             if end == None:  # if end is None, get the loader at current time
                 now = datetime.today()
                 now_tuple = (now.year, now.month, now.day, now.hour, now.minute)
-                utc_to = self.mt5TimeController.get_utc_time_from_broker(now_tuple, config.TimeZone)
+                utc_to = self.timeController.get_utc_time_from_broker(now_tuple, config.TimeZone)
             else:
-                utc_to = self.mt5TimeController.get_utc_time_from_broker(end, config.TimeZone)
-            mt5Timeframe = self.mt5TimeController.get_txt2timeframe(timeframe)
+                utc_to = self.timeController.get_utc_time_from_broker(end, config.TimeZone)
+            mt5Timeframe = self.timeController.get_txt2timeframe(timeframe)
             rates = mt5.copy_rates_range(symbol, mt5Timeframe, utc_from, utc_to)
             if not isinstance(rates, np.ndarray):
                 return False
@@ -70,7 +70,7 @@ class MT5PricesLoader(BasePriceLoader):  # created note 86a
         :param count: int
         :return: df
         """
-        timeframe = self.mt5TimeController.get_txt2timeframe(timeframe)
+        timeframe = self.timeController.get_txt2timeframe(timeframe)
         rates = mt5.copy_rates_from_pos(symbol, timeframe, 0, count)  # 0 means the current bar
         rates_frame = pd.DataFrame(rates, dtype=float)
         rates_frame['time'] = pd.to_datetime(rates_frame['time'], unit='s')
@@ -85,44 +85,13 @@ class MT5PricesLoader(BasePriceLoader):  # created note 86a
         :return: None
         """
         if not self._symbols_available:
-            all_symbols_info = self.mt5SymbolController.get_all_symbols_info()
+            all_symbols_info = self.symbolController.get_all_symbols_info()
             for symbol in required_symbols:
                 try:
                     _ = all_symbols_info[symbol]
                 except KeyError:
                     raise Exception("The {} is not provided.".format(symbol))
             self._symbols_available = True
-
-    def get_exchange_symbols(self, symbols, exchg_type='q2d'):
-        """
-        Find all the currency pair related to and required currency and deposit symbol
-        :param symbols: [str] : ["AUDJPY", "AUDUSD", "CADJPY", "EURUSD", "NZDUSD", "USDCAD"]
-        :param exchg_type: str, 'q2d' = quote to deposit OR 'b2d' = base to deposit
-        :return: [str], get required exchange symbol in list: ['USDJPY', 'AUDUSD', 'USDJPY', 'EURUSD', 'NZDUSD', 'USDCAD']
-        """
-        all_symbols_info = self.mt5SymbolController.get_all_symbols_info()
-        symbol_names = list(all_symbols_info.keys())
-        exchange_symbols = []
-        target_symbol = None
-        for symbol in symbols:
-            if exchg_type == 'b2d':
-                target_symbol = symbol[:3]
-            elif exchg_type == 'q2d':
-                target_symbol = symbol[3:]
-            if target_symbol != config.DepositCurrency:  # if the symbol not relative to required deposit currency
-                test_symbol_1 = target_symbol + config.DepositCurrency
-                test_symbol_2 = config.DepositCurrency + target_symbol
-                if test_symbol_1 in symbol_names:
-                    exchange_symbols.append(test_symbol_1)
-                    continue
-                elif test_symbol_2 in symbol_names:
-                    exchange_symbols.append(test_symbol_2)
-                    continue
-                else:  # if not found the relative pair with respect to deposit currency, raise the error
-                    raise Exception("{} has no relative currency with respect to deposit {}.".format(target_symbol, config.DepositCurrency))
-            else:  # if the symbol already relative to deposit currency
-                exchange_symbols.append(symbol)
-        return exchange_symbols
 
     def _get_prices_df(self, symbols, timeframe, start=None, end=None, ohlcvs='111100', count: int = 10):
         """
@@ -205,14 +174,14 @@ class MT5PricesLoader(BasePriceLoader):  # created note 86a
         :param count: 0 if want to get the Data from start to end, otherwise will get the latest bar Data
         :param ohlcvs: 000000 means that get simple version of prices
         """
-        q2d_exchg_symbols = self.get_exchange_symbols(symbols, 'q2d')
-        b2d_exchg_symbols = self.get_exchange_symbols(symbols, 'b2d')
+        q2d_exchg_symbols = self.symbolController.get_exchange_symbols(symbols, 'q2d')
+        b2d_exchg_symbols = self.symbolController.get_exchange_symbols(symbols, 'b2d')
 
         # read loader in dictionary format
         required_symbols = list(set(symbols + q2d_exchg_symbols + b2d_exchg_symbols))
         self.check_if_symbols_available(required_symbols)  # if not, raise Exception
         prices = self._get_prices_df(required_symbols, timeframe, start, end, ohlcvs, count)
-        Prices = self.get_Prices_format(symbols, prices, ohlcvs, q2d_exchg_symbols, b2d_exchg_symbols, self.mt5SymbolController.get_all_symbols_info() )
+        Prices = self.get_Prices_format(symbols, prices, ohlcvs, q2d_exchg_symbols, b2d_exchg_symbols, self.symbolController.get_all_symbols_info())
         return Prices
 
 # @dataclass

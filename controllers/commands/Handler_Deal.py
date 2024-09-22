@@ -1,4 +1,4 @@
-from models.myUtils import paramModel, inputModel, printModel
+from models.myUtils import paramModel, printModel, inputModel
 import pandas as pd
 from datetime import datetime, timedelta
 

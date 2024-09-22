@@ -1,4 +1,4 @@
-from models.myUtils import paramModel, printModel, inputModel, timeModel
+from models.myUtils import paramModel, printModel, timeModel, inputModel
 import config
 
 import pandas as pd
