@@ -1,9 +1,9 @@
 import sys
-sys.path.append('/')
-sys.path.append('C:/Users/Chris/projects/AtomLib')
+# sys.path.append('mt5Mvc')
+# sys.path.append('mt5Mvc/mt5Mvc/')
 
-from models.myUtils import inputModel
-from controllers.commands.CommandController import CommandController
+from mt5Mvc.models.myUtils import inputModel
+from mt5Mvc.controllers.commands.CommandController import CommandController
 
 commandController = CommandController()
 while(True):

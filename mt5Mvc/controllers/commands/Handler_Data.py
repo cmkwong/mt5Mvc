@@ -1,5 +1,5 @@
 from mt5Mvc.models.myUtils import paramModel, fileModel, timeModel, inputModel
-from mt5Mvc import config
+import config
 
 import os
 import pandas as pd

@@ -1,7 +1,7 @@
 from mt5Mvc.models.myUtils.paramModel import DatetimeTuple
 from mt5Mvc.controllers.strategies.MovingAverage.Base import Base
 from mt5Mvc.models.myUtils import timeModel, fileModel
-from mt5Mvc import config
+import config
 
 import pandas as pd
 import numpy as np

@@ -1,4 +1,4 @@
-from mt5Mvc import config
+import config
 import MetaTrader5 as mt5
 
 """

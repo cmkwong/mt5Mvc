@@ -1,7 +1,7 @@
 from mt5Mvc.models.myBacktest import exchgModel
 from mt5Mvc.controllers.myMT5.InitPrices import InitPrices
 
-from mt5Mvc import config
+import config
 import pandas as pd
 
 class BasePriceLoader:

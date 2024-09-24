@@ -1,5 +1,5 @@
 from mt5Mvc.models.myUtils import paramModel, timeModel
-from mt5Mvc import config
+import config
 from mt5Mvc.controllers.strategies.Conintegration.Train import Train as Cointegration_Train
 from mt5Mvc.controllers.strategies.MovingAverage.Train import Train as MovingAverage_Train
 from mt5Mvc.controllers.strategies.MovingAverage.Live import Live as MovingAverage_Live

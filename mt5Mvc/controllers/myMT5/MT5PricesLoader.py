@@ -1,7 +1,7 @@
 from mt5Mvc.controllers.BasePriceLoader import BasePriceLoader
 from mt5Mvc.models.myUtils import timeModel
 from mt5Mvc.models.myUtils.paramModel import SymbolList, DatetimeTuple
-from mt5Mvc import config
+import config
 
 from datetime import datetime
 

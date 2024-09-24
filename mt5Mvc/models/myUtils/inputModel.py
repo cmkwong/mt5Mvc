@@ -1,4 +1,4 @@
-from mt5Mvc.models.myUtils import timeModel, listModel
+from mt5Mvc.models.myUtils import listModel
 
 def enter(placeholder='Input: '):
     print("~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*")

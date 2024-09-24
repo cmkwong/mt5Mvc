@@ -1,10 +1,10 @@
 import os
-from models.myUtils import sysModel, timeModel
+from mt5Mvc.models.myUtils import sysModel, timeModel
 
 DT_STRING = timeModel.getTimeS(False, "%Y%m%d%H%M%S")
 
-PARAM_PATH = '../'
-PARAM_FILE = 'param.txt'
+PARAM_PATH = '/'
+PARAM_FILE = 'mt5Mvc/param.txt'
 TEMP_PATH = '../../docs/temp'
 
 # relative path for different computer

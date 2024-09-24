@@ -1,5 +1,5 @@
 from mt5Mvc.controllers.BasePriceLoader import BasePriceLoader
-from mt5Mvc import config
+import config
 
 import pandas as pd
 

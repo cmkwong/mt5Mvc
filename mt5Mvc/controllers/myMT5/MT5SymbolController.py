@@ -1,6 +1,6 @@
 import MetaTrader5 as mt5
 
-from mt5Mvc import config
+import config
 
 
 class MT5SymbolController:

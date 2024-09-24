@@ -7,7 +7,7 @@ import seaborn as sns
 import numpy as np
 
 from mt5Mvc.models.myUtils import timeModel
-from mt5Mvc import config
+import config
 
 
 # def testing(f):
