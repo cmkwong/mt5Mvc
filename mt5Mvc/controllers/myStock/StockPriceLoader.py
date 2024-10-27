@@ -1,11 +1,17 @@
 from mt5Mvc.controllers.BasePriceLoader import BasePriceLoader
+from mt5Mvc.controllers.myNodeJs.NodeJsApiController import NodeJsApiController
+from mt5Mvc.controllers.DfController import DfController
+
 import config
 
 import pandas as pd
 
 class StockPriceLoader(BasePriceLoader):
-    def __init__(self, nodeJsApiController):
-        self.nodeJsApiController = nodeJsApiController
+    def __init__(self):
+        super().__init__()
+        self.nodeJsApiController = NodeJsApiController()
+        # loading the local data, if selected
+        self.local_path = None
 
     def _get_prices_df(self,
                        symbols: list = config.Default_Stock_Symbols,
@@ -18,7 +24,10 @@ class StockPriceLoader(BasePriceLoader):
         prices_df = None
         required_types = self._price_type_from_code(ohlcvs)
         for i, symbol in enumerate(symbols):
-            price = self.nodeJsApiController.downloadSeriesData('stock', symbol, timeframe, start, end)
+            if self.data_source == 'local':
+                price = None
+            else:
+                price = self.nodeJsApiController.downloadSeriesData('stock', symbol, timeframe, start, end)
             price = price.loc[:, required_types]
             if i == 0:
                 prices_df = price.copy()

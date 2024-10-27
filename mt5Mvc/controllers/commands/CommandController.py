@@ -1,13 +1,8 @@
 from mt5Mvc.models.myUtils.printModel import print_at
 
 # controllers
-from mt5Mvc.controllers.strategies.StrategyContainer import StrategyContainer
 from mt5Mvc.controllers.myMT5.MT5Controller import MT5Controller
-from mt5Mvc.controllers.myNodeJs.NodeJsApiController import NodeJsApiController
 from mt5Mvc.controllers.myStock.StockPriceLoader import StockPriceLoader
-from mt5Mvc.controllers.PlotController import PlotController
-from mt5Mvc.controllers.ThreadController import ThreadController
-from mt5Mvc.controllers.TimeSeriesController import TimeSeriesController
 
 # commands
 from mt5Mvc.controllers.commands.Handler_Control import Handler_Control
@@ -22,22 +17,16 @@ from mt5Mvc.controllers.DfController import DfController
 
 class CommandController:
     def __init__(self):
-        self.nodeJsApiController = NodeJsApiController()
-        self.plotController = PlotController()
-        self.threadController = ThreadController()
-        self.timeSeriesController = TimeSeriesController()
-        self.stockPriceLoader = StockPriceLoader(self.nodeJsApiController)
-        self.mt5Controller = MT5Controller(self.nodeJsApiController)
-        self.dfController = DfController(self.plotController)
-        self.strategyController = StrategyContainer(self.mt5Controller, self.nodeJsApiController)
+        self.stockPriceLoader = StockPriceLoader()
+        self.mt5Controller = MT5Controller()
 
         # command handler
-        self.handler_control = Handler_Control(self.nodeJsApiController, self.mt5Controller)
-        self.handler_data = Handler_Data(self.nodeJsApiController, self.mt5Controller, self.stockPriceLoader, self.dfController)
-        self.handler_strategy = Handler_Strategy(self.nodeJsApiController, self.mt5Controller, self.stockPriceLoader, self.threadController, self.strategyController, self.plotController)
-        self.handler_deal = Handler_Deal(self.nodeJsApiController, self.mt5Controller, self.stockPriceLoader, self.threadController, self.strategyController, self.plotController)
-        self.handler_analysis = Handler_Analysis(self.nodeJsApiController, self.mt5Controller, self.stockPriceLoader, self.threadController, self.strategyController, self.plotController, self.timeSeriesController, self.dfController)
-        self.handler_test = Handler_Test(self.nodeJsApiController, self.mt5Controller, self.stockPriceLoader, self.threadController, self.strategyController, self.plotController)
+        self.handler_control = Handler_Control(self.mt5Controller, self.stockPriceLoader)
+        self.handler_data = Handler_Data()
+        self.handler_strategy = Handler_Strategy()
+        self.handler_deal = Handler_Deal(self.handler_strategy())
+        self.handler_analysis = Handler_Analysis()
+        self.handler_test = Handler_Test()
 
     def run(self, command):
         # if not hit the command, return False

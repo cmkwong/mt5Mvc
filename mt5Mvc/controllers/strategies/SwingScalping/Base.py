@@ -17,7 +17,7 @@ class Base:
         :param end: (2022, 12, 31, 23, 59)
         :return: pd.DataFrame(open, high, low, close)
         """
-        originalSource = self.mt5Controller.pricesLoader.source
+        originalSource = self.mt5Controller.pricesLoader.data_source
         self.mt5Controller.pricesLoader.switch_source('sql')
         # getting the Prices
         # self.fetchData_min = self.nodeJsServerController.downloadForexData(symbol, timeframe='1min', startTime=start, endTime=end)

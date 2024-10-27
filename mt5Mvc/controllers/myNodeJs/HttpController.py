@@ -5,7 +5,7 @@ import json
 # upload the forex loader
 class HttpController:
 
-    def switchEnv(self, env):
+    def switch_pro_dev(self, env):
         if env == 'prod':
             self.mainUrl = "http://192.168.1.165:3002/api/v1/query"
         else:

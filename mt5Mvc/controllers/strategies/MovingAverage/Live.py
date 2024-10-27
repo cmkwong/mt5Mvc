@@ -3,8 +3,7 @@ from mt5Mvc.controllers.strategies.Dealer import Dealer
 import time
 
 class Live(Base, Dealer):
-    def __init__(self, mt5Controller, nodeJsApiController, *,
-                 symbol: str = 'USDJPY', timeframe: str = '15min',
+    def __init__(self, symbol: str = 'USDJPY', timeframe: str = '15min',
                  fast: int = 5, slow: int = 22,
                  pt_sl: int = 100, pt_tp: int = 210,
                  operation: str = 'long', lot: int = 1,
@@ -12,11 +11,12 @@ class Live(Base, Dealer):
                  strategy_name: str = '',
                  strategy_id: int = None,
                  **kwargs):
-        super(Live, self).__init__(mt5Controller, nodeJsApiController,
-                                   symbol=symbol, timeframe=timeframe, 
+        super(Live, self).__init__(symbol=symbol, timeframe=timeframe,
                                    operation=operation, lot=lot, pt_sl=pt_sl, pt_tp=pt_tp, 
                                    exitPoints=exitPoints,
-                                   strategy_name=strategy_name, strategy_id=strategy_id, strategy_detail=f'{fast}/{slow}'
+                                   strategy_name=strategy_name,
+                                   strategy_id=strategy_id,
+                                   strategy_detail=f'{fast}/{slow}'
                                    )
         # self.nodeJsApiController = nodeJsApiController
         # self.mt5Controller = mt5Controller

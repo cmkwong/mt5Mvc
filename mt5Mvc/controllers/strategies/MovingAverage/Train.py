@@ -1,5 +1,7 @@
 from mt5Mvc.models.myUtils.paramModel import DatetimeTuple
 from mt5Mvc.controllers.strategies.MovingAverage.Base import Base
+from mt5Mvc.controllers.myMT5.MT5Controller import MT5Controller
+
 from mt5Mvc.models.myUtils import timeModel, fileModel
 import config
 
@@ -8,8 +10,8 @@ import numpy as np
 import os
 
 class Train(Base):
-    def __init__(self, mt5Controller):
-        self.mt5Controller = mt5Controller
+    def __init__(self):
+        self.mt5Controller = MT5Controller()
         # self.nodeJsServerController = mainController.nodeJsApiController
         self.MA_SUMMARY_COLS = ['symbol', 'fast', 'slow', 'operation', 'total', 'rate', 'count', 'mean_duration', 'timeframe', 'start', 'end',
                                 '0%', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%',

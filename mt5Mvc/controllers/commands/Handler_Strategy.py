@@ -1,3 +1,9 @@
+from mt5Mvc.controllers.myMT5.MT5Controller import MT5Controller
+from mt5Mvc.controllers.myStock.StockPriceLoader import StockPriceLoader
+from mt5Mvc.controllers.ThreadController import ThreadController
+from mt5Mvc.controllers.strategies.StrategyContainer import StrategyContainer
+from mt5Mvc.controllers.myNodeJs.NodeJsApiController import NodeJsApiController
+
 from mt5Mvc.models.myUtils import paramModel, timeModel
 import config
 from mt5Mvc.controllers.strategies.Conintegration.Train import Train as Cointegration_Train
@@ -7,17 +13,17 @@ from mt5Mvc.controllers.strategies.MovingAverage.Backtest import Backtest as Mov
 
 
 class Handler_Strategy:
-    def __init__(self, nodeJsApiController, mt5Controller, stockPriceLoader, threadController, strategyController, plotController):
-        self.nodeJsApiController = nodeJsApiController
-        self.mt5Controller = mt5Controller
-        self.stockPriceLoader = stockPriceLoader
-        self.threadController = threadController
-        self.strategyController = strategyController
-        self.plotController = plotController
+    def __init__(self):
+        self.nodeJsApiController = NodeJsApiController()
+        self.threadController = ThreadController()
+        self.strategyController = StrategyContainer()
+
+    def __call__(self):
+        return self.strategyController
 
     def run(self, command):
         if command == '-coinT':
-            strategy = Cointegration_Train(self.mt5Controller, self.nodeJsApiController, self.plotController)
+            strategy = Cointegration_Train()
             paramFormat = {
                 'symbols': [["AUDCAD", "EURUSD", "AUDUSD"], list],
                 'start': [(2022, 6, 1, 0, 0), tuple],
@@ -30,7 +36,7 @@ class Handler_Strategy:
 
         # finding the best index in moving average
         elif command == '-maT':
-            strategy = MovingAverage_Train(self.mt5Controller)
+            strategy = MovingAverage_Train()
             paramFormat = {
                 'symbols': [config.Default_Forex_Symbols, list],
                 'timeframe': ['15min', str],
@@ -43,7 +49,7 @@ class Handler_Strategy:
 
         # get the distribution for the specific fast and slow param (the earning distribution)
         elif command == '-mad':
-            strategy = MovingAverage_Backtest(self.mt5Controller, self.nodeJsApiController, self.plotController)
+            strategy = MovingAverage_Backtest()
             paramFormat = {
                 'symbols': [config.Default_Forex_Symbols, list],
                 'timeframe': ['15min', str],
@@ -79,12 +85,12 @@ class Handler_Strategy:
                     'slow': p.slow,
                     'operation': p.operation
                 }
-                strategy = MovingAverage_Backtest(self.mt5Controller, self.nodeJsApiController, self.plotController)
+                strategy = MovingAverage_Backtest()
                 strategy.getMaDistImg(**defaultParams)
 
         # Moving Average Live
         elif command == '-maL':
-            strategy = MovingAverage_Live(self.mt5Controller, self.nodeJsApiController)
+            strategy = MovingAverage_Live()
             strategy.run()
 
         # Moving Average Live (get params from SQL)
@@ -93,12 +99,12 @@ class Handler_Strategy:
             def foo(paramDf, position_id=None, price_open=None):
                 params = MovingAverage_Live.decodeParams(paramDf)
                 # run for each param
-                for i, p in params.items():
+                for i, param in params.items():
                     # if existed strategy, will not run again
-                    if self.strategyController.exist(p['strategy_id']):
+                    if self.strategyController.exist(param['strategy_id']):
                         continue
                     # define require strategy
-                    strategy = MovingAverage_Live(self.mt5Controller, self.nodeJsApiController, **p)
+                    strategy = MovingAverage_Live(**param)
                     # assign position id and setup ExitPrices (for load param)
                     if position_id and price_open:
                         strategy.position_id = position_id

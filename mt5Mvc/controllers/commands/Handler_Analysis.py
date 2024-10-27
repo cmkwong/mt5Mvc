@@ -1,18 +1,21 @@
 from mt5Mvc.models.myUtils import paramModel, printModel, timeModel, inputModel
+from mt5Mvc.controllers.myMT5.MT5Controller import MT5Controller
+from mt5Mvc.controllers.myStock.StockPriceLoader import StockPriceLoader
+from mt5Mvc.controllers.PlotController import PlotController
+from mt5Mvc.controllers.TimeSeriesController import TimeSeriesController
+from mt5Mvc.controllers.DfController import DfController
+
 import config
 
 import pandas as pd
 
 class Handler_Analysis:
-    def __init__(self, nodeJsApiController, mt5Controller, stockPriceLoader, threadController, strategyController, plotController, timeSeriesController, dfController):
-        self.nodeJsApiController = nodeJsApiController
-        self.mt5Controller = mt5Controller
-        self.stockPriceLoader = stockPriceLoader
-        self.threadController = threadController
-        self.strategyController = strategyController
-        self.plotController = plotController
-        self.timeSeriesController = timeSeriesController
-        self.dfController = dfController
+    def __init__(self):
+        self.mt5Controller = MT5Controller()
+        self.stockPriceLoader = StockPriceLoader()
+        self.plotController = PlotController()
+        self.timeSeriesController = TimeSeriesController()
+        self.dfController = DfController()
 
     def run(self, command):
         # seeing the decomposition of time series

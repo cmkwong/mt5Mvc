@@ -1,3 +1,8 @@
+from mt5Mvc.controllers.myNodeJs.NodeJsApiController import NodeJsApiController
+from mt5Mvc.controllers.myMT5.MT5Controller import MT5Controller
+from mt5Mvc.controllers.myStock.StockPriceLoader import StockPriceLoader
+from mt5Mvc.controllers.DfController import DfController
+
 from mt5Mvc.models.myUtils import paramModel, fileModel, timeModel, inputModel
 import config
 
@@ -5,18 +10,18 @@ import os
 import pandas as pd
 
 class Handler_Data:
-    def __init__(self, nodeJsApiController, mt5Controller, stockPriceLoader, dfController):
-        self.nodeJsApiController = nodeJsApiController
-        self.mt5Controller = mt5Controller
-        self.stockPriceLoader = stockPriceLoader
-        self.dfController = dfController
+    def __init__(self):
+        self.nodeJsApiController = NodeJsApiController()
+        self.mt5Controller = MT5Controller()
+        self.stockPriceLoader = StockPriceLoader()
+        self.dfController = DfController()
 
     def run(self, command):
         # upload the data into mySql server
         if command == '-upload':
             # setup the source into mt5
-            originalSource = self.mt5Controller.pricesLoader.source
-            self.mt5Controller.pricesLoader.source = 'mt5'
+            originalSource = self.mt5Controller.pricesLoader.data_source
+            self.mt5Controller.pricesLoader.data_source = 'mt5'
             # upload Prices
             paramFormat = {
                 'symbols': [config.Default_Forex_Symbols, list],
@@ -31,7 +36,7 @@ class Handler_Data:
             # upload Prices
             self.nodeJsApiController.uploadOneMinuteForexData(Prices)
             # resume to original source
-            self.mt5Controller.pricesLoader.source = originalSource
+            self.mt5Controller.pricesLoader.data_source = originalSource
 
         # download the stock data
         elif command == '-download_test':

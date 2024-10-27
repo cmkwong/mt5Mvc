@@ -1,15 +1,17 @@
 from mt5Mvc.models.myUtils import paramModel, printModel, inputModel
+from mt5Mvc.controllers.myNodeJs.NodeJsApiController import NodeJsApiController
+from mt5Mvc.controllers.myMT5.MT5Controller import MT5Controller
+from mt5Mvc.controllers.myStock.StockPriceLoader import StockPriceLoader
+
 import pandas as pd
 from datetime import datetime, timedelta
 
 class Handler_Deal:
-    def __init__(self, nodeJsApiController, mt5Controller, stockPriceLoader, threadController, strategyController, plotController):
-        self.nodeJsApiController = nodeJsApiController
-        self.mt5Controller = mt5Controller
-        self.stockPriceLoader = stockPriceLoader
-        self.threadController = threadController
-        self.strategyController = strategyController
-        self.plotController = plotController
+    def __init__(self, strategyContainer):
+        self.nodeJsApiController = NodeJsApiController()
+        self.mt5Controller = MT5Controller()
+        self.stockPriceLoader = StockPriceLoader()
+        self.strategyContainer = strategyContainer
 
     def run(self, command):
 
@@ -17,7 +19,7 @@ class Handler_Deal:
         if command == '-close':
             # ask if close all
             if inputModel.askConfirm("Close all the deals triggered by strategy? "):
-                for id, strategy in self.strategyController:
+                for id, strategy in self.strategyContainer:
                     # if succeed to close deal
                     if strategy.closeDeal(comment='Force to Close'):
                         print(f"Strategy id: {id} closed. ")

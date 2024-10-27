@@ -1,10 +1,13 @@
+from mt5Mvc.controllers.myMT5.MT5Controller import MT5Controller
+from mt5Mvc.controllers.myNodeJs.NodeJsApiController import NodeJsApiController
+from mt5Mvc.controllers.PlotController import PlotController
 from mt5Mvc.controllers.strategies.Conintegration.Base import Base
 
 class Train(Base):
-    def __init__(self, mt5Controller, nodeJsApiController, plotController):
-        self.mt5Controller = mt5Controller
-        self.nodeJsServerController = nodeJsApiController
-        self.plotController = plotController
+    def __init__(self):
+        self.mt5Controller = MT5Controller()
+        self.nodeJsServerController = NodeJsApiController()
+        self.plotController = PlotController()
 
     def simpleCheck(self, *, symbols: list, start: tuple, end: tuple, timeframe: str, outputPath: str):
         """

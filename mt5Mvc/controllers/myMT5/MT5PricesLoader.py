@@ -1,6 +1,10 @@
 from mt5Mvc.controllers.BasePriceLoader import BasePriceLoader
 from mt5Mvc.models.myUtils import timeModel
 from mt5Mvc.models.myUtils.paramModel import SymbolList, DatetimeTuple
+from mt5Mvc.controllers.myNodeJs.NodeJsApiController import NodeJsApiController
+from mt5Mvc.controllers.myMT5.MT5SymbolController import MT5SymbolController
+from mt5Mvc.controllers.myMT5.MT5TimeController import MT5TimeController
+
 import config
 
 from datetime import datetime
@@ -9,13 +13,13 @@ import MetaTrader5 as mt5
 import pandas as pd
 import numpy as np
 
-
 # Mt5f loader price loader
 class MT5PricesLoader(BasePriceLoader):  # created note 86a
-    def __init__(self, timeController, symbolController, nodeJsApiController):
-        self.nodeJsApiController = nodeJsApiController
-        self.symbolController = symbolController
-        self.timeController = timeController
+    def __init__(self):
+        super().__init__()
+        self.nodeJsApiController = NodeJsApiController()
+        self.symbolController = MT5SymbolController()
+        self.timeController = MT5TimeController()
 
         # for Mt5f
         # self.all_symbols_info = self.mt5SymbolController.get_all_symbols_info()
@@ -23,14 +27,15 @@ class MT5PricesLoader(BasePriceLoader):  # created note 86a
         # prepare
         self._symbols_available = False  # only for usage of _check_if_symbols_available()
 
-        self.source = 'mt5'
+        # overwrite the source by mt5
+        self.data_source = 'mt5'
 
-    def switch_source(self, s='mt5'):
-        if s not in ['mt5', 'sql']:
+    def switch_source(self, switch_command='mt5'):
+        if switch_command not in ['mt5', 'sql']:
             print('The command of switch source is not correct')
             return False
-        self.source = s
-        print(f"The price loader has switched to {self.source}")
+        self.data_source = switch_command
+        print(f"The price loader has switched to {self.data_source}")
 
     def _get_historical_data(self, symbol, timeframe, start, end=None):
         """
@@ -40,7 +45,7 @@ class MT5PricesLoader(BasePriceLoader):  # created note 86a
         :param end (local time): tuple (year, month, day, hour, mins), if None, then take loader until present
         :return: dataframe
         """
-        if self.source == 'sql':
+        if self.data_source == 'sql':
             utc_from_tuple = timeModel.get_utc_time_with_timezone(start, config.TimeZone, 1)
             utc_to_tuple = timeModel.get_utc_time_with_timezone(end, config.TimeZone, 1)
             rates_frame = self.nodeJsApiController.downloadSeriesData('forex', symbol, timeframe, utc_from_tuple, utc_to_tuple)
@@ -112,10 +117,10 @@ class MT5PricesLoader(BasePriceLoader):  # created note 86a
                 price = self._get_historical_data(symbol, timeframe, start, end)
                 if not isinstance(price, pd.DataFrame):
                     print("Cannot get data from MT5. Will try to get from SQL ... ")
-                    _originalSource = self.source
-                    self.source = 'sql'
+                    _originalSource = self.data_source
+                    self.data_source = 'sql'
                     price = self._get_historical_data(symbol, timeframe, start, end)
-                    self.source = _originalSource # resume to original data source
+                    self.data_source = _originalSource # resume to original data source
             else:
                 raise Exception('start-date must be set when end-date is being set.')
             price = price.loc[:, required_types]

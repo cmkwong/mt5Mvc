@@ -10,12 +10,12 @@ from datetime import datetime, timedelta
 
 
 class MT5Controller:
-    def __init__(self, nodeJsApiController):
+    def __init__(self):
         self.connect_server()
         self.symbolController = MT5SymbolController()
         self.tickController = MT5TickController()
         self.timeController = MT5TimeController()
-        self.pricesLoader = MT5PricesLoader(self.timeController, self.symbolController, nodeJsApiController)  # loading the loader
+        self.pricesLoader = MT5PricesLoader()  # loading the loader
         self.executor = MT5Executor(self.symbolController.get_all_symbols_info(), self.get_historical_deals, self.get_position_volume_balance)  # execute the request (buy/sell)
 
     def print_terminal_info(self):

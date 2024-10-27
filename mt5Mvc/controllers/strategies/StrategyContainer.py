@@ -1,9 +1,11 @@
+from mt5Mvc.controllers.myMT5.MT5Controller import MT5Controller
+from mt5Mvc.controllers.myNodeJs.NodeJsApiController import NodeJsApiController
 
 class StrategyContainer:
 
-    def __init__(self, mt5Controller, nodeJsApiController):
-        self.mt5Controller = mt5Controller
-        self.nodeJsApiController = nodeJsApiController
+    def __init__(self):
+        self.mt5Controller = MT5Controller()
+        self.nodeJsApiController = NodeJsApiController()
         # storing the running strategy
         self.RunningStrategies = {} # id: strategy instance
 

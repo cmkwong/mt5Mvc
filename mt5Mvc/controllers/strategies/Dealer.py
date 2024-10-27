@@ -1,12 +1,12 @@
 from mt5Mvc.models.myUtils import timeModel, printModel
-
+from mt5Mvc.controllers.myMT5.MT5Controller import MT5Controller
+from mt5Mvc.controllers.myNodeJs.NodeJsApiController import NodeJsApiController
 class Dealer:
-    def __init__(self, mt5Controller, nodeJsApiController, *,
-                 symbol, timeframe, operation, lot,
+    def __init__(self, symbol, timeframe, operation, lot,
                  pt_sl=None, pt_tp=None, exitPoints=None,
                  strategy_name='', strategy_id='', strategy_detail=''):
-        self.mt5Controller = mt5Controller
-        self.nodeJsApiController = nodeJsApiController
+        self.mt5Controller = MT5Controller()
+        self.nodeJsApiController = NodeJsApiController()
         self.position_id = None # if none, means it has no position yet
 
         # params

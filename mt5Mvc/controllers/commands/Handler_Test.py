@@ -1,13 +1,11 @@
 from mt5Mvc.controllers.strategies.Dealer import Dealer
+from mt5Mvc.controllers.myMT5.MT5Controller import MT5Controller
+from mt5Mvc.controllers.myStock.StockPriceLoader import StockPriceLoader
 
 class Handler_Test:
-    def __init__(self, nodeJsApiController, mt5Controller, stockPriceLoader, threadController, strategyController, plotController):
-        self.nodeJsApiController = nodeJsApiController
-        self.mt5Controller = mt5Controller
-        self.stockPriceLoader = stockPriceLoader
-        self.threadController = threadController
-        self.strategyController = strategyController
-        self.plotController = plotController
+    def __init__(self):
+        self.mt5Controller = MT5Controller()
+        self.stockPriceLoader = StockPriceLoader()
 
     def run(self, command):
         # testing for getting the data from sql / mt5 by switch the data source
@@ -29,8 +27,7 @@ class Handler_Test:
 
         elif command == '-testDeal':
             # define the dealer
-            dealer = Dealer(self.mt5Controller, self.nodeJsApiController,
-                            strategy_name='Test',
+            dealer = Dealer(strategy_name='Test',
                             strategy_detail='Test_detail',
                             symbol='USDJPY',
                             timeframe='15min',

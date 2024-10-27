@@ -4,13 +4,14 @@ import numpy as np
 from fpdf import FPDF
 
 from mt5Mvc.models.myUtils import listModel, fileModel, timeModel, inputModel
+from mt5Mvc.controllers.PlotController import PlotController
 
 class DfController:
     """
     Data source: local, nodeJs server, python df
     """
-    def __init__(self, plotController):
-        self.plotController = plotController
+    def __init__(self):
+        self.plotController = PlotController()
         self.pdf = FPDF('L', 'mm', 'A4')
 
     def read_as_df(self, *, path: str= './docs/datas', chunksize=None, colnames=None, header=0):

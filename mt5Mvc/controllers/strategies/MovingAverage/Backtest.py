@@ -1,12 +1,15 @@
 from mt5Mvc.models.myUtils.paramModel import DatetimeTuple
 from mt5Mvc.models.myUtils import timeModel, fileModel
 from mt5Mvc.controllers.strategies.MovingAverage.Base import Base
+from mt5Mvc.controllers.myMT5.MT5Controller import MT5Controller
+from mt5Mvc.controllers.myNodeJs.NodeJsApiController import NodeJsApiController
+from mt5Mvc.controllers.PlotController import PlotController
 
 class Backtest(Base):
-    def __init__(self, mt5Controller, nodeJsApiController, plotController):
-        self.mt5Controller = mt5Controller
-        self.nodeJsApiController = nodeJsApiController
-        self.plotController = plotController
+    def __init__(self):
+        self.mt5Controller = MT5Controller()
+        self.nodeJsApiController = NodeJsApiController()
+        self.plotController = PlotController()
 
     def getMaDistImg(self, curTime=None, *,
                      symbol: str = 'USDJPY',

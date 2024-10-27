@@ -5,6 +5,14 @@ import config
 import pandas as pd
 
 class BasePriceLoader:
+    def __init__(self):
+        self.data_source = None
+        self.DATA_SOURCES = ['mt5', 'sql', 'local']
+
+    def switch_source(self, switch_command='mt5'):
+        assert switch_command in self.DATA_SOURCES, f'The command of switch source is not correct - {self.DATA_SOURCES}'
+        self.data_source = switch_command
+        print(f"The price loader has switched to {self.data_source}")
 
     def _get_specific_from_prices(self, prices: pd.DataFrame, required_symbols, ohlcvs):
         """
