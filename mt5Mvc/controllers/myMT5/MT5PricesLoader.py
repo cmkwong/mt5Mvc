@@ -21,21 +21,14 @@ class MT5PricesLoader(BasePriceLoader):  # created note 86a
         self.symbolController = MT5SymbolController()
         self.timeController = MT5TimeController()
 
-        # for Mt5f
-        # self.all_symbols_info = self.mt5SymbolController.get_all_symbols_info()
+        # price type
+        self.Price_Type = 'forex'
 
         # prepare
         self._symbols_available = False  # only for usage of _check_if_symbols_available()
 
         # overwrite the source by mt5
         self.data_source = 'mt5'
-
-    def switch_source(self, switch_command='mt5'):
-        if switch_command not in ['mt5', 'sql']:
-            print('The command of switch source is not correct')
-            return False
-        self.data_source = switch_command
-        print(f"The price loader has switched to {self.data_source}")
 
     def _get_historical_data(self, symbol, timeframe, start, end=None):
         """
@@ -138,34 +131,6 @@ class MT5PricesLoader(BasePriceLoader):  # created note 86a
 
         return prices
 
-    # get latest Prices format
-    # def get_latest_Prices_format__DISCARD(self, symbols, prices, q2d_exchg_symbols, count):
-    #
-    #     close_prices = self._get_specific_from_prices(prices, symbols, ohlcvs='000100')
-    #     if len(close_prices) != count:  # note 63a
-    #         print("prices_df length of Data is not equal to count")
-    #         return False
-    #
-    #     # calculate the change of close price (with latest close prices)
-    #     change_close_prices = ((close_prices - close_prices.shift(1)) / close_prices.shift(1)).fillna(0.0)
-    #
-    #     # get quote exchange with values
-    #     exchg_close_prices = self._get_specific_from_prices(prices, q2d_exchg_symbols, ohlcvs='000100')
-    #     q2d_exchange_rate_df = exchgModel.get_exchange_df(symbols, q2d_exchg_symbols, exchg_close_prices, config.DepositCurrency, "q2d")
-    #     # if len(q2d_exchange_rate_df_o) or len(q2d_exchange_rate_df_c) == 39, return false and run again
-    #     if len(q2d_exchange_rate_df) != count:  # note 63a
-    #         print("q2d_exchange_rate_df_o or q2d_exchange_rate_df_c length of Data is not equal to count")
-    #         return False
-    #
-    #     Prices = InitPrices(symbols=symbols,
-    #                         all_symbols_info=self.all_symbols_info,
-    #                         close=close_prices,
-    #                         cc=change_close_prices,
-    #                         quote_exchg=q2d_exchange_rate_df
-    #                         )
-    #
-    #     return Prices
-
     def getPrices(self, *,
                   symbols: SymbolList = config.Default_Forex_Symbols,
                   start: DatetimeTuple = (2023, 6, 1, 0, 0),
@@ -184,7 +149,7 @@ class MT5PricesLoader(BasePriceLoader):  # created note 86a
         required_symbols = list(set(symbols + q2d_exchg_symbols + b2d_exchg_symbols))
         self.check_if_symbols_available(required_symbols)  # if not, raise Exception
         prices = self._get_prices_df(required_symbols, timeframe, start, end, ohlcvs, count)
-        Prices = self.get_Prices_format(symbols, prices, ohlcvs, q2d_exchg_symbols, b2d_exchg_symbols, self.symbolController.get_all_symbols_info())
+        Prices = self.get_Prices_format(symbols, prices, ohlcvs, timeframe, q2d_exchg_symbols, b2d_exchg_symbols, self.symbolController.get_all_symbols_info())
         return Prices
 
 # @dataclass

@@ -4,13 +4,13 @@ import inspect
 from mt5Mvc.models.myUtils import listModel
 
 def getFileList(pathDir, reverse=False):
-    required_fileNames = []
-    listFiles = os.listdir(pathDir)
-    for fileName in listFiles:
+    fileList = []
+    filenames = os.listdir(pathDir)
+    for fileName in filenames:
         if fileName[0] != '~': # discard the temp file
-            required_fileNames.append(fileName)
-    required_fileNames = sorted(required_fileNames, reverse=reverse)
-    return required_fileNames
+            fileList.append(fileName)
+    fileList = sorted(fileList, reverse=reverse)
+    return fileList
 
 # delete folder
 def delFolder(mainPath, folderName):

@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 import os
 
+pd.set_option("future.no_silent_downcasting", True)
+
 class Base:
     MainPath = "./docs/ma"
     SummaryPath = os.path.join(MainPath, 'summary')
@@ -28,6 +30,8 @@ class Base:
         ptDiff = Prices.ptD
         # get the changes
         Change = Prices.cc
+        # get the ret
+        logRet = Prices.logRet
         # create empty ma_data
         MaData = pd.DataFrame(columns=columnIndex, index=Close.index)
         for i, symbol in enumerate(Prices.symbols):
@@ -35,6 +39,7 @@ class Base:
             MaData[symbol, 'cc'] = Change[symbol]
             MaData[symbol, 'valueDiff'] = valueDiff.iloc[:, i]
             MaData[symbol, 'ptDiff'] = ptDiff.iloc[:, i]
+            MaData[symbol, 'logRet'] = logRet.iloc[:, i]
             MaData[symbol, 'fast'] = techModel.get_MA(Close[symbol], fast_param, False)
             MaData[symbol, 'slow'] = techModel.get_MA(Close[symbol], slow_param, False)
             # long signal
@@ -67,7 +72,7 @@ class Base:
                 # assign nan value for ffill
                 mask = MaData[symbol, f'{operation}_group'] == True
                 MaData.loc[mask, (symbol, f'{operation}_group')] = np.nan
-                MaData[symbol, f'{operation}_group'].fillna(method='ffill', inplace=True)
+                MaData[symbol, f'{operation}_group'] = MaData[symbol, f'{operation}_group'].ffill()
         return MaData
 
     def getMaDist(self, Prices, fast, slow):

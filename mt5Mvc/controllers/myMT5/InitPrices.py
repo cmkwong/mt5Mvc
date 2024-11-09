@@ -1,36 +1,51 @@
 from mt5Mvc.models.myUtils import dfModel
 
 from dataclasses import dataclass
-import pandas as pd
 
+import pandas as pd
+import numpy as np
 @dataclass
 class InitPrices:
     def __init__(self,
-                symbols: list,
-                close: pd.DataFrame,
-                cc: pd.DataFrame,
-                all_symbols_info: dict = None,
-                quote_exchg: pd.DataFrame = pd.DataFrame(),
-                base_exchg: pd.DataFrame = pd.DataFrame(),
-                open: pd.DataFrame = pd.DataFrame(),
-                high: pd.DataFrame = pd.DataFrame(),
-                low: pd.DataFrame = pd.DataFrame(),
-                volume: pd.DataFrame = pd.DataFrame(),
-                spread: pd.DataFrame = pd.DataFrame()
-                ):
+                 symbols: list,
+                 close: pd.DataFrame,
+                 cc: pd.DataFrame,
+                 timeframe: str,
+                 all_symbols_info: dict = None,
+                 quote_exchg: pd.DataFrame = pd.DataFrame(),
+                 base_exchg: pd.DataFrame = pd.DataFrame(),
+                 open: pd.DataFrame = pd.DataFrame(),
+                 high: pd.DataFrame = pd.DataFrame(),
+                 low: pd.DataFrame = pd.DataFrame(),
+                 volume: pd.DataFrame = pd.DataFrame(),
+                 spread: pd.DataFrame = pd.DataFrame(),
+                 Price_Type: str = 'forex'
+                 ):
+        # start date (all value is not null)
+        valued_index = close.loc[close.notnull().all(axis=1) == True].index
+        self.start_index = min(valued_index)
+        # end date (all value is not null)
+        self.end_index = max(valued_index)
+        # variables
         self.symbols = symbols
+        self.timeframe = timeframe
         self.all_symbols_info = all_symbols_info if all_symbols_info else {}
-        self.close = close
-        self.cc = cc
-        self.quote_exchg = quote_exchg
-        self.base_exchg = base_exchg
-        self.open = open
-        self.high = high
-        self.low = low
-        self.volume = volume
-        self.spread = spread
-        self.ptD = self.get_points_dff_df(ptValue_need=False, depositValue_need=False) if all_symbols_info else None
-        self.ptDv = self.get_points_dff_df() if all_symbols_info else None # in-deposit, eg USD
+        self.close = close.loc[valued_index]
+        self.cc = cc.loc[valued_index]
+        self.logRet = np.log(1 + self.cc) # ov * (1 + r1) * (1 + r2) = nv  ->  log(ov) + log(1 + r1) + log(1 + r2) = log(nv)
+        self.quote_exchg = quote_exchg.loc[valued_index] if not quote_exchg.empty else quote_exchg
+        self.base_exchg = base_exchg.loc[valued_index] if not base_exchg.empty else base_exchg
+        self.open = open.loc[valued_index] if not open.empty else open
+        self.high = high.loc[valued_index] if not high.empty else high
+        self.low = low.loc[valued_index] if not low.empty else low
+        self.volume = volume.loc[valued_index] if not volume.empty else volume
+        self.spread = spread.loc[valued_index] if not spread.empty else spread
+        # point difference
+        self.ptD = self.get_points_dff_df(ptValue_need=False, depositValue_need=False) if Price_Type == 'forex' else self.get_points_dff_df(ptValue_need=False, depositValue_need=False, digits_need=False)
+        self.ptD = self.ptD.loc[valued_index]
+        # point difference with values
+        self.ptDv = self.get_points_dff_df() if Price_Type == 'forex' else self.get_points_dff_df(ptValue_need=False, depositValue_need=False, digits_need=False) # in-deposit, eg USD
+        self.ptDv = self.ptDv.loc[valued_index]
         # get attr
         self.attrs = [attr for attr in dir(self) if not callable(getattr(self, attr)) and not attr.startswith("__")]
 
@@ -125,12 +140,12 @@ class InitPrices:
             pointValueDiffs[symbol] = (new - old) * (10 ** digits) * self.all_symbols_info[symbol]['pt_value'] * q2d_at
         return pointValueDiffs
 
-    def get_points_dff_df(self, ptValue_need=True, depositValue_need=True):
+    def get_points_dff_df(self, ptValue_need=True, depositValue_need=True, digits_need=True):
         """
         :return: get the values in deposit
         """
         # get the digits
-        digits = [10 ** self.all_symbols_info[symbol]['digits'] for symbol in self.symbols]
+        digits = [10 ** self.all_symbols_info[symbol]['digits'] if digits_need else 1 for symbol in self.symbols]
 
         # get the point values, eg: 1 pt of USDJPY = 100 YEN
         pt_values = [self.all_symbols_info[symbol]['pt_value'] if ptValue_need else 1 for symbol in self.symbols]
@@ -138,7 +153,7 @@ class InitPrices:
         if depositValue_need:
             quote_exchgs = self.quote_exchg.values
         else:
-            quote_exchgs = [1 for symbol in self.symbols]
+            quote_exchgs = [1 for _ in self.symbols]
 
         # get values in deposit
         new_prices = self.close

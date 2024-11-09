@@ -6,8 +6,13 @@ import pandas as pd
 
 class BasePriceLoader:
     def __init__(self):
+        # data source
         self.data_source = None
-        self.DATA_SOURCES = ['mt5', 'sql', 'local']
+        self.DATA_SOURCES = ['mt5', 'sql']
+        # column names
+        self.type_names = ['open', 'high', 'low', 'close', 'tick_volume', 'spread']
+        # Price Type
+        self.Price_Type = 'forex'
 
     def switch_source(self, switch_command='mt5'):
         assert switch_command in self.DATA_SOURCES, f'The command of switch source is not correct - {self.DATA_SOURCES}'
@@ -79,13 +84,11 @@ class BasePriceLoader:
         :param ohlcvs: str of code, eg: '100100'
         :return: list, eg: ['open', 'close']
         """
-        # define the column
-        type_names = ['open', 'high', 'low', 'close', 'tick_volume', 'spread']
         # getting required columns
         required_types = []
         for i, c in enumerate(ohlcvs):
             if c == '1':
-                required_types.append(type_names[i])
+                required_types.append(self.type_names[i])
         return required_types
 
     def _prices_df2dict(self, prices_raw_df, symbols, ohlcvs):
@@ -102,7 +105,7 @@ class BasePriceLoader:
             prices[symbol] = prices_raw_df.iloc[:, i:i + step]
         return prices
 
-    def get_Prices_format(self, symbols, prices, ohlcvs, q2d_exchg_symbols=None, b2d_exchg_symbols=None, all_symbols_info=None):
+    def get_Prices_format(self, symbols, prices, ohlcvs, timeframe, q2d_exchg_symbols=None, b2d_exchg_symbols=None, all_symbols_info=None):
 
         # get the change of close price
         close_prices = self._get_specific_from_prices(prices, symbols, ohlcvs='000100')
@@ -151,6 +154,7 @@ class BasePriceLoader:
         Prices = InitPrices(symbols=symbols,
                             close=close_prices,
                             cc=changes,
+                            timeframe=timeframe,
                             all_symbols_info=all_symbols_info,
                             quote_exchg=quote_exchg,
                             base_exchg=base_exchg,
@@ -158,6 +162,7 @@ class BasePriceLoader:
                             high=high,
                             low=low,
                             volume=volume,
-                            spread=spread
+                            spread=spread,
+                            Price_Type=self.Price_Type
                             )
         return Prices

@@ -59,7 +59,7 @@ class Handler_Data:
             params = paramModel.ask_param({
                 'path': ['C:/Users/Chris/projects/221227_mt5Mvc/docs/datas/US Stock', str]
             })
-            filename, df = self.dfController.read_as_df(**params)
+            filename, df = self.dfController.read_as_df_with_selection(**params)
             # ask table name
             params = paramModel.ask_param({
                 'tableName': [filename.lower().split('.', -1)[0], str]
@@ -79,7 +79,7 @@ class Handler_Data:
                 'colnames': [['datetime', 'bid', 'ask', 'volume', 'spread'], list], # assign column names
                 'header': [None, any] # this CSV has no header
             })
-            filename, df_iter = self.dfController.read_as_df(**params)
+            filename, df_iter = self.dfController.read_as_df_with_selection(**params)
             for data in df_iter:
                 # set the datetime format and set it as index (just for resample)
                 data['datetime'] = pd.to_datetime(data['datetime'], format='%d.%m.%Y %H:%M:%S.%f')

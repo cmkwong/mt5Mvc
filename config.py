@@ -1,4 +1,5 @@
 import os
+import MetaTrader5 as mt5
 from mt5Mvc.models.myUtils import sysModel, timeModel
 
 DT_STRING = timeModel.getTimeS(False, "%Y%m%d%H%M%S")
@@ -21,6 +22,25 @@ Default_Stock_Symbols = ['AAPL', 'AMZN', 'META', 'MSFT', 'TSLA']
 
 # sql query
 SQLQUERY_FOREX_DIR = 'C:/Users/Chris/projects/220627_forexWebServer/queries/forex'
+
+# time
+timeframe_ftext_dicts = {"1min": mt5.TIMEFRAME_M1, "2min": mt5.TIMEFRAME_M2, "3min": mt5.TIMEFRAME_M3, "4min": mt5.TIMEFRAME_M4,
+                         "5min": mt5.TIMEFRAME_M5, "6min": mt5.TIMEFRAME_M6, "10min": mt5.TIMEFRAME_M10,
+                         "12min": mt5.TIMEFRAME_M12,
+                         "15min": mt5.TIMEFRAME_M15, "20min": mt5.TIMEFRAME_M20, "30min": mt5.TIMEFRAME_M30,
+                         "1H": mt5.TIMEFRAME_H1,
+                         "2H": mt5.TIMEFRAME_H2, "3H": mt5.TIMEFRAME_H3, "4H": mt5.TIMEFRAME_H4, "6H": mt5.TIMEFRAME_H6,
+                         "8H": mt5.TIMEFRAME_H8, "12H": mt5.TIMEFRAME_H12, "1D": mt5.TIMEFRAME_D1, "1W": mt5.TIMEFRAME_W1,
+                         "1MN": mt5.TIMEFRAME_MN1}
+
+timeframe_ptext_dicts = {mt5.TIMEFRAME_M1: "1min", mt5.TIMEFRAME_M2: "2min", mt5.TIMEFRAME_M3: "3min", mt5.TIMEFRAME_M4: "4min",
+                         mt5.TIMEFRAME_M5: "5min", mt5.TIMEFRAME_M6: "6min", mt5.TIMEFRAME_M10: "10min",
+                         mt5.TIMEFRAME_M12: "12min",
+                         mt5.TIMEFRAME_M15: "15min", mt5.TIMEFRAME_M20: "M20", mt5.TIMEFRAME_M30: "30min",
+                         mt5.TIMEFRAME_H1: "1H",
+                         mt5.TIMEFRAME_H2: "2H", mt5.TIMEFRAME_H3: "3H", mt5.TIMEFRAME_H4: "4H", mt5.TIMEFRAME_H6: "6H",
+                         mt5.TIMEFRAME_H8: "8H", mt5.TIMEFRAME_H12: "12H", mt5.TIMEFRAME_D1: "1D", mt5.TIMEFRAME_W1: "1W",
+                         mt5.TIMEFRAME_MN1: "1MN"}
 
 # ---------------------------------------------------------------------------------------------
 # Forex Train Option
@@ -53,6 +73,9 @@ RUNS_SAVED_PATH = os.path.join(*[GENERAL_DOCS_PATH, 'runs', DT_STRING])
 # Loading Net
 NET_FOLDER = '220911104535'
 NET_FILE = 'checkpoint-1440000.loader'
+
+# for control signal
+CONNECTED_MT5 = False
 
 # For Forex State
 TIME_COST_POINT = 0.05

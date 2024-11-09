@@ -1,3 +1,4 @@
+import config
 from mt5Mvc.controllers.myMT5.MT5PricesLoader import MT5PricesLoader
 from mt5Mvc.controllers.myMT5.MT5Executor import MT5Executor
 from mt5Mvc.controllers.myMT5.MT5SymbolController import MT5SymbolController
@@ -11,7 +12,8 @@ from datetime import datetime, timedelta
 
 class MT5Controller:
     def __init__(self):
-        self.connect_server()
+        if not config.CONNECTED_MT5:
+            self.connect_server()
         self.symbolController = MT5SymbolController()
         self.tickController = MT5TickController()
         self.timeController = MT5TimeController()
@@ -172,9 +174,11 @@ class MT5Controller:
         # connect to MetaTrader 5
         if not mt5.initialize():
             print("initialize() failed")
+            config.CONNECTED_MT5 = False
             mt5.shutdown()
         else:
             print("Connecting MetaTrader 5 ... ")
+            config.CONNECTED_MT5 = True
 
     def disconnect_server(self):
         # disconnect to MetaTrader 5

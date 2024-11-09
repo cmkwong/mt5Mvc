@@ -81,7 +81,7 @@ class Handler_Analysis:
         elif command == '-dfsumr':
             # read the df
             print("Read File csv/exsl: ")
-            obj_readParam, readParam = paramModel.ask_param_fn(self.dfController.read_as_df)
+            obj_readParam, readParam = paramModel.ask_param_fn(self.dfController.read_as_df_with_selection)
             print("Output pdf: ")
             obj_sumParam, sumParam = paramModel.ask_param_fn(self.dfController.summaryPdf)
             _, nextTargetDf = obj_readParam(**readParam)

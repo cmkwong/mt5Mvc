@@ -14,24 +14,28 @@ class DfController:
         self.plotController = PlotController()
         self.pdf = FPDF('L', 'mm', 'A4')
 
-    def read_as_df(self, *, path: str= './docs/datas', chunksize=None, colnames=None, header=0):
+    def read_as_df(self, path: str, filename: str, chunksize=None, colnames=None, header=0):
+        fullPath = os.path.join(path, filename)
+        if filename.endswith('.xlsx'):
+            df = pd.read_excel(fullPath)  # read_excel has no chunksize parameter
+        elif filename.endswith('.csv'):
+            df = pd.read_csv(fullPath, chunksize=chunksize, names=colnames, header=header)
+        else:
+            df = pd.DataFrame()
+        print(f"read {filename} in {path}. ")
+        return filename, df
+
+    def read_as_df_with_selection(self, *, path: str= './docs/datas', chunksize=None, colnames=None, header=0):
         """
         :param path: read as dataframe
         """
         # ask user to select the file name
         fileList = fileModel.getFileList(path)
         fileNum = inputModel.askSelection(fileList)
-
-        # assigne user selected file
         filename = fileList[fileNum]
-        fullPath = os.path.join(path, filename)
-        if filename.endswith('.xlsx'):
-            df = pd.read_excel(fullPath)    # read_excel has no chunksize parameter
-        elif filename.endswith('.csv'):
-            df = pd.read_csv(fullPath, chunksize=chunksize, names=colnames, header=header)
-        else:
-            df = pd.DataFrame()
-        print(f"read {filename} in {path}. ")
+
+        # assign user selected file
+        filename, df = self.read_as_df(path, filename, chunksize, colnames, header)
         return filename, df
 
     def get_previous_index(self, currentIndex, df, limitReplace=None):

@@ -21,7 +21,7 @@ class CommandController:
         self.mt5Controller = MT5Controller()
 
         # command handler
-        self.handler_control = Handler_Control(self.mt5Controller, self.stockPriceLoader)
+        self.handler_control = Handler_Control()
         self.handler_data = Handler_Data()
         self.handler_strategy = Handler_Strategy()
         self.handler_deal = Handler_Deal(self.handler_strategy())

@@ -1,5 +1,5 @@
 import sys
-# sys.path.append('mt5Mvc')
+sys.path.append('./')
 # sys.path.append('mt5Mvc/mt5Mvc/')
 
 from mt5Mvc.models.myUtils import inputModel

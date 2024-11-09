@@ -7,7 +7,7 @@ import pandas as pd
 class NodeJsApiController(HttpController):
     def __init__(self):
         self.mainUrl = None
-        self.switch_pro_dev('dev')
+        # self.switch_pro_dev('dev')
 
     # create the forex 1min table
     def createForex1MinTable(self, tableName, schemaType):

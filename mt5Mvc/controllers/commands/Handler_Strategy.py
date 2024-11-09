@@ -60,7 +60,7 @@ class Handler_Strategy:
                 'operation': ['long', str],
             }
             param = paramModel.ask_param(paramFormat)
-            strategy.getMaDistImg(**param)
+            strategy.getForexMaDistImg(**param)
 
         # Moving Average distribution (get params from SQL)
         elif command == '-mads':
@@ -86,7 +86,7 @@ class Handler_Strategy:
                     'operation': p.operation
                 }
                 strategy = MovingAverage_Backtest()
-                strategy.getMaDistImg(**defaultParams)
+                strategy.getForexMaDistImg(**defaultParams)
 
         # Moving Average Live
         elif command == '-maL':

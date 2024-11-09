@@ -1,11 +1,17 @@
 from mt5Mvc.controllers.strategies.Dealer import Dealer
 from mt5Mvc.controllers.myMT5.MT5Controller import MT5Controller
 from mt5Mvc.controllers.myStock.StockPriceLoader import StockPriceLoader
+from mt5Mvc.controllers.strategies.MovingAverage.Train import Train as MovingAverageTrain
+from mt5Mvc.controllers.strategies.MovingAverage.Backtest import Backtest as MovingAverageBacktest
+
+from mt5Mvc.models.myUtils import paramModel, timeModel
 
 class Handler_Test:
     def __init__(self):
         self.mt5Controller = MT5Controller()
         self.stockPriceLoader = StockPriceLoader()
+        self.movingAverageTrainer = MovingAverageTrain()
+        self.movingAverageBacktest = MovingAverageBacktest()
 
     def run(self, command):
         # testing for getting the data from sql / mt5 by switch the data source
@@ -42,6 +48,29 @@ class Handler_Test:
         elif command == '-testMt5':
             historicalOrder = self.mt5Controller.get_historical_order(lastDays=3, position_id=338232986)
             historicalDeals = self.mt5Controller.get_historical_deals(lastDays=3, position_id=338232986)
+
+        elif command == '-readLocal':
+            params = paramModel.ask_param(
+                {
+                    'path': ['./docs/us_historical_data', str],
+                    'timeframe': ['1D', str]
+                 }
+            )
+            # self.stockPriceLoader.switch_source('local')
+            Prices = self.stockPriceLoader.getPrices_from_local(**params)
+            self.movingAverageTrainer.analysis(Prices, 250)
+
+        elif command == '-testimg':
+            params = paramModel.ask_param(
+                {
+                    'path': ['./docs/us_historical_data', str],
+                    'timeframe': '1D'
+                }
+            )
+            # self.stockPriceLoader.switch_source('local')
+            Prices = self.stockPriceLoader.getPrices_from_local(**params)
+            self.movingAverageBacktest.getMaDistImg(self, Prices, 176, 179, 'long', distPath)
+
 
         else:
             return True
