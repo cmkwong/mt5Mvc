@@ -5,6 +5,7 @@ from mt5Mvc.controllers.strategies.MovingAverage.Train import Train as MovingAve
 from mt5Mvc.controllers.strategies.MovingAverage.Backtest import Backtest as MovingAverageBacktest
 
 from mt5Mvc.models.myUtils import paramModel, timeModel
+import config
 
 class Handler_Test:
     def __init__(self):
@@ -52,8 +53,9 @@ class Handler_Test:
         elif command == '-readLocal':
             params = paramModel.ask_param(
                 {
-                    'path': ['./docs/us_historical_data', str],
-                    'timeframe': ['1D', str]
+                    'path': ['C:/Users/Chris/projects/221227_mt5Mvc/docs/datas/US Stock', str, 'field'],
+                    'timeframe': [list(config.timeframe_ftext_dicts.keys()), str, 'dropdown'],
+                    'timeframe_origin': [list(config.timeframe_ftext_dicts.keys()), str, 'dropdown'],
                  }
             )
             # self.stockPriceLoader.switch_source('local')
@@ -63,8 +65,9 @@ class Handler_Test:
         elif command == '-testimg':
             params = paramModel.ask_param(
                 {
-                    'path': ['./docs/us_historical_data', str],
-                    'timeframe': ['1D', str]
+                    'path': ['./docs/us_historical_data', str, 'field'],
+                    'timeframe': [list(config.timeframe_ftext_dicts.keys()), str, 'dropdown'],
+                    'timeframe_origin': [list(config.timeframe_ftext_dicts.keys()), str, 'dropdown'],
                 }
             )
             # self.stockPriceLoader.switch_source('local')

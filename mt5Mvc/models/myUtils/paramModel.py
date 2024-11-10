@@ -1,3 +1,5 @@
+from mt5Mvc.models.myUtils import inputModel
+
 import inspect
 import re
 from datetime import date, datetime
@@ -54,37 +56,37 @@ def input_param(paramName, paramValue, dataTypeName):
         input_data = paramValue
     return input_data
 
-# ask user to input parameter from dictionary
-def ask_params_DISCARD(class_object, **kwargs):
-    """
-    :param class_object: class / function attribute
-    :param kwargs: dict
-    :return:
-    """
-    # if it is none
-    if not kwargs: kwargs = {}
-    # params details from object
-    signatures = inspect.signature(class_object)
-    params = {}
-    # looping the signature
-    for sig in signatures.parameters.values():
-        # argument after(*)
-        if sig.kind == sig.KEYWORD_ONLY:
-            # encode the param
-            if sig.name in kwargs.keys():
-                encoded_param = encodeParam(kwargs[sig.name])
-            else:
-                # has no default parameter
-                if sig.default == sig.empty:
-                    encoded_param = ''
-                else:
-                    encoded_param = encodeParam(sig.default)
-            # asking params
-            input_data = input_param(sig.name, encoded_param, sig.annotation.__name__)
-            # preprocess the param
-            input_data = decodeParam(input_data, sig.annotation)
-            params[sig.name] = input_data
-    return class_object, params
+# # ask user to input parameter from dictionary
+# def ask_params_DISCARD(class_object, **kwargs):
+#     """
+#     :param class_object: class / function attribute
+#     :param kwargs: dict
+#     :return:
+#     """
+#     # if it is none
+#     if not kwargs: kwargs = {}
+#     # params details from object
+#     signatures = inspect.signature(class_object)
+#     params = {}
+#     # looping the signature
+#     for sig in signatures.parameters.values():
+#         # argument after(*)
+#         if sig.kind == sig.KEYWORD_ONLY:
+#             # encode the param
+#             if sig.name in kwargs.keys():
+#                 encoded_param = encodeParam(kwargs[sig.name])
+#             else:
+#                 # has no default parameter
+#                 if sig.default == sig.empty:
+#                     encoded_param = ''
+#                 else:
+#                     encoded_param = encodeParam(sig.default)
+#             # asking params
+#             input_data = input_param(sig.name, encoded_param, sig.annotation.__name__)
+#             # preprocess the param
+#             input_data = decodeParam(input_data, sig.annotation)
+#             params[sig.name] = input_data
+#     return class_object, params
 
 def ask_param_fn(class_object, **overwrote_paramFormat):
     """
@@ -107,9 +109,9 @@ def ask_param_fn(class_object, **overwrote_paramFormat):
             else:
                 # has no default parameter
                 if sig.default == sig.empty:
-                    paramFormat[sig.name] = ['', sig.annotation]
+                    paramFormat[sig.name] = ['', sig.annotation, 'field']
                 else:
-                    paramFormat[sig.name] = [sig.default, sig.annotation]
+                    paramFormat[sig.name] = [sig.default, sig.annotation, 'field']
     # ask user to input the param
     param = ask_param(paramFormat)
     return class_object, param
@@ -117,18 +119,24 @@ def ask_param_fn(class_object, **overwrote_paramFormat):
 def ask_param(paramFormat):
     """
     purely to ask the param base on the dictionary
-    :param params: dict, { name: [value, dataType] }
+    :param paramFormat: dict, { name: [value, dataType, fieldType] }
+    fieldType = ['field', 'options']
     :return:
     """
     params = {}
-    for name, (value, dataType) in paramFormat.items():
-        # encode the param (for user input)
-        encoded_param = encodeParam(value)
-        # asking params
-        input_data = input_param(name, encoded_param, dataType.__name__)
-        # decode the param
-        decode_data = decodeParam(input_data, dataType)
-        params[name] = decode_data
+    for name, (value, dataType, fieldType) in paramFormat.items():
+        if fieldType == 'field':
+            # encode the param (for user input), eg: [a, b, c] => "a b c"
+            encoded_param = encodeParam(value)
+            # asking params
+            input_data = input_param(name, encoded_param, dataType.__name__)
+            # decode the param
+            decode_data = decodeParam(input_data, dataType)
+            params[name] = decode_data
+        elif fieldType == 'dropdown':
+            params[name] = decodeParam(value[inputModel.askSelection(value, f"{name} ({dataType})\nPlease Select")], dataType)
+        else:
+            raise Exception('Please specify the field type. ')
     return params
 # def insert_params(class_object, input_datas: list):
 #     """

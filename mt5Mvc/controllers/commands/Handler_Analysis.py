@@ -22,10 +22,10 @@ class Handler_Analysis:
         if command == '-dct':
             symbol = 'USDJPY'
             paramFormat = {
-                'symbols': [symbol],
-                'start': (2023, 5, 30, 0, 0),
-                'end': (2023, 9, 30, 23, 59),
-                'timeframe': '15min'
+                'symbols': [[symbol], list, 'field'],
+                'start': [(2023, 5, 30, 0, 0), tuple, 'field'],
+                'end': [(2023, 9, 30, 23, 59), tuple, 'field'],
+                'timeframe': ['15min', str, 'field']
             }
             param = paramModel.ask_param(**paramFormat)
             Prices = self.mt5Controller.pricesLoader.getPrices(**param)
@@ -42,10 +42,10 @@ class Handler_Analysis:
         # running Covariance_Live with all params
         elif command == '-cov':
             paramFormat = {
-                'symbols': [config.Default_Forex_Symbols, list],
-                'start': [(2022, 10, 30, 0, 0), tuple],
-                'end': [(2022, 12, 16, 21, 59), tuple],
-                'timeframe': ['1H', str]
+                'symbols': [config.Default_Forex_Symbols, list, 'field'],
+                'start': [(2022, 10, 30, 0, 0), tuple, 'field'],
+                'end': [(2022, 12, 16, 21, 59), tuple, 'field'],
+                'timeframe': ['1H', str, 'field']
             }
             param = paramModel.ask_param(**paramFormat)
             Prices = self.mt5Controller.pricesLoader.getPrices(**param)

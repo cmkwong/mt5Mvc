@@ -25,9 +25,9 @@ class Handler_Deal:
                         print(f"Strategy id: {id} closed. ")
             else:
                 paramFormat = {
-                    "position_id": [0, int],
-                    "percent": [1.0, float],
-                    "comment": ["Manuel Close", str]
+                    "position_id": [0, int, 'field'],
+                    "percent": [1.0, float, 'field'],
+                    "comment": ["Manuel Close", str, 'field']
                 }
                 param = paramModel.ask_param(**paramFormat)
                 request = self.mt5Controller.executor.close_request_format(**param)
@@ -56,8 +56,8 @@ class Handler_Deal:
             now = datetime.now()
             dateFormat = "%Y-%m-%d %H:%M:%S"
             paramFormat = {
-                'datefrom': ((now + timedelta(hours=-48)).strftime(dateFormat), str),
-                'dateto': (now.strftime(dateFormat), str)
+                'datefrom': ((now + timedelta(hours=-48)).strftime(dateFormat), str, 'field'),
+                'dateto': (now.strftime(dateFormat), str, 'field')
             }
             param = paramModel.ask_param(paramFormat)
             df = self.nodeJsApiController.executeMySqlQuery('query_position_performance', param)

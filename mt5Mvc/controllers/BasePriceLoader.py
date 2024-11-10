@@ -3,6 +3,7 @@ from mt5Mvc.controllers.myMT5.InitPrices import InitPrices
 
 import config
 import pandas as pd
+import numpy as np
 
 class BasePriceLoader:
     def __init__(self):
@@ -43,31 +44,37 @@ class BasePriceLoader:
         :param check_code: list
         :return: raise exception
         """
-        check_code = [0, 0, 0, 0]
+        check_code = [0, 0, 0, 0, 0, 0] # open, high, low, close, volume, spread
         ohlc_rule = {}
         for key in df.columns:
             if key == 'open':
                 check_code[0] = 1
-                ohlc_rule['open'] = 'first'
+                ohlc_rule[key] = 'first'
             elif key == 'high':
                 check_code[1] = 1
-                ohlc_rule['high'] = 'max'
+                ohlc_rule[key] = 'max'
             elif key == 'low':
                 check_code[2] = 1
-                ohlc_rule['low'] = 'min'
+                ohlc_rule[key] = 'min'
             elif key == 'close':
                 check_code[3] = 1
-                ohlc_rule['close'] = 'last'
+                ohlc_rule[key] = 'last'
+            elif key == 'volume':
+                check_code[4] = 1
+                ohlc_rule[key] = np.sum
+            elif key == 'spread':
+                check_code[5] = 1
+                ohlc_rule[key] = 'last'
         # first exception
         if check_code[1] == 1 or check_code[2] == 1:
             if check_code[0] == 0 or check_code[3] == 0:
                 raise Exception("When high/low needed, there must be open/close loader included. \nThere is not open/close loader.")
-        # Second exception
-        if len(df.columns) > 4:
-            raise Exception("The DataFrame columns is exceeding 4")
+        # # Second exception
+        # if len(df.columns) > 4:
+        #     raise Exception("The DataFrame columns is exceeding 4")
         return ohlc_rule
 
-    def change_timeframe(self, df, timeframe='1H'):
+    def change_timeframe(self, df, timeframe='1H', dropna=False):
         """
         note 84f
         :param df: pd.DataFrame, having header: open high low close
@@ -76,7 +83,8 @@ class BasePriceLoader:
         """
         ohlc_rule = self._get_ohlc_rule(df)
         df = df.resample(timeframe).apply(ohlc_rule)
-        df.dropna(inplace=True)
+        if dropna:
+            df.dropna(inplace=True)
         return df
 
     def _price_type_from_code(self, ohlcvs):

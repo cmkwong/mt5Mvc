@@ -29,8 +29,8 @@ def askConfirm(question=''):
         return False
 
 # ask user for selection from a {txt: callback}
-def askSelection(options: list):
-    placeholder = f"{listModel.optionsTxt(options)}\nPlease Select: "
+def askSelection(options: list, prefixTxt:str = 'Please Select'):
+    placeholder = f"{listModel.optionsTxt(options)}\n{prefixTxt}: "
     userInput = askNum(placeholder)
     return userInput
 

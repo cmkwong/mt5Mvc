@@ -107,8 +107,8 @@ class Base:
                 # accumulated value
                 dist['accumValue'] = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumsum() * earningFactor
                 # accumulated return
-                # masked_MaData.loc[:, (symbol, f'{operation}_accumReturn')] = masked_MaData.loc[:, [(symbol, f'{operation}_return'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumprod()
-                masked_MaData.loc[:, (symbol, f'{operation}_accumReturn')] = np.exp(masked_MaData.loc[:, symbol].loc[:, ('logRet', f'{operation}_group')].groupby(f'{operation}_group').cumsum()) # same as above
+                # masked_MaData.loc[:, (symbol, f'{operation}_accumReturn')] = masked_MaData.loc[:, [(symbol, f'{operation}_return'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumprod() - 1
+                masked_MaData.loc[:, (symbol, f'{operation}_accumReturn')] = np.exp(masked_MaData.loc[:, symbol].loc[:, ('logRet', f'{operation}_group')].groupby(f'{operation}_group').cumsum()) - 1   # same as above
                 dist['accumReturn'] = masked_MaData.loc[:, (symbol, f'{operation}_accumReturn')]
                 # accumulated points
                 dist['accumPoint'] = masked_MaData.loc[:, [(symbol, 'ptDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumsum() * earningFactor

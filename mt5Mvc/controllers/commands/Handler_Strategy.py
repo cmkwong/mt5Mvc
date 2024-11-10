@@ -25,11 +25,11 @@ class Handler_Strategy:
         if command == '-coinT':
             strategy = Cointegration_Train()
             paramFormat = {
-                'symbols': [["AUDCAD", "EURUSD", "AUDUSD"], list],
-                'start': [(2022, 6, 1, 0, 0), tuple],
-                'end': [(2023, 2, 28, 23, 59), tuple],
-                'timeframe': ['1H', str],
-                "outputPath": ["C:/Users/Chris/projects/221227_mt5Mvc/docs/coin", str]
+                'symbols': [["AUDCAD", "EURUSD", "AUDUSD"], list, 'field'],
+                'start': [(2022, 6, 1, 0, 0), tuple, 'field'],
+                'end': [(2023, 2, 28, 23, 59), tuple, 'field'],
+                'timeframe': ['1H', str, 'field'],
+                "outputPath": ["C:/Users/Chris/projects/221227_mt5Mvc/docs/coin", str, 'field']
             }
             param = paramModel.ask_param(paramFormat)
             self.threadController.runThreadFunction(strategy.simpleCheck, **param)
@@ -38,11 +38,11 @@ class Handler_Strategy:
         elif command == '-maT':
             strategy = MovingAverage_Train()
             paramFormat = {
-                'symbols': [config.Default_Forex_Symbols, list],
-                'timeframe': ['15min', str],
-                'start': [(2023, 6, 1, 0, 0), tuple],
-                'end': [(2023, 7, 30, 23, 59), tuple],
-                'subtest': [False, bool],
+                'symbols': [config.Default_Forex_Symbols, list, 'field'],
+                'timeframe': ['15min', str, 'field'],
+                'start': [(2023, 6, 1, 0, 0), tuple, 'field'],
+                'end': [(2023, 7, 30, 23, 59), tuple, 'field'],
+                'subtest': [False, bool, 'field'],
             }
             param = paramModel.ask_param(paramFormat)
             strategy.getMaSummaryDf(**param)
@@ -51,13 +51,13 @@ class Handler_Strategy:
         elif command == '-mad':
             strategy = MovingAverage_Backtest()
             paramFormat = {
-                'symbols': [config.Default_Forex_Symbols, list],
-                'timeframe': ['15min', str],
-                'start': [(2023, 6, 1, 0, 0), tuple],
-                'end': [(2023, 7, 30, 23, 59), tuple],
-                'fast': [14, int],
-                'slow': [22, int],
-                'operation': ['long', str],
+                'symbols': [config.Default_Forex_Symbols, list, 'field'],
+                'timeframe': ['15min', str, 'field'],
+                'start': [(2023, 6, 1, 0, 0), tuple, 'field'],
+                'end': [(2023, 7, 30, 23, 59), tuple, 'field'],
+                'fast': [14, int, 'field'],
+                'slow': [22, int, 'field'],
+                'operation': ['long', str, 'field'],
             }
             param = paramModel.ask_param(paramFormat)
             strategy.getForexMaDistImg(**param)
@@ -66,9 +66,9 @@ class Handler_Strategy:
         elif command == '-mads':
             # get strategy param from
             paramFormat = {
-                'strategy_name': ['ma', str],
-                'live': [1, int],
-                'backtest': [1, int]
+                'strategy_name': ['ma', str, 'field'],
+                'live': [1, int, 'field'],
+                'backtest': [1, int, 'field']
             }
             param = paramModel.ask_param(paramFormat)
             params = self.nodeJsApiController.getStrategyParam(**param)
@@ -123,9 +123,9 @@ class Handler_Strategy:
 
             # ask args
             paramFormat = {
-                'strategy_name': [strategy_name, str],
-                'live': [2, int],
-                'backtest': [2, int]
+                'strategy_name': [strategy_name, str, 'field'],
+                'live': [2, int, 'field'],
+                'backtest': [2, int, 'field']
             }
             param = paramModel.ask_param(paramFormat)
             # get the parameter from SQL

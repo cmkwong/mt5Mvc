@@ -24,12 +24,12 @@ class Handler_Data:
             self.mt5Controller.pricesLoader.data_source = 'mt5'
             # upload Prices
             paramFormat = {
-                'symbols': [config.Default_Forex_Symbols, list],
-                'start': [(2023, 3, 24, 0, 0), tuple],
-                'end': [(2023, 4, 24, 23, 59), tuple],
-                'timeframe': ['1min', str],
-                'count': [0, int],
-                'ohlcvs': ['111111', str]
+                'symbols': [config.Default_Forex_Symbols, list, 'field'],
+                'start': [(2023, 3, 24, 0, 0), tuple, 'field'],
+                'end': [(2023, 4, 24, 23, 59), tuple, 'field'],
+                'timeframe': ['1min', str, 'field'],
+                'count': [0, int, 'field'],
+                'ohlcvs': ['111111', str, 'field']
             }
             param = paramModel.ask_param(paramFormat)
             Prices = self.mt5Controller.pricesLoader.getPrices(**param)
@@ -57,12 +57,12 @@ class Handler_Data:
         # read the stock price csv and upload into server
         elif command == '-upload_stock':
             params = paramModel.ask_param({
-                'path': ['C:/Users/Chris/projects/221227_mt5Mvc/docs/datas/US Stock', str]
+                'path': ['C:/Users/Chris/projects/221227_mt5Mvc/docs/datas/US Stock', str, 'field']
             })
             filename, df = self.dfController.read_as_df_with_selection(**params)
             # ask table name
             params = paramModel.ask_param({
-                'tableName': [filename.lower().split('.', -1)[0], str]
+                'tableName': [filename.lower().split('.', -1)[0], str, 'field']
             })
             # change the datetime
             df['datetime'] = pd.to_datetime(df['datetime'])
@@ -74,10 +74,10 @@ class Handler_Data:
         # read the tick data csv and upload into server (because it is normally larger, it added chunksize)
         elif command == '-upload_tick':
             params = paramModel.ask_param({
-                'path': [r'E:\forex_data\USDJPY', str],
-                'chunksize': [500000, any], # because the CSV size is too large
-                'colnames': [['datetime', 'bid', 'ask', 'volume', 'spread'], list], # assign column names
-                'header': [None, any] # this CSV has no header
+                'path': [r'E:\forex_data\USDJPY', str, 'field'],
+                'chunksize': [500000, any, 'field'], # because the CSV size is too large
+                'colnames': [['datetime', 'bid', 'ask', 'volume', 'spread'], list, 'field'], # assign column names
+                'header': [None, any, 'field'] # this CSV has no header
             })
             filename, df_iter = self.dfController.read_as_df_with_selection(**params)
             for data in df_iter:

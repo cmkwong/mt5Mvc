@@ -59,7 +59,7 @@ class StockPriceLoader(BasePriceLoader):
         return Prices
 
     # read the data from local
-    def getPrices_from_local(self, *, path, timeframe):
+    def getPrices_from_local(self, *, path, timeframe, timeframe_origin):
         prices = {}
         fileList = fileModel.getFileList(path)
         for filename in fileList:
@@ -71,7 +71,13 @@ class StockPriceLoader(BasePriceLoader):
             # open, high, low, close, volume, spread
             if len(df.columns) == 5:
                 df = df.reindex(columns=df.columns.tolist() + ['spread'])
+            # re-name the columns
             df = df.set_axis(['open', 'high', 'low', 'close', 'volume', 'spread'], axis='columns')
+            # change the timeframe if needed
+            if config.timeframe_ftext_dicts[timeframe_origin] > config.timeframe_ftext_dicts[timeframe]:
+                df = self.change_timeframe(df, timeframe)
+            else:
+                print("Timeframe is kept originally. ")
             # store into dict
             prices[filename] = df
         Prices = self.get_Prices_format(fileList, prices, '111110', timeframe) # stock data has no spread column
