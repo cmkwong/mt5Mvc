@@ -1,11 +1,13 @@
 from mt5Mvc.models.myBacktest import techModel
 from mt5Mvc.models.myUtils import dfModel
+from mt5Mvc.models.myUtils import timeModel
 
 import pandas as pd
 import numpy as np
 import os
 
 pd.set_option("future.no_silent_downcasting", True)
+pd.options.mode.copy_on_write = True
 
 class Base:
     MainPath = "./docs/ma"
@@ -88,6 +90,7 @@ class Base:
         for symbol in symbols:
             Distributions[symbol] = {}
             for operation in self.OPERATIONS:
+                # with timeModel.TimeCounter("cumprod testing. ") as timeCounter:
                 earningFactor = 1 if operation == 'long' else -1
                 # getting distribution
                 dist = {}
@@ -100,17 +103,19 @@ class Base:
                 # point change
                 dist['pointDist'] = masked_MaData.loc[:, (symbol, 'ptDiff')] * earningFactor
                 # return
-                masked_MaData.loc[:, (symbol, f'{operation}_return')] = dist['changeDist'] + 1
+                # masked_MaData.loc[:, (symbol, f'{operation}_return')] = dist['changeDist'] + 1
                 # accumulated value
                 dist['accumValue'] = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumsum() * earningFactor
                 # accumulated return
-                masked_MaData.loc[:, (symbol, f'{operation}_accumReturn')] = masked_MaData.loc[:, [(symbol, f'{operation}_return'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumprod()
+                # masked_MaData.loc[:, (symbol, f'{operation}_accumReturn')] = masked_MaData.loc[:, [(symbol, f'{operation}_return'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumprod()
+                masked_MaData.loc[:, (symbol, f'{operation}_accumReturn')] = np.exp(masked_MaData.loc[:, symbol].loc[:, ('logRet', f'{operation}_group')].groupby(f'{operation}_group').cumsum()) # same as above
                 dist['accumReturn'] = masked_MaData.loc[:, (symbol, f'{operation}_accumReturn')]
                 # accumulated points
                 dist['accumPoint'] = masked_MaData.loc[:, [(symbol, 'ptDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).cumsum() * earningFactor
                 # group by deal (change, value and duration)
                 dist['deal_valueDist'] = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).sum() * earningFactor
-                dist['deal_changeDist'] = (masked_MaData.loc[:, [(symbol, f'{operation}_return'), (symbol, f'{operation}_group')]]).groupby((symbol, f'{operation}_group')).prod() - 1
+                # dist['deal_changeDist'] = (masked_MaData.loc[:, [(symbol, f'{operation}_return'), (symbol, f'{operation}_group')]]).groupby((symbol, f'{operation}_group')).prod() - 1
+                dist['deal_changeDist'] = np.exp(masked_MaData.loc[:, symbol].loc[:, ('logRet', f'{operation}_group')].groupby(f'{operation}_group').sum()) - 1
                 dist['deal_durationDist'] = masked_MaData.loc[:, [(symbol, 'valueDiff'), (symbol, f'{operation}_group')]].groupby((symbol, f'{operation}_group')).count()
                 # save the distribution
                 Distributions[symbol][operation] = dist

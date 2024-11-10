@@ -64,7 +64,6 @@ class Handler_Strategy:
 
         # Moving Average distribution (get params from SQL)
         elif command == '-mads':
-            curTime = timeModel.getTimeS(outputFormat='%Y-%m-%d %H%M%S')
             # get strategy param from
             paramFormat = {
                 'strategy_name': ['ma', str],
@@ -76,7 +75,6 @@ class Handler_Strategy:
             # run the params
             for i, p in params.iterrows():
                 defaultParams = {
-                    'curTime': curTime,
                     'symbol': p.symbol,
                     'timeframe': p.timeframe,
                     'start': timeModel.getTimeT(p.start, "%Y-%m-%d %H:%M"),

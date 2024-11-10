@@ -12,7 +12,11 @@ class Backtest(Base):
         self.plotController = PlotController()
 
     # output MA distribution image
-    def getMaDistImg(self, Prices, fast, slow, operation, distPath):
+    def getMaDistImg(self, Prices, fast, slow, operation):
+
+        # create the disPath and its dir
+        curTime = timeModel.getTimeS(outputFormat='%Y-%m-%d %H%M%S')
+        distPath = fileModel.createDir(self.DistributionPath, curTime)
 
         # string of start and end datetime
         periodStart = timeModel.getTimeS(Prices.start_index, '%Y-%m-%d %H%M')
@@ -27,14 +31,13 @@ class Backtest(Base):
                 # only need the operation specific from argument
                 if op != operation: continue
                 # create the axs
-                axs = self.plotController.getAxes(len(dists), 1, (20, 70))
+                axs = self.plotController.getAxes(len(dists), 1, (25, 87.5))
                 for i, (distName, dist) in enumerate(dists.items()):
                     self.plotController.plotHist(axs[i], dist, distName, metrics={'start': periodStart, 'end': periodEnd, 'timeframe': Prices.timeframe, 'fast': fast, 'slow': slow, 'operation': op}, mean=True)
                     # distPath, f'{symbol}-{operation}-{startStr}-{endStr}-{distName}.jpg'
                 self.plotController.saveImg(distPath, f'{symbol}-{op}-{fast}-{slow}-{Prices.timeframe}-{periodStart}-{periodEnd}.jpg')
 
     def getForexMaDistImg(self,
-                          curTime=None,
                           *,
                           symbol: str = 'USDJPY',
                           timeframe: str = '15min',
@@ -45,13 +48,8 @@ class Backtest(Base):
                           operation: str = 'long'
                           ):
 
-        # create folder
-        if not curTime:
-            curTime = timeModel.getTimeS(outputFormat='%Y-%m-%d %H%M%S')
-        distPath = fileModel.createDir(self.DistributionPath, curTime)
-
         # getting the ma data
         Prices = self.mt5Controller.pricesLoader.getPrices(symbols=[symbol], start=start, end=end, timeframe=timeframe)
 
         # output image
-        self.getMaDistImg(Prices, fast, slow, operation, distPath)
+        self.getMaDistImg(Prices, fast, slow, operation)

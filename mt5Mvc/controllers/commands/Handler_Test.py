@@ -64,13 +64,12 @@ class Handler_Test:
             params = paramModel.ask_param(
                 {
                     'path': ['./docs/us_historical_data', str],
-                    'timeframe': '1D'
+                    'timeframe': ['1D', str]
                 }
             )
             # self.stockPriceLoader.switch_source('local')
             Prices = self.stockPriceLoader.getPrices_from_local(**params)
-            self.movingAverageBacktest.getMaDistImg(self, Prices, 176, 179, 'long', distPath)
-
+            self.movingAverageBacktest.getMaDistImg(Prices, 176, 179, 'long')
 
         else:
             return True

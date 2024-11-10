@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-
+import time
 import pytz
 
 def get_time_string(tt, format='yyyy-mm-dd-H-M'):
@@ -105,3 +105,15 @@ def get_utc_time_with_timezone(dateTuple: tuple, timezone: str, outputFormat=0):
         timeDiff = int(utc_time.strftime('%z')) / 100
         dt = datetime(dateTuple[0], dateTuple[1], dateTuple[2], hour=dateTuple[3], minute=dateTuple[4]) + timedelta(hours=-timeDiff)
         return (dt.year, dt.month, dt.day, dt.hour, dt.minute)
+
+class TimeCounter:
+    def __init__(self, prefix=None):
+        self.prefix = prefix
+
+    def __enter__(self):
+        if self.prefix: print(self.prefix)
+        self.start = time.time()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.end = time.time()
+        print(f"Time consume {self.end - self.start}s")
