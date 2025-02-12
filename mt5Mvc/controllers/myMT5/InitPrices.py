@@ -49,6 +49,9 @@ class InitPrices:
         # get attr
         self.attrs = [attr for attr in dir(self) if not callable(getattr(self, attr)) and not attr.startswith("__")]
 
+    def __len__(self):
+        return len(self.close)
+
     def get_valid_cols(self):
         validCol = []
         for name in self.attrs:

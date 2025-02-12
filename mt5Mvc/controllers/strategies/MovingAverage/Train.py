@@ -109,6 +109,6 @@ class Train(Base):
             Prices = self.mt5Controller.pricesLoader.getPrices(symbols=symbols, start=periodStartT, end=periodEndT, timeframe=timeframe)
 
             # analysis data
-            self.analysis(Prices, maIndex, timeframe)
+            self.analysis(Prices, maIndex)
 
         return True
