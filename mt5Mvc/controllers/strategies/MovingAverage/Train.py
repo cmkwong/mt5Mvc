@@ -19,8 +19,8 @@ class Train(Base):
                                 'baseRet', 'reliable'
                                 ]
 
-    def genData(self):
-        Prices = self.mt5Controller.pricesLoader.getPrices()
+    # def genData(self):
+    #     Prices = self.mt5Controller.pricesLoader.getPrices()
 
     def analysis(self, Prices, maIndex):
 

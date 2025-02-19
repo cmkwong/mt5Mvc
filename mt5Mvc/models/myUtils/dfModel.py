@@ -3,13 +3,34 @@ import numpy as np
 
 def concatDfs(df_dict):
     """
-    :param df_dict: dict
-    :return: concated DataFrame
+    Concatenate multiple DataFrames from a dictionary into a single DataFrame.
+    
+    Parameters
+    ----------
+    df_dict : dict
+        Dictionary where values are pandas DataFrames to concatenate.
+        Keys are ignored.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A single DataFrame containing all rows from input DataFrames.
+
+    Raises
+    ------
+    TypeError
+        If input is not a dictionary or contains non-DataFrame values
+    ValueError
+        If dictionary is empty
     """
-    main_df = pd.DataFrame()
-    for key, df in df_dict.items():
-        main_df = pd.concat([main_df, df], axis=0, sort=True)
-    return main_df
+    if not isinstance(df_dict, dict):
+        raise TypeError("Input must be a dictionary")
+    if not df_dict:
+        raise ValueError("Dictionary cannot be empty")
+    if not all(isinstance(df, pd.DataFrame) for df in df_dict.values()):
+        raise TypeError("All dictionary values must be pandas DataFrames")
+        
+    return pd.concat(df_dict.values(), axis=0, ignore_index=True)
 
 
 def getLastRow(df, pop=False):
