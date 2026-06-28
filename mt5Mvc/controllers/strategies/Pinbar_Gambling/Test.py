@@ -269,6 +269,8 @@ class Test:
         change_col: str,
         timeframe: str,
         horizon: int,
+        period_start: str,
+        period_end: str,
         bins: int = 50,
     ):
         fig, axes = plt.subplots(1, 2, figsize=(14, 5), constrained_layout=True)
@@ -326,7 +328,7 @@ class Test:
             )
 
         fig.suptitle(
-            f"{symbol} Pin-Bar Post Signal Distribution ({timeframe}) | total n={total_count}, E={total_e:.2f}",
+            f"{symbol} Pin-Bar Post Signal Distribution ({timeframe}) | period: {period_start} -> {period_end} | total n={total_count}, E={total_e:.2f}",
             fontsize=13,
         )
         return fig
@@ -454,7 +456,7 @@ class Test:
         body_to_range_max: float = 0.35,
         body_to_range_min: float = 0.05,
         wick_to_body_min: float = 2.0,
-        opposite_wick_to_range_max: float = 0.35,
+        opposite_wick_to_range_max: float = 0.25,
         dominant_tail_to_range_min: float = 0.55,
         body_zone_ratio: float = 0.33,
         sample_size: int = 64,
@@ -495,6 +497,8 @@ class Test:
             "save_distribution": save_distribution,
         }
         params_path = self._save_params_txt(output_dir, run_params)
+        period_start = timeModel.getTimeS(start, "%Y-%m-%d %H:%M")
+        period_end = timeModel.getTimeS(end, "%Y-%m-%d %H:%M")
 
         prices = self.mt5Controller.pricesLoader.getPrices(
             symbols=symbols,
@@ -557,6 +561,8 @@ class Test:
                     change_col=change_col,
                     timeframe=timeframe,
                     horizon=horizon,
+                    period_start=period_start,
+                    period_end=period_end,
                     bins=bins,
                 )
                 fig_path = os.path.join(

@@ -120,5 +120,21 @@ class Handler_Test:
                 f"sample_fig={result.get('sample_figure_path')}"
             )
 
+        elif command == "-pinbarT_sample":
+            run_fn, params = paramModel.ask_param_fn(
+                self.pinbarGamblingTest.run_sample_only
+            )
+            result = run_fn(**params)
+            records = result["records"]
+            bull_count = len(records[records["signal"] == "bull"])
+            bear_count = len(records[records["signal"] == "bear"])
+            sample_size = params.get("sample_size", 64)
+            print(
+                f"Pinbar sample-only finished. bull={bull_count}, bear={bear_count}, "
+                f"sample_size={sample_size}, output={result.get('output_dir')}, "
+                f"params={result.get('params_path')}, csv={result.get('csv_path')}, "
+                f"sample_fig={result.get('sample_figure_path')}"
+            )
+
         else:
             return True
