@@ -1,11 +1,19 @@
 from mt5Mvc.controllers.strategies.Dealer import Dealer
 from mt5Mvc.controllers.myMT5.MT5Controller import MT5Controller
 from mt5Mvc.controllers.myStock.StockPriceLoader import StockPriceLoader
-from mt5Mvc.controllers.strategies.MovingAverage.Train import Train as MovingAverageTrain
-from mt5Mvc.controllers.strategies.MovingAverage.Backtest import Backtest as MovingAverageBacktest
+from mt5Mvc.controllers.strategies.MovingAverage.Train import (
+    Train as MovingAverageTrain,
+)
+from mt5Mvc.controllers.strategies.MovingAverage.Backtest import (
+    Backtest as MovingAverageBacktest,
+)
+from mt5Mvc.controllers.strategies.Pinbar_Gambling.Test import (
+    Test as PinbarGamblingTest,
+)
 
 from mt5Mvc.models.myUtils import paramModel, timeModel
 import config
+
 
 class Handler_Test:
     def __init__(self):
@@ -13,66 +21,104 @@ class Handler_Test:
         self.stockPriceLoader = StockPriceLoader()
         self.movingAverageTrainer = MovingAverageTrain()
         self.movingAverageBacktest = MovingAverageBacktest()
+        self.pinbarGamblingTest = PinbarGamblingTest()
 
     def run(self, command):
         # testing for getting the data from sql / mt5 by switch the data source
-        if command == '-testPeriod':
+        if command == "-testPeriod":
             self.mt5Controller.pricesLoader.getPrices(
-                symbols=['USDJPY'],
+                symbols=["USDJPY"],
                 start=(2023, 2, 18, 0, 0),
                 end=(2023, 7, 20, 0, 0),
-                timeframe='1min'
+                timeframe="1min",
             )
 
         # testing for getting current data from sql / mt5 by switch the data source
-        elif command == '-testCurrent':
+        elif command == "-testCurrent":
             self.mt5Controller.pricesLoader.getPrices(
-                symbols=['USDJPY'],
-                count=1000,
-                timeframe='15min'
+                symbols=["USDJPY"], count=1000, timeframe="15min"
             )
 
-        elif command == '-testDeal':
+        elif command == "-testDeal":
             # define the dealer
-            dealer = Dealer(strategy_name='Test',
-                            strategy_detail='Test_detail',
-                            symbol='USDJPY',
-                            timeframe='15min',
-                            operation='long',
-                            lot=0.1,
-                            pt_sl=500,
-                            exitPoints={900: 0.75, 1200: 0.2, 1500: 0.05}
-                            )
+            dealer = Dealer(
+                strategy_name="Test",
+                strategy_detail="Test_detail",
+                symbol="USDJPY",
+                timeframe="15min",
+                operation="long",
+                lot=0.1,
+                pt_sl=500,
+                exitPoints={900: 0.75, 1200: 0.2, 1500: 0.05},
+            )
             dealer.openDeal()
             dealer.closeDeal()
 
-        elif command == '-testMt5':
-            historicalOrder = self.mt5Controller.get_historical_order(lastDays=3, position_id=338232986)
-            historicalDeals = self.mt5Controller.get_historical_deals(lastDays=3, position_id=338232986)
+        elif command == "-testMt5":
+            historicalOrder = self.mt5Controller.get_historical_order(
+                lastDays=3, position_id=338232986
+            )
+            historicalDeals = self.mt5Controller.get_historical_deals(
+                lastDays=3, position_id=338232986
+            )
 
-        elif command == '-readLocal':
+        elif command == "-readLocal":
             params = paramModel.ask_param(
                 {
-                    'path': ['C:/Users/Chris/projects/221227_mt5Mvc/docs/datas/US Stock', str, 'field'],
-                    'timeframe': [list(config.timeframe_ftext_dicts.keys()), str, 'dropdown'],
-                    'timeframe_origin': [list(config.timeframe_ftext_dicts.keys()), str, 'dropdown'],
-                 }
+                    "path": [
+                        "C:/Users/Chris/projects/221227_mt5Mvc/docs/datas/US Stock",
+                        str,
+                        "field",
+                    ],
+                    "timeframe": [
+                        list(config.timeframe_ftext_dicts.keys()),
+                        str,
+                        "dropdown",
+                    ],
+                    "timeframe_origin": [
+                        list(config.timeframe_ftext_dicts.keys()),
+                        str,
+                        "dropdown",
+                    ],
+                }
             )
             # self.stockPriceLoader.switch_source('local')
             Prices = self.stockPriceLoader.getPrices_from_local(**params)
             self.movingAverageTrainer.analysis(Prices, 250)
 
-        elif command == '-testimg':
+        elif command == "-testimg":
             params = paramModel.ask_param(
                 {
-                    'path': ['./docs/us_historical_data', str, 'field'],
-                    'timeframe': [list(config.timeframe_ftext_dicts.keys()), str, 'dropdown'],
-                    'timeframe_origin': [list(config.timeframe_ftext_dicts.keys()), str, 'dropdown'],
+                    "path": ["./docs/us_historical_data", str, "field"],
+                    "timeframe": [
+                        list(config.timeframe_ftext_dicts.keys()),
+                        str,
+                        "dropdown",
+                    ],
+                    "timeframe_origin": [
+                        list(config.timeframe_ftext_dicts.keys()),
+                        str,
+                        "dropdown",
+                    ],
                 }
             )
             # self.stockPriceLoader.switch_source('local')
             Prices = self.stockPriceLoader.getPrices_from_local(**params)
-            self.movingAverageBacktest.getMaDistImg(Prices, 176, 179, 'long')
+            self.movingAverageBacktest.getMaDistImg(Prices, 176, 179, "long")
+
+        elif command == "-pinbarT":
+            run_fn, params = paramModel.ask_param_fn(self.pinbarGamblingTest.run)
+            result = run_fn(**params)
+            records = result["records"]
+            bull_count = len(records[records["signal"] == "bull"])
+            bear_count = len(records[records["signal"] == "bear"])
+            symbol_img_count = len(result.get("symbol_figure_paths", {}))
+            print(
+                f"Pinbar test finished. bull={bull_count}, bear={bear_count}, "
+                f"output={result.get('output_dir')}, params={result.get('params_path')}, "
+                f"csv={result.get('csv_path')}, symbol_imgs={symbol_img_count}, "
+                f"sample_fig={result.get('sample_figure_path')}"
+            )
 
         else:
             return True
